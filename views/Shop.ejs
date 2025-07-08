@@ -763,8 +763,9 @@
       ];
 
       // State
+      const productFromServer = <%- JSON.stringify(products) %>;
       let currentView = "grid";
-      let filteredProducts = [...products];
+      let filteredProducts = [...productFromServer];
       let selectedCategories = [];
       let selectedBrands = [];
       let maxPrice = 2000000;

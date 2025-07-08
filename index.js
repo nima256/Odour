@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const path = require('path');
-const session = require('express-session');
+const path = require("path");
+const session = require("express-session");
 
 require("dotenv").config();
 
@@ -17,7 +17,12 @@ app.use(express.static("public/"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middlewares
 const isLoggedIn = require("./middlewares/isLoggedIn");
+
+// Models
+const Product = require("./models/Product");
+const Category = require("./models/Category");
 
 // For Production
 // app.use(
@@ -52,16 +57,17 @@ app.get("/", async (req, res) => {
   res.render("Home");
 });
 
-app.get("/cart", async (req, res) => {
-  res.render("Cart");
+app.get("/shop", async (req, res) => {
+  const products = await Product.find({})
+  res.render("Shop" , {products});
 });
 
-app.get("/productDetails", async (req, res) => {
+app.get("/productDetails/:id", async (req, res) => {
   res.render("ProductDetails");
 });
 
-app.get("/shop", async (req, res) => {
-  res.render("Shop");
+app.get("/cart", async (req, res) => {
+  res.render("Cart");
 });
 
 app.get("/userProfile", async (req, res) => {
