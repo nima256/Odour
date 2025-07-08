@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>فروشگاه زیبایی مدرن</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/vazir-font/30.1.0/font-face.css"
+    />
+    <style>
+      body {
+        font-family: "Vazir", sans-serif;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .product-card {
+        background: linear-gradient(145deg, #ffffff, #f8fafc);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .product-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      .filter-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: all 0.3s ease;
+      }
+      .filter-btn:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+      }
+      .price-gradient {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .category-chip {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .category-chip:hover {
+        background: linear-gradient(135deg, #fed6e3 0%, #a8edea 100%);
+        transform: scale(1.05);
+      }
+      .category-chip.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .floating-animation {
+        animation: float 6s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .gradient-border {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+        background-size: 400% 400%;
+        animation: gradientShift 3s ease infinite;
+      }
+      @keyframes gradientShift {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      .list-view .product-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+      .list-view .product-image {
+        width: 200px;
+        height: 150px;
+        flex-shrink: 0;
+      }
+      .notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+      .notification.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .price-range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 8px;
+        border-radius: 5px;
+        background: linear-gradient(to right, #667eea, #764ba2);
+        outline: none;
+      }
+      .price-range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+      .price-range-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+      .cart-button {
+        background-color: #2563eb;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+      }
+
+      .cart-button:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.05);
+      }
+
+      .cart-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+      }
+
+      .cart-button.success {
+        background-color: #16a34a;
+      }
+
+      .cart-button.success:hover {
+        background-color: #15803d;
+      }
+
+      .icon {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      svg {
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .logo-container {
+        --logo-size: 2.5rem;
+      }
+
+      .logo {
+        width: var(--logo-size);
+        height: var(--logo-size);
+      }
+
+      .nav-link {
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        right: 50%;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+        right: 0;
+      }
+
+      .icon-btn {
+        transition: all 0.3s ease;
+      }
+
+      .icon-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .mobile-menu {
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 min-h-screen"
+  >
+    <!-- Notification -->
+    <div
+      id="notification"
+      class="notification bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg"
+    >
+      <span id="notification-text">فیلتر اعمال شد!</span>
+    </div>
+    <nav
+      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
+          <div class="h-full overflow-hidden flex items-center">
+            <img
+              src="logo.png"
+              alt="لوگوی گلو بیوتی"
+              class="h-full w-auto object-contain"
+            />
+          </div>
+        </a>
+
+        <!-- Desktop Menu -->
+        <div
+          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
+        >
+          <a
+            href="/"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="/shop"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+
+        <!-- Icons -->
+        <div
+          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
+        >
+          <div class="relative">
+            <button
+              onclick="window.location.href='cart.html';"
+              class="relative text-gray-700 hover:text-pink-500 transition-colors"
+            >
+              <i class="fas fa-shopping-bag text-xl"></i>
+              <span
+                style="bottom: 15px; right: 7px"
+                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                >0</span
+              >
+            </button>
+          </div>
+          <button
+            id="user-auth-button"
+            class="text-gray-700 hover:text-pink-500 transition-colors"
+          >
+            <i class="fas fa-user text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
+      >
+        <div class="flex flex-col px-4 py-2">
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+      </div>
+    </nav>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        mobileMenuButton.addEventListener("click", function () {
+          mobileMenu.classList.toggle("hidden");
+        });
+
+        // بستن منو هنگام کلیک خارج از آن
+        document.addEventListener("click", function (event) {
+          if (
+            !mobileMenu.contains(event.target) &&
+            event.target !== mobileMenuButton
+          ) {
+            mobileMenu.classList.add("hidden");
+          }
+        });
+      });
+    </script>
+    <br /><br /><br />
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header Section -->
+      <div class="text-center mb-12">
+        <h1
+          class="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent mb-4"
+        >
+          مجموعه زیبایی لوکس
+        </h1>
+        <p class="text-gray-600 text-lg">کشف کنید، زیبا باشید، درخشان شوید</p>
+      </div>
+
+      <div class="flex flex-col xl:flex-row gap-8">
+        <!-- Advanced Filters Section -->
+        <div class="xl:w-1/4 order-2 xl:order-1">
+          <div class="glass-effect rounded-3xl p-8 sticky top-4 shadow-2xl">
+            <div class="flex items-center mb-8">
+              <div
+                class="w-3 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full ml-3"
+              ></div>
+              <h2 class="text-2xl font-bold text-gray-800">فیلترهای هوشمند</h2>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative mb-8">
+              <input
+                type="text"
+                id="search-input"
+                placeholder="جستجو در محصولات..."
+                class="w-full bg-white/70 border-0 rounded-2xl px-6 py-4 text-right shadow-lg focus:ring-4 focus:ring-purple-200 transition-all"
+              />
+              <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <svg
+                  class="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Category Pills -->
+            <div class="mb-8">
+              <h3 class="font-bold text-gray-700 mb-4 text-lg">دسته‌بندی‌ها</h3>
+              <div class="space-y-3">
+                <div
+                  class="category-chip rounded-2xl p-4 shadow-md"
+                  data-category="makeup"
+                >
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium">💄 آرایش صورت</span>
+                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
+                      >3</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="category-chip rounded-2xl p-4 shadow-md"
+                  data-category="skincare"
+                >
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium">🧴 مراقبت پوست</span>
+                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
+                      >2</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="category-chip rounded-2xl p-4 shadow-md"
+                  data-category="haircare"
+                >
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium">💇‍♀️ مراقبت مو</span>
+                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
+                      >1</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="category-chip rounded-2xl p-4 shadow-md"
+                  data-category="perfume"
+                >
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium">🌸 عطر و ادکلن</span>
+                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
+                      >1</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price Range Slider -->
+            <div class="mb-8">
+              <h3 class="font-bold text-gray-700 mb-4 text-lg">محدوده قیمت</h3>
+              <div class="bg-white/70 rounded-2xl p-6 shadow-lg">
+                <div class="flex justify-between mb-4">
+                  <span class="text-sm text-gray-600" id="min-price-display"
+                    >50,000 تومان</span
+                  >
+                  <span class="text-sm text-gray-600" id="max-price-display"
+                    >2,000,000 تومان</span
+                  >
+                </div>
+                <div class="relative mb-4">
+                  <input
+                    type="range"
+                    id="price-range"
+                    min="50000"
+                    max="2000000"
+                    value="1000000"
+                    class="price-range-slider w-full cursor-pointer"
+                  />
+                </div>
+                <div class="text-center">
+                  <span
+                    class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium"
+                    id="current-price"
+                  >
+                    تا 1,000,000 تومان
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Brand Selection -->
+            <div class="mb-8">
+              <h3 class="font-bold text-gray-700 mb-4 text-lg">
+                برندهای محبوب
+              </h3>
+              <div class="grid grid-cols-2 gap-3">
+                <div
+                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
+                  data-brand="loreal"
+                >
+                  <div class="text-2xl mb-1">✨</div>
+                  <div class="text-sm font-medium">لورآل</div>
+                </div>
+                <div
+                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
+                  data-brand="chanel"
+                >
+                  <div class="text-2xl mb-1">💎</div>
+                  <div class="text-sm font-medium">شانل</div>
+                </div>
+                <div
+                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
+                  data-brand="maybelline"
+                >
+                  <div class="text-2xl mb-1">🌟</div>
+                  <div class="text-sm font-medium">میبلین</div>
+                </div>
+                <div
+                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
+                  data-brand="nivea"
+                >
+                  <div class="text-2xl mb-1">💫</div>
+                  <div class="text-sm font-medium">نیوآ</div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="apply-filters"
+              class="filter-btn w-full text-white py-4 rounded-2xl font-bold text-lg shadow-xl"
+            >
+              اعمال فیلترها
+            </button>
+          </div>
+        </div>
+
+        <!-- Premium Products Grid -->
+        <div class="xl:w-3/4 order-1 xl:order-2">
+          <!-- Sorting & View Options -->
+          <div class="glass-effect rounded-2xl p-6 mb-8 shadow-xl">
+            <div
+              class="flex flex-col md:flex-row justify-between items-center gap-4"
+            >
+              <div class="flex items-center gap-4">
+                <span class="text-gray-600 font-medium" id="product-count"
+                  >نمایش 7 از 7 محصول</span
+                >
+                <div class="flex gap-2">
+                  <button
+                    id="grid-view"
+                    class="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 transition"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    id="list-view"
+                    class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <select
+                id="sort-select"
+                class="bg-white/70 border-0 rounded-xl px-6 py-3 text-right shadow-lg focus:ring-4 focus:ring-purple-200"
+              >
+                <option value="default">مرتب‌سازی بر اساس محبوبیت</option>
+                <option value="price-low">ارزان‌ترین قیمت</option>
+                <option value="price-high">گران‌ترین قیمت</option>
+                <option value="newest">جدیدترین محصولات</option>
+                <option value="rating">بیشترین امتیاز</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Products Grid -->
+          <div
+            id="products-container"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <!-- Products will be rendered here by JavaScript -->
+          </div>
+
+          <!-- Premium Pagination -->
+          <div class="flex justify-center mt-12">
+            <div class="glass-effect rounded-2xl p-4 shadow-xl">
+              <div class="flex items-center gap-2">
+                <button
+                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                >
+                  قبلی
+                </button>
+                <button
+                  class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl shadow-lg"
+                >
+                  1
+                </button>
+                <button
+                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                >
+                  2
+                </button>
+                <button
+                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                >
+                  بعدی
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      id="toast"
+      class="fixed bottom-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden"
+    >
+      <span id="toast-message"></span>
+    </div>
+    <script>
+      // Product data
+      const products = [
+        {
+          id: 1,
+          name: "رژ لب مات پریمیوم",
+          description: "رنگ‌های جذاب و ماندگار با فرمول مخصوص",
+          price: 245000,
+          originalPrice: 350000,
+          category: "makeup",
+          brand: "loreal",
+          rating: 4.8,
+          reviews: 124,
+          emoji: "💄",
+          colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+          isNew: false,
+          discount: 30,
+        },
+        {
+          id: 2,
+          name: "سرم هیالورونیک اسید",
+          description: "آبرسانی عمیق و جوان‌سازی پوست",
+          price: 680000,
+          originalPrice: null,
+          category: "skincare",
+          brand: "nivea",
+          rating: 4.9,
+          reviews: 89,
+          emoji: "🧴",
+          colors: [],
+          isNew: true,
+          discount: 0,
+        },
+        {
+          id: 3,
+          name: "عطر گل یاس پاریسی",
+          description: "رایحه‌ای لوکس و جذاب برای مناسبات خاص",
+          price: 1450000,
+          originalPrice: null,
+          category: "perfume",
+          brand: "chanel",
+          rating: 5.0,
+          reviews: 67,
+          emoji: "🌸",
+          colors: [],
+          isNew: false,
+          discount: 0,
+        },
+        {
+          id: 4,
+          name: "شامپو ترمیم‌کننده",
+          description: "تقویت و نرمی موهای آسیب‌دیده",
+          price: 320000,
+          originalPrice: null,
+          category: "haircare",
+          brand: "loreal",
+          rating: 4.7,
+          reviews: 156,
+          emoji: "💇‍♀️",
+          colors: [],
+          isNew: false,
+          discount: 0,
+        },
+        {
+          id: 5,
+          name: "پالت سایه چشم",
+          description: "12 رنگ متنوع برای آرایش حرفه‌ای",
+          price: 580000,
+          originalPrice: null,
+          category: "makeup",
+          brand: "maybelline",
+          rating: 4.6,
+          reviews: 98,
+          emoji: "✨",
+          colors: [],
+          isNew: false,
+          discount: 0,
+        },
+        {
+          id: 6,
+          name: "بالم مرطوب‌کننده لب",
+          description: "نرمی و حفاظت طولانی مدت",
+          price: 125000,
+          originalPrice: null,
+          category: "makeup",
+          brand: "nivea",
+          rating: 4.6,
+          reviews: 203,
+          emoji: "💋",
+          colors: [],
+          isNew: false,
+          discount: 0,
+        },
+        {
+          id: 7,
+          name: "کرم ضد آفتاب",
+          description: "محافظت کامل در برابر اشعه UV",
+          price: 450000,
+          originalPrice: 520000,
+          category: "skincare",
+          brand: "nivea",
+          rating: 4.8,
+          reviews: 145,
+          emoji: "☀️",
+          colors: [],
+          isNew: true,
+          discount: 15,
+        },
+      ];
+
+      // State
+      let currentView = "grid";
+      let filteredProducts = [...products];
+      let selectedCategories = [];
+      let selectedBrands = [];
+      let maxPrice = 2000000;
+      let searchQuery = "";
+      let sortBy = "default";
+
+      // Utility functions
+      function formatPrice(price) {
+        return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+      }
+
+      function showNotification(message) {
+        const notification = document.getElementById("notification");
+        const notificationText = document.getElementById("notification-text");
+        notificationText.textContent = message;
+        notification.classList.add("show");
+        setTimeout(() => {
+          notification.classList.remove("show");
+        }, 3000);
+      }
+
+      // Render products
+      function renderProducts() {
+        const container = document.getElementById("products-container");
+        const isListView = currentView === "list";
+
+        container.className = isListView
+          ? "space-y-6 list-view"
+          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
+
+        container.innerHTML = filteredProducts
+          .map((product) => {
+            const categoryColors = {
+              makeup: "bg-purple-100 text-purple-800",
+              skincare: "bg-blue-100 text-blue-800",
+              haircare: "bg-green-100 text-green-800",
+              perfume: "bg-orange-100 text-orange-800",
+            };
+
+            const categoryNames = {
+              makeup: "آرایش صورت",
+              skincare: "مراقبت پوست",
+              haircare: "مراقبت مو",
+              perfume: "عطر و ادکلن",
+            };
+
+            const gradientColors = {
+              makeup: "from-purple-600 to-pink-600",
+              skincare: "from-blue-600 to-teal-600",
+              haircare: "from-green-600 to-emerald-600",
+              perfume: "from-yellow-600 to-orange-600",
+            };
+
+            return `
+                     <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
+                        ${
+                          isListView
+                            ? ""
+                            : `
+                        <div class="relative">
+                            <div class="w-full h-64 bg-gradient-to-br from-${
+                              product.category === "makeup"
+                                ? "pink"
+                                : product.category === "skincare"
+                                ? "blue"
+                                : product.category === "haircare"
+                                ? "green"
+                                : "yellow"
+                            }-200 via-${
+                                product.category === "makeup"
+                                  ? "purple"
+                                  : product.category === "skincare"
+                                  ? "cyan"
+                                  : product.category === "haircare"
+                                  ? "emerald"
+                                  : "orange"
+                              }-200 to-${
+                                product.category === "makeup"
+                                  ? "indigo"
+                                  : product.category === "skincare"
+                                  ? "teal"
+                                  : product.category === "haircare"
+                                  ? "teal"
+                                  : "red"
+                              }-200 flex items-center justify-center relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-br from-${
+                                  product.category === "makeup"
+                                    ? "pink"
+                                    : product.category === "skincare"
+                                    ? "blue"
+                                    : product.category === "haircare"
+                                    ? "green"
+                                    : "yellow"
+                                }-400/20 to-${
+                                product.category === "makeup"
+                                  ? "purple"
+                                  : product.category === "skincare"
+                                  ? "teal"
+                                  : product.category === "haircare"
+                                  ? "teal"
+                                  : "red"
+                              }-400/20"></div>
+                                <div class="text-6xl">${product.emoji}</div>
+                                ${
+                                  product.discount > 0
+                                    ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${product.discount}% تخفیف</div>`
+                                    : ""
+                                }
+                                ${
+                                  product.isNew
+                                    ? `<div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>`
+                                    : ""
+                                }
+                                <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${
+                                  product.rating
+                                } (${product.reviews} نظر)</div>
+                            </div>
+                        </div>
+                        `
+                        }
+                        <div class="p-6 ${isListView ? "flex-1" : ""}">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="${
+                                  categoryColors[product.category]
+                                } px-3 py-1 rounded-full text-xs font-medium">
+                                    ${categoryNames[product.category]}
+                                </div>
+                                <button class="text-gray-400 hover:text-red-500 transition-colors">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-800 mb-2 text-right">${
+                              product.name
+                            }</h3>
+                            <p class="text-gray-600 text-sm mb-4 text-right">${
+                              product.description
+                            }</p>
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="text-right">
+                                    ${
+                                      product.originalPrice
+                                        ? `<div class="text-gray-400 line-through text-sm">${formatPrice(
+                                            product.originalPrice
+                                          )}</div>`
+                                        : ""
+                                    }
+                                    <div class="price-gradient font-bold text-xl">${formatPrice(
+                                      product.price
+                                    )}</div>
+                                </div>
+                                ${
+                                  product.colors.length > 0
+                                    ? `
+                                <div class="flex gap-1">
+                                    ${product.colors
+                                      .map(
+                                        (color) =>
+                                          `<div class="w-4 h-4 ${color} rounded-full border-2 border-white shadow-sm"></div>`
+                                      )
+                                      .join("")}
+                                </div>
+                                `
+                                    : ""
+                                }
+                            </div>
+                    <button onclick="addToCartAlert('${
+                      product.name
+                    }')" class="w-full bg-gradient-to-r ${
+              gradientColors[product.category]
+            } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+        افزودن به سبد خرید
+    </button>
+                            </div>
+                    </div>
+                `;
+          })
+          .join("");
+
+        // Update product count
+        document.getElementById(
+          "product-count"
+        ).textContent = `نمایش ${filteredProducts.length} از ${products.length} محصول`;
+      }
+      function addToCartAlert(productName) {
+        alert(`محصول "${productName}" با موفقیت به سبد خرید اضافه شد!`);
+      }
+      // تابع افزایش عدد سبد خرید
+      function addToCart(productName) {
+        // 1. پیدا کردن عنصر عدد سبد خرید
+        const cartCount = document.querySelector(".cart-count");
+
+        // 2. افزایش عدد فعلی + 1
+        let currentCount = parseInt(cartCount.textContent) || 0;
+        currentCount++;
+        cartCount.textContent = currentCount;
+
+        // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
+        localStorage.setItem("cartCount", currentCount);
+
+        // 4. نمایش پیام (اختیاری)
+        alert(`${productName} به سبد خرید اضافه شد!`);
+      }
+
+      // بارگذاری عدد ذخیره شده هنگام لود صفحه
+      window.addEventListener("DOMContentLoaded", () => {
+        const savedCount = localStorage.getItem("cartCount");
+        if (savedCount) {
+          document.querySelector(".cart-count").textContent = savedCount;
+        }
+      });
+      // Filter products
+      function filterProducts() {
+        filteredProducts = products.filter((product) => {
+          // Category filter
+          if (
+            selectedCategories.length > 0 &&
+            !selectedCategories.includes(product.category)
+          ) {
+            return false;
+          }
+
+          // Brand filter
+          if (
+            selectedBrands.length > 0 &&
+            !selectedBrands.includes(product.brand)
+          ) {
+            return false;
+          }
+
+          // Price filter
+          if (product.price > maxPrice) {
+            return false;
+          }
+
+          // Search filter
+          if (
+            searchQuery &&
+            !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            !product.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
+          ) {
+            return false;
+          }
+
+          return true;
+        });
+
+        // Sort products
+        switch (sortBy) {
+          case "price-low":
+            filteredProducts.sort((a, b) => a.price - b.price);
+            break;
+          case "price-high":
+            filteredProducts.sort((a, b) => b.price - a.price);
+            break;
+          case "newest":
+            filteredProducts.sort((a, b) => b.isNew - a.isNew);
+            break;
+          case "rating":
+            filteredProducts.sort((a, b) => b.rating - a.rating);
+            break;
+          default:
+            // Default sorting by popularity (rating * reviews)
+            filteredProducts.sort(
+              (a, b) => b.rating * b.reviews - a.rating * a.reviews
+            );
+        }
+
+        renderProducts();
+      }
+
+      // Event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initial render
+        renderProducts();
+
+        // View toggle buttons
+        document
+          .getElementById("grid-view")
+          .addEventListener("click", function () {
+            currentView = "grid";
+            this.classList.add("bg-purple-100");
+            this.classList.remove("bg-gray-100");
+            document.getElementById("list-view").classList.add("bg-gray-100");
+            document
+              .getElementById("list-view")
+              .classList.remove("bg-purple-100");
+            renderProducts();
+          });
+
+        document
+          .getElementById("list-view")
+          .addEventListener("click", function () {
+            currentView = "list";
+            this.classList.add("bg-purple-100");
+            this.classList.remove("bg-gray-100");
+            document.getElementById("grid-view").classList.add("bg-gray-100");
+            document
+              .getElementById("grid-view")
+              .classList.remove("bg-purple-100");
+            renderProducts();
+          });
+
+        // Sort dropdown
+        document
+          .getElementById("sort-select")
+          .addEventListener("change", function () {
+            sortBy = this.value;
+            filterProducts();
+            showNotification("محصولات مرتب شدند!");
+          });
+
+        // Search input
+        document
+          .getElementById("search-input")
+          .addEventListener("input", function () {
+            searchQuery = this.value;
+            filterProducts();
+          });
+
+        // Price range slider
+        const priceRange = document.getElementById("price-range");
+        const currentPriceDisplay = document.getElementById("current-price");
+
+        priceRange.addEventListener("input", function () {
+          maxPrice = parseInt(this.value);
+          currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)}`;
+          filterProducts();
+        });
+
+        // Category filters
+        document.querySelectorAll(".category-chip").forEach((chip) => {
+          chip.addEventListener("click", function () {
+            const category = this.dataset.category;
+            if (selectedCategories.includes(category)) {
+              selectedCategories = selectedCategories.filter(
+                (c) => c !== category
+              );
+              this.classList.remove("active");
+            } else {
+              selectedCategories.push(category);
+              this.classList.add("active");
+            }
+            filterProducts();
+          });
+        });
+
+        // Brand filters
+        document.querySelectorAll(".brand-filter").forEach((filter) => {
+          filter.addEventListener("click", function () {
+            const brand = this.dataset.brand;
+            if (selectedBrands.includes(brand)) {
+              selectedBrands = selectedBrands.filter((b) => b !== brand);
+              this.classList.remove("bg-purple-100");
+              this.classList.add("bg-white/70");
+            } else {
+              selectedBrands.push(brand);
+              this.classList.add("bg-purple-100");
+              this.classList.remove("bg-white/70");
+            }
+            filterProducts();
+          });
+        });
+
+        // Apply filters button
+        document
+          .getElementById("apply-filters")
+          .addEventListener("click", function () {
+            filterProducts();
+            showNotification("فیلترها با موفقیت اعمال شدند!");
+          });
+      });
+      function addToCartAlert(productName) {
+        // نمایش toast
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toast-message");
+
+        toastMessage.textContent = `محصول "${productName}" به سبد خرید اضافه شد`;
+        toast.classList.remove("hidden");
+
+        // پس از 3 ثانیه toast را مخفی کنید
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 3000);
+
+        // در اینجا می‌توانید منطق واقعی اضافه به سبد خرید را نیز اضافه کنید
+      }
+    </script>
+  </body>
+</html>

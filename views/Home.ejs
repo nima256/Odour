@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>گلو بیوتی | لوازم آرایشی با کیفیت</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Vazirmatn", sans-serif;
+        scroll-behavior: smooth;
+        text-align: right;
+      }
+      .logo-container {
+        --logo-size: 2.5rem;
+      }
+
+      .logo {
+        width: var(--logo-size);
+        height: var(--logo-size);
+      }
+
+      .nav-link {
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        right: 50%;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+        right: 0;
+      }
+
+      .icon-btn {
+        transition: all 0.3s ease;
+      }
+
+      .icon-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .mobile-menu {
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .hero-slider {
+        height: 80vh;
+        min-height: 500px;
+      }
+
+      .slide {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .slide.active {
+        opacity: 1;
+      }
+
+      .discount-card:hover,
+      .category-item:hover,
+      .product-card:hover,
+      .blog-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .cart-count {
+        top: -8px;
+        left: -8px;
+      }
+
+      .newsletter-input:focus {
+        border-color: #f472b6;
+        box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.2);
+      }
+
+      .discount-slider::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .discount-slider::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+
+      .discount-slider::-webkit-scrollbar-thumb {
+        background: #f472b6;
+        border-radius: 10px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 0.8s ease forwards;
+      }
+
+      .delay-100 {
+        animation-delay: 0.1s;
+      }
+
+      .delay-200 {
+        animation-delay: 0.2s;
+      }
+
+      .delay-300 {
+        animation-delay: 0.3s;
+      }
+
+      .delay-400 {
+        animation-delay: 0.4s;
+      }
+
+      .delay-500 {
+        animation-delay: 0.5s;
+      }
+
+      /* استایل‌های پاپ‌آپ احراز هویت */
+      #auth-popup {
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      }
+
+      #auth-popup:not(.hidden) {
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content,
+      .form-step {
+        display: none;
+      }
+
+      .tab-content.active,
+      .form-step.active {
+        display: block;
+      }
+
+      input:focus {
+        outline: none;
+      }
+
+      /* استایل کدهای تایید */
+      .otp-input {
+        width: 3rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        direction: ltr;
+        /* این خط رو اضافه کنید */
+      }
+
+      /* انیمیشن پاپ‌آپ */
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal-content {
+        animation: modalFadeIn 0.3s ease-out;
+      }
+      /* استایل پایه برای آیکون‌ها */
+      .icon {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .cart-icon {
+        color: #333;
+      }
+
+      .cart-icon:hover {
+        color: #007bff;
+      }
+
+      .success-icon {
+        color: #28a745;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .icon-container {
+        width: 24px;
+        height: 24px;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav
+      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
+          <div class="h-full overflow-hidden flex items-center">
+            <img
+              src="logo.png"
+              alt="لوگوی گلو بیوتی"
+              class="h-full w-auto object-contain"
+            />
+          </div>
+        </a>
+
+        <!-- Desktop Menu -->
+        <div
+          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
+        >
+          <a
+            href="/"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="/shop"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+
+        <!-- Icons -->
+        <div
+          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
+        >
+          <div class="relative">
+            <button
+              onclick="window.location.href='cart.html';"
+              class="relative text-gray-700 hover:text-pink-500 transition-colors"
+            >
+              <i class="fas fa-shopping-bag text-xl"></i>
+              <span
+                id="cartCount"
+                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                >0</span
+              >
+            </button>
+          </div>
+          <button
+            id="user-auth-button"
+            class="text-gray-700 hover:text-pink-500 transition-colors"
+          >
+            <i class="fas fa-user text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
+      >
+        <div class="flex flex-col px-4 py-2">
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+      </div>
+    </nav>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        mobileMenuButton.addEventListener("click", function () {
+          mobileMenu.classList.toggle("hidden");
+        });
+
+        // بستن منو هنگام کلیک خارج از آن
+        document.addEventListener("click", function (event) {
+          if (
+            !mobileMenu.contains(event.target) &&
+            event.target !== mobileMenuButton
+          ) {
+            mobileMenu.classList.add("hidden");
+          }
+        });
+      });
+    </script>
+
+    <!-- Hero Slider -->
+    <div class="hero-slider relative overflow-hidden mt-16">
+      <div
+        class="slide active"
+        style="
+          background-image: linear-gradient(
+              rgba(0, 0, 0, 0.3),
+              rgba(0, 0, 0, 0.3)
+            ),
+            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
+        "
+      >
+        <div class="container mx-auto px-6 h-full flex items-center">
+          <div class="max-w-lg">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+              زیبایی طبیعی خود را کشف کنید
+            </h1>
+            <p class="text-white text-lg mb-8">
+              لوازم آرایشی با کیفیت برای بانوی امروزی. زیبایی طبیعی خود را با
+              مجموعه انحصاری ما تقویت کنید.
+            </p>
+            <button
+              class="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
+            >
+              خرید کنید
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="slide"
+        style="
+          background-image: linear-gradient(
+              rgba(0, 0, 0, 0.3),
+              rgba(0, 0, 0, 0.3)
+            ),
+            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
+        "
+      >
+        <div class="container mx-auto px-6 h-full flex items-center">
+          <div class="max-w-lg">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+              مجموعه جدید تابستانی
+            </h1>
+            <p class="text-white text-lg mb-8">
+              رنگ‌های شاد و فرمول‌های سبک مناسب برای فصل تابستان.
+            </p>
+            <button
+              class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
+            >
+              مشاهده مجموعه
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="slide"
+        style="
+          background-image: linear-gradient(
+              rgba(0, 0, 0, 0.3),
+              rgba(0, 0, 0, 0.3)
+            ),
+            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
+        "
+      >
+        <div class="container mx-auto px-6 h-full flex items-center">
+          <div class="max-w-lg">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+              زیبایی سازگار با محیط زیست
+            </h1>
+            <p class="text-white text-lg mb-8">
+              محصولات پایدار و بدون آزمایش روی حیوانات که از پوست شما و سیاره
+              مراقبت می‌کنند.
+            </p>
+            <button
+              class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
+            >
+              بیشتر بدانید
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider Controls -->
+      <div
+        class="absolute bottom-5 right-0 left-0 flex justify-center space-x-2 space-x-reverse"
+      >
+        <button
+          class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot active"
+          data-index="0"
+        ></button>
+        <button
+          class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot"
+          data-index="1"
+        ></button>
+        <button
+          class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot"
+          data-index="2"
+        ></button>
+      </div>
+    </div>
+
+    <!-- پاپ‌آپ احراز هویت -->
+    <div
+      id="auth-popup"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content"
+      >
+        <!-- Tab Navigation -->
+        <div class="flex border-b">
+          <button
+            id="login-tab"
+            class="tab-btn flex-1 py-4 text-center font-medium text-pink-500 border-b-2 border-pink-500"
+          >
+            ورود
+          </button>
+          <button
+            id="register-tab"
+            class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
+          >
+            ثبت نام
+          </button>
+          <button
+            id="forgot-tab"
+            class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
+          >
+            بازیابی رمز
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-content" class="tab-content active p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+            ورود به حساب کاربری
+          </h2>
+          <form id="login-form" class="space-y-5">
+            <div>
+              <label class="block text-gray-700 mb-2" for="login-phone"
+                >شماره موبایل</label
+              >
+              <input
+                type="tel"
+                id="login-phone"
+                class="w-full px-4 py-3 rounded-lg border"
+                placeholder="09xxxxxxxxx"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="login-password"
+                >رمز عبور</label
+              >
+              <input
+                type="password"
+                id="login-password"
+                class="w-full px-4 py-3 rounded-lg border"
+                placeholder="رمز عبور خود را وارد کنید"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+            >
+              ورود
+            </button>
+          </form>
+        </div>
+
+        <!-- Registration Form -->
+        <div id="register-content" class="tab-content p-6">
+          <!-- Step 1: Registration Form -->
+          <div id="register-step-1" class="form-step active">
+            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+              ایجاد حساب کاربری
+            </h2>
+            <form id="register-form" class="space-y-4">
+              <div>
+                <label class="block text-gray-700 mb-2" for="register-name"
+                  >نام و نام خانوادگی</label
+                >
+                <input
+                  type="text"
+                  id="register-name"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="نام کامل خود را وارد کنید"
+                  required
+                />
+              </div>
+              scroll-left
+              <div>
+                <label class="block text-gray-700 mb-2" for="register-phone"
+                  >شماره موبایل</label
+                >
+                <input
+                  type="tel"
+                  id="register-phone"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="09xxxxxxxxx"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-2" for="register-email"
+                  >ایمیل (اختیاری)</label
+                >
+                <input
+                  type="email"
+                  id="register-email"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-2" for="register-password"
+                  >رمز عبور</label
+                >
+                <input
+                  type="password"
+                  id="register-password"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="حداقل 6 کاراکتر"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-gray-700 mb-2"
+                  for="register-confirm-password"
+                  >تکرار رمز عبور</label
+                >
+                <input
+                  type="password"
+                  id="register-confirm-password"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="تکرار رمز عبور"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors mt-2"
+              >
+                ثبت نام
+              </button>
+            </form>
+          </div>
+
+          <!-- Step 2: Verification Code -->
+          <div id="register-step-2" class="form-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+              تایید شماره موبایل
+            </h2>
+            <p class="text-gray-600 text-center mb-5">
+              کد تایید به شماره
+              <span id="register-phone-display" class="font-bold"></span> ارسال
+              شد
+            </p>
+            <form id="register-verification-form" class="space-y-5">
+              <div class="text-center">
+                <label class="block text-gray-700 mb-4 text-center"
+                  >کد تایید را وارد کنید</label
+                >
+                <!-- در بخش ثبت نام -->
+                <div class="flex justify-center gap-2 mb-3">
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                </div>
+                <div
+                  id="register-resend-timer"
+                  class="text-sm text-gray-500 mb-3"
+                >
+                  ارسال مجدد کد تا <span>۰۲:۰۰</span>
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+              >
+                تایید و ورود
+              </button>
+              <button
+                type="button"
+                id="register-back-btn"
+                class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
+              >
+                بازگشت
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-content" class="tab-content p-6">
+          <!-- Step 1: Phone Number -->
+          <div id="forgot-step-1" class="form-step active">
+            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+              بازیابی رمز عبور
+            </h2>
+            <form id="forgot-form" class="space-y-5">
+              <div>
+                <label class="block text-gray-700 mb-2" for="forgot-phone"
+                  >شماره موبایل</label
+                >
+                <input
+                  type="tel"
+                  id="forgot-phone"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="09xxxxxxxxx"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+              >
+                ارسال کد تایید
+              </button>
+            </form>
+          </div>
+
+          <!-- Step 2: Verification Code -->
+          <div id="forgot-step-2" class="form-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+              تایید کد
+            </h2>
+            <p class="text-gray-600 text-center mb-5">
+              کد تایید به شماره
+              <span id="forgot-phone-display" class="font-bold"></span> ارسال شد
+            </p>
+            <form id="forgot-verification-form" class="space-y-5">
+              <div class="text-center">
+                <label class="block text-gray-700 mb-4 text-center"
+                  >کد تایید را وارد کنید</label
+                >
+                <!-- در بخش ثبت نام -->
+                <div class="flex justify-center gap-2 mb-3">
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                  <input
+                    type="text"
+                    maxlength="1"
+                    class="otp-input"
+                    dir="ltr"
+                    required
+                  />
+                </div>
+                <div
+                  id="forgot-resend-timer"
+                  class="text-sm text-gray-500 mb-3"
+                >
+                  ارسال مجدد کد تا <span>۰۲:۰۰</span>
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+              >
+                تایید
+              </button>
+              <button
+                type="button"
+                id="forgot-back-btn"
+                class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
+              >
+                بازگشت
+              </button>
+            </form>
+          </div>
+
+          <!-- Step 3: New Password -->
+          <div id="forgot-step-3" class="form-step">
+            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+              تعیین رمز عبور جدید
+            </h2>
+            <form id="new-password-form" class="space-y-5">
+              <div>
+                <label class="block text-gray-700 mb-2" for="new-password"
+                  >رمز عبور جدید</label
+                >
+                <input
+                  type="password"
+                  id="new-password"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="حداقل 6 کاراکتر"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-gray-700 mb-2"
+                  for="confirm-new-password"
+                  >تکرار رمز عبور جدید</label
+                >
+                <input
+                  type="password"
+                  id="confirm-new-password"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="تکرار رمز عبور جدید"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+              >
+                ذخیره و ورود
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Special Discounts Section -->
+    <section class="py-12 px-4 bg-white">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+          پیشنهادات ویژه
+        </h2>
+        <p class="text-gray-600 mb-8 fade-in delay-100">
+          تخفیف‌های محدود روی محصولات با کیفیت
+        </p>
+
+        <div class="relative">
+          <div
+            class="discount-slider flex space-x-4 space-x-reverse overflow-x-auto pb-4 fade-in delay-200"
+          >
+            <!-- Discount Item 1 -->
+            <div
+              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-pink-100 to-pink-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
+            >
+              <div class="p-4">
+                <span
+                  class="inline-block bg-pink-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
+                  >۲۵٪ تخفیف</span
+                >
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                  ضروریات تابستان
+                </h3>
+                <p class="text-gray-600 mb-4">
+                  با محصولات پرفروش ما برای تابستان آماده شوید
+                </p>
+                <div class="flex items-center justify-between">
+                  <button
+                    class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                  >
+                    خرید کنید
+                  </button>
+                  <span class="text-gray-800 font-semibold"
+                    >۲ روز باقیمانده</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Discount Item 2 -->
+            <div
+              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-purple-100 to-purple-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
+            >
+              <div class="p-4">
+                <span
+                  class="inline-block bg-purple-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
+                  >۳۰٪ تخفیف</span
+                >
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                  مراقبت پوست لوکس
+                </h3>
+                <p class="text-gray-600 mb-4">
+                  محصولات مراقبت از پوست با کیفیت برای پوستی درخشان
+                </p>
+                <div class="flex items-center justify-between">
+                  <button
+                    class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                  >
+                    خرید کنید
+                  </button>
+                  <span class="text-gray-800 font-semibold"
+                    >۵ روز باقیمانده</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Discount Item 3 -->
+            <div
+              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-blue-100 to-blue-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
+            >
+              <div class="p-4">
+                <span
+                  class="inline-block bg-blue-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
+                  >۴۰٪ تخفیف</span
+                >
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                  ست‌های آرایشی
+                </h3>
+                <p class="text-gray-600 mb-4">
+                  مجموعه آرایشی خود را با ست‌های منتخب ما کامل کنید
+                </p>
+                <div class="flex items-center justify-between">
+                  <button
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                  >
+                    خرید کنید
+                  </button>
+                  <span class="text-gray-800 font-semibold"
+                    >۳ روز باقیمانده</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Discount Item 4 -->
+            <div
+              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-green-100 to-green-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
+            >
+              <div class="p-4">
+                <span
+                  class="inline-block bg-green-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
+                  >۲۰٪ تخفیف</span
+                >
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                  مجموعه طبیعی
+                </h3>
+                <p class="text-gray-600 mb-4">
+                  محصولات زیبایی ارگانیک و مناسب برای گیاهخواران
+                </p>
+                <div class="flex items-center justify-between">
+                  <button
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                  >
+                    خرید کنید
+                  </button>
+                  <span class="text-gray-800 font-semibold"
+                    >۷ روز باقیمانده</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scroll Arrows -->
+          <button
+            class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
+            id="scroll-right"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <button
+            class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
+            id="scroll-left"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Categories -->
+    <section class="py-12 px-4 bg-gray-50">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+          خرید بر اساس دسته‌بندی
+        </h2>
+        <p class="text-gray-600 mb-8 fade-in delay-100">
+          مجموعه گسترده محصولات زیبایی ما را کاوش کنید
+        </p>
+
+        <div
+          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 fade-in delay-200"
+        >
+          <!-- Category 1 -->
+          <div
+            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div
+              class="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-pink-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">مراقبت پوست</h3>
+            <p class="text-gray-500 text-sm mt-1">۴۲ محصول</p>
+          </div>
+
+          <!-- Category 2 -->
+          <div
+            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div
+              class="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-purple-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">آرایشی</h3>
+            <p class="text-gray-500 text-sm mt-1">۵۶ محصول</p>
+          </div>
+
+          <!-- Category 3 -->
+          <div
+            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div
+              class="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">مراقبت مو</h3>
+            <p class="text-gray-500 text-sm mt-1">۳۸ محصول</p>
+          </div>
+
+          <!-- Category 4 -->
+          <div
+            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div
+              class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">عطر و ادکلن</h3>
+            <p class="text-gray-500 text-sm mt-1">۲۴ محصول</p>
+          </div>
+
+          <!-- Category 5 -->
+          <div
+            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div
+              class="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-yellow-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">ابزار آرایشی</h3>
+            <p class="text-gray-500 text-sm mt-1">۱۹ محصول</p>
+          </div>
+
+          <!-- Category 6 -->
+          <div
+            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div
+              class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">ست‌ها و هدایا</h3>
+            <p class="text-gray-500 text-sm mt-1">۳۱ محصول</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Best Selling Products -->
+    <section class="py-12 px-4 bg-white">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+          پرفروش‌ترین‌ها
+        </h2>
+        <p class="text-gray-600 mb-8 fade-in delay-100">
+          محبوب‌ترین محصولات ما که مشتریان دوست دارند
+        </p>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200"
+        >
+          <!-- Product 1 -->
+          <div
+            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div class="relative">
+              <div class="h-64 bg-pink-100 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-24 w-24 text-pink-300"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 100-12 6 6 0 000 12z"
+                    clip-rule="evenodd"
+                  />
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 4a6 6 0 100 12 6 6 0 000-12zm0 10a4 4 0 100-8 4 4 0 000 8z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span
+                class="absolute top-2 right-2 bg-pink-500 text-white text-xs font-semibold px-2 py-1 rounded"
+                >پرفروش</span
+              >
+            </div>
+            <div class="p-4">
+              <div class="flex items-center mb-1">
+                <div class="flex text-yellow-400">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="text-gray-500 text-sm mr-1">(۱۲۸)</span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                سرم درخشان کننده
+              </h3>
+              <p class="text-gray-600 text-sm mb-3">
+                فرمول آبرسان با ویتامین C
+              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-pink-500 font-bold">۳۴,۹۹۰ تومان</span>
+                  <span class="text-gray-400 line-through text-sm mr-2"
+                    >۴۲,۹۹۰ تومان</span
+                  >
+                </div>
+                <div class="icon-container">
+                  <!-- آیکون سبد خرید -->
+                  <svg
+                    id="cartIcon"
+                    onclick="incrementCartCount()"
+                    class="cart-icon icon cursor-pointer"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+                    ></path>
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="20" cy="20" r="1"></circle>
+                  </svg>
+
+                  <!-- آیکون تیک (مخفی شده) -->
+                  <svg
+                    id="successIcon"
+                    class="success-icon icon hidden"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 2 -->
+          <div
+            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div class="relative">
+              <div class="h-64 bg-purple-100 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-24 w-24 text-purple-300"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <div class="flex items-center mb-1">
+                <div class="flex text-yellow-400">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+                <span class="text-gray-500 text-sm mr-1">(۹۵)</span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                کرم پودر درخشان
+              </h3>
+              <p class="text-gray-600 text-sm mb-3">
+                پوشش متوسط، با جلوه مرطوب
+              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-pink-500 font-bold">۲۸,۹۹۰ تومان</span>
+                </div>
+                <div class="icon-container">
+                  <!-- آیکون سبد خرید -->
+                  <svg
+                    id="cartIcon"
+                    onclick="incrementCartCount()"
+                    class="cart-icon icon cursor-pointer"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+                    ></path>
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="20" cy="20" r="1"></circle>
+                  </svg>
+
+                  <!-- آیکون تیک (مخفی شده) -->
+                  <svg
+                    id="successIcon"
+                    class="success-icon icon hidden"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 3 -->
+          <div
+            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div class="relative">
+              <div class="h-64 bg-blue-100 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-24 w-24 text-blue-300"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span
+                class="absolute top-2 right-2 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded"
+                >جدید</span
+              >
+            </div>
+            <div class="p-4">
+              <div class="flex items-center mb-1">
+                <div class="flex text-yellow-400">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="far fa-star"></i>
+                </div>
+                <span class="text-gray-500 text-sm mr-1">(۴۲)</span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                میست مرطوب کننده
+              </h3>
+              <p class="text-gray-600 text-sm mb-3">
+                اسپری آب گل رز تازه کننده
+              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-pink-500 font-bold">۱۸,۹۹۰ تومان</span>
+                  <span class="text-gray-400 line-through text-sm mr-2"
+                    >۲۴,۹۹۰ تومان</span
+                  >
+                </div>
+                <div class="icon-container">
+                  <!-- آیکون سبد خرید -->
+                  <svg
+                    id="cartIcon"
+                    onclick="incrementCartCount()"
+                    class="cart-icon icon cursor-pointer"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+                    ></path>
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="20" cy="20" r="1"></circle>
+                  </svg>
+
+                  <!-- آیکون تیک (مخفی شده) -->
+                  <svg
+                    id="successIcon"
+                    class="success-icon icon hidden"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product 4 -->
+          <div
+            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+          >
+            <div class="relative">
+              <div class="h-64 bg-green-100 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-24 w-24 text-green-300"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.758a1 1 0 01-.293.707l-4 4C.817 14.769 2.156 18 4.828 18h10.343c2.673 0 4.012-3.231 2.122-5.121l-4-4A1 1 0 0113 8.172V4.414l.707-.707A1 1 0 0013 2H7zm2 6.172V4h2v4.172a3 3 0 00.879 2.12l1.027 1.028a4 4 0 00-2.171.102l-.47.156a4 4 0 01-2.53 0l-.563-.187a1.993 1.993 0 00-.114-.035l1.063-1.063A3 3 0 009 8.172z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <div class="flex items-center mb-1">
+                <div class="flex text-yellow-400">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="text-gray-500 text-sm mr-1">(۷۶)</span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                عطر گیاهی
+              </h3>
+              <p class="text-gray-600 text-sm mb-3">رایحه گل طبیعی</p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-pink-500 font-bold">۴۹,۹۹۰ تومان</span>
+                </div>
+                <div class="icon-container">
+                  <!-- آیکون سبد خرید -->
+                  <svg
+                    id="cartIcon"
+                    onclick="incrementCartCount()"
+                    class="cart-icon icon cursor-pointer"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+                    ></path>
+                    <circle cx="9" cy="20" r="1"></circle>
+                    <circle cx="20" cy="20" r="1"></circle>
+                  </svg>
+
+                  <!-- آیکون تیک (مخفی شده) -->
+                  <svg
+                    id="successIcon"
+                    class="success-icon icon hidden"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blog Section -->
+          <section
+            class="py-12 px-4 bg-gray-50 w-[26em] sm:w-[47em] lg:w-[80em] mx-auto"
+          >
+            <div class="max-w-7xl mx-auto">
+              <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+                وبلاگ زیبایی
+              </h2>
+              <p class="text-gray-600 mb-8 fade-in delay-100">
+                نکات، روندها و الهام بخشی زیبایی
+              </p>
+
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200"
+              >
+                <!-- Blog Post 1 -->
+                <div
+                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+                >
+                  <div class="h-48 bg-pink-200 relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="absolute inset-0 h-full w-full text-pink-300 opacity-50"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <span class="text-3xl">✨</span>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center text-gray-500 text-sm mb-3">
+                      <i class="far fa-calendar-alt ml-2"></i>
+                      <span>۲۲ خرداد ۱۴۰۲</span>
+                      <span class="mx-2">•</span>
+                      <i class="far fa-user ml-2"></i>
+                      <span>نویسنده: سارا</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                      ۱۰ نکته مراقبت از پوست در تابستان که باید بدانید
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                      از پوست خود در ماه‌های گرم تابستان با این نکات ضروری
+                      محافظت و تغذیه کنید.
+                    </p>
+                    <a
+                      href="#"
+                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
+                    >
+                      بیشتر بخوانید
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Blog Post 2 -->
+                <div
+                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+                >
+                  <div class="h-48 bg-purple-200 relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="absolute inset-0 h-full w-full text-purple-300 opacity-50"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
+                      />
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <span class="text-3xl">💄</span>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center text-gray-500 text-sm mb-3">
+                      <i class="far fa-calendar-alt ml-2"></i>
+                      <span>۱۸ خرداد ۱۴۰۲</span>
+                      <span class="mx-2">•</span>
+                      <i class="far fa-user ml-2"></i>
+                      <span>نویسنده: الهام</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                      راهنمای کامل برس‌های آرایشی
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                      بیاموزید که کدام برس‌ها را در مجموعه خود نیاز دارید و
+                      چگونه از آنها برای آرایش بی‌نقص استفاده کنید.
+                    </p>
+                    <a
+                      href="#"
+                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
+                    >
+                      بیشتر بخوانید
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Blog Post 3 -->
+                <div
+                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+                >
+                  <div class="h-48 bg-purple-200 relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="absolute inset-0 h-full w-full text-purple-300 opacity-50"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
+                      />
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <span class="text-3xl">💄</span>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center text-gray-500 text-sm mb-3">
+                      <i class="far fa-calendar-alt ml-2"></i>
+                      <span>۱۸ خرداد ۱۴۰۲</span>
+                      <span class="mx-2">•</span>
+                      <i class="far fa-user ml-2"></i>
+                      <span>نویسنده: الهام</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                      راهنمای کامل برس‌های آرایشی
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                      بیاموزید که کدام برس‌ها را در مجموعه خود نیاز دارید و
+                      چگونه از آنها برای آرایش بی‌نقص استفاده کنید.
+                    </p>
+                    <a
+                      href="#"
+                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
+                    >
+                      بیشتر بخوانید
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+                <div
+                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
+                >
+                  <div class="h-48 bg-purple-200 relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="absolute inset-0 h-full w-full text-purple-300 opacity-50"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
+                      />
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <span class="text-3xl">💄</span>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center text-gray-500 text-sm mb-3">
+                      <i class="far fa-calendar-alt ml-2"></i>
+                      <span>۱۸ خرداد ۱۴۰۲</span>
+                      <span class="mx-2">•</span>
+                      <i class="far fa-user ml-2"></i>
+                      <span>نویسنده: الهام</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                      راهنمای کامل برس‌های آرایشی
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                      بیاموزید که کدام برس‌ها را در مجموعه خود نیاز دارید و
+                      چگونه از آنها برای آرایش بی‌نقص استفاده کنید.
+                    </p>
+                    <a
+                      href="#"
+                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
+                    >
+                      بیشتر بخوانید
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-1 rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <br /><br /><br />
+            <footer class="p-4 bg-white md:p-8 lg:p-10 dark:bg-gray-800">
+              <div class="mx-auto max-w-screen-xl text-center">
+                <a
+                  href="#"
+                  class="flex justify-center items-center text-2xl font-semibold text-gray-900 dark:text-white"
+                >
+                  <svg
+                    class="mr-2 h-8"
+                    viewBox="0 0 33 33"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M25.2696 13.126C25.1955 13.6364 24.8589 14.3299 24.4728 14.9328C23.9856 15.6936 23.2125 16.2264 22.3276 16.4114L18.43 17.2265C17.8035 17.3575 17.2355 17.6853 16.8089 18.1621L14.2533 21.0188C13.773 21.5556 13.4373 21.4276 13.4373 20.7075C13.4315 20.7342 12.1689 23.9903 15.5149 25.9202C16.8005 26.6618 18.6511 26.3953 19.9367 25.6538L26.7486 21.7247C29.2961 20.2553 31.0948 17.7695 31.6926 14.892C31.7163 14.7781 31.7345 14.6639 31.7542 14.5498L25.2696 13.126Z"
+                      fill="url(#paint0_linear_11430_22515)"
+                    />
+                    <path
+                      d="M23.5028 9.20133C24.7884 9.94288 25.3137 11.0469 25.3137 12.53C25.3137 12.7313 25.2979 12.9302 25.2694 13.1261L28.0141 14.3051L31.754 14.5499C32.2329 11.7784 31.2944 8.92561 29.612 6.65804C28.3459 4.9516 26.7167 3.47073 24.7581 2.34097C23.167 1.42325 21.5136 0.818599 19.8525 0.486816L17.9861 2.90382L17.3965 5.67918L23.5028 9.20133Z"
+                      fill="url(#paint1_linear_11430_22515)"
+                    />
+                    <path
+                      d="M1.5336 11.2352C1.5329 11.2373 1.53483 11.238 1.53556 11.2358C1.67958 10.8038 1.86018 10.3219 2.08564 9.80704C3.26334 7.11765 5.53286 5.32397 8.32492 4.40943C11.117 3.49491 14.1655 3.81547 16.7101 5.28323L17.3965 5.67913L19.8525 0.486761C12.041 -1.07341 4.05728 3.51588 1.54353 11.2051C1.54233 11.2087 1.53796 11.2216 1.5336 11.2352Z"
+                      fill="url(#paint2_linear_11430_22515)"
+                    />
+                    <path
+                      d="M19.6699 25.6538C18.3843 26.3953 16.8003 26.3953 15.5147 25.6538C15.3402 25.5531 15.1757 25.4399 15.0201 25.3174L12.7591 26.8719L10.8103 30.0209C12.9733 31.821 15.7821 32.3997 18.589 32.0779C20.7013 31.8357 22.7995 31.1665 24.7582 30.0368C26.3492 29.1191 27.7 27.9909 28.8182 26.7195L27.6563 23.8962L25.7762 22.1316L19.6699 25.6538Z"
+                      fill="url(#paint3_linear_11430_22515)"
+                    />
+                    <path
+                      d="M15.0201 25.3175C14.0296 24.5373 13.4371 23.3406 13.4371 22.0588V21.931V11.2558C13.4371 10.6521 13.615 10.5494 14.1384 10.8513C13.3323 10.3864 11.4703 8.79036 9.17118 10.1165C7.88557 10.858 6.8269 12.4949 6.8269 13.978V21.8362C6.8269 24.775 8.34906 27.8406 10.5445 29.7966C10.6313 29.874 10.7212 29.9469 10.8103 30.0211L15.0201 25.3175Z"
+                      fill="url(#paint4_linear_11430_22515)"
+                    />
+                    <path
+                      d="M28.6604 5.49565C28.6589 5.49395 28.6573 5.49532 28.6589 5.49703C28.9613 5.83763 29.2888 6.23485 29.6223 6.68734C31.3648 9.05099 32.0158 12.0447 31.4126 14.9176C30.8093 17.7906 29.0071 20.2679 26.4625 21.7357L25.7761 22.1316L28.8181 26.7195C34.0764 20.741 34.09 11.5388 28.6815 5.51929C28.6789 5.51641 28.67 5.50622 28.6604 5.49565Z"
+                      fill="url(#paint5_linear_11430_22515)"
+                    />
+                    <path
+                      d="M7.09355 13.978C7.09354 12.4949 7.88551 11.1244 9.17113 10.3829C9.34564 10.2822 9.52601 10.1965 9.71002 10.1231L9.49304 7.38962L7.96861 4.26221C5.32671 5.23364 3.1897 7.24125 2.06528 9.83067C1.2191 11.7793 0.75001 13.9294 0.75 16.1888C0.75 18.0243 1.05255 19.7571 1.59553 21.3603L4.62391 21.7666L7.09355 21.0223V13.978Z"
+                      fill="url(#paint6_linear_11430_22515)"
+                    />
+                    <path
+                      d="M9.71016 10.1231C10.8817 9.65623 12.2153 9.74199 13.3264 10.3829L13.4372 10.4468L22.3326 15.5777C22.9566 15.9376 22.8999 16.2918 22.1946 16.4392L22.7078 16.332C23.383 16.1908 23.9999 15.8457 24.4717 15.3428C25.2828 14.4782 25.5806 13.4351 25.5806 12.5299C25.5806 11.0468 24.7886 9.67634 23.503 8.93479L16.6911 5.00568C14.1436 3.53627 11.0895 3.22294 8.29622 4.14442C8.18572 4.18087 8.07756 4.2222 7.96875 4.26221L9.71016 10.1231Z"
+                      fill="url(#paint7_linear_11430_22515)"
+                    />
+                    <path
+                      d="M20.0721 31.8357C20.0744 31.8352 20.0739 31.8332 20.0717 31.8337C19.6252 31.925 19.1172 32.0097 18.5581 32.0721C15.638 32.3978 12.7174 31.4643 10.5286 29.5059C8.33986 27.5474 7.09347 24.7495 7.09348 21.814L7.09347 21.0222L1.59546 21.3602C4.1488 28.8989 12.1189 33.5118 20.0411 31.8421C20.0449 31.8413 20.0582 31.8387 20.0721 31.8357Z"
+                      fill="url(#paint8_linear_11430_22515)"
+                    />
+                    <defs>
+                      <linearGradient
+                        id="paint0_linear_11430_22515"
+                        x1="20.8102"
+                        y1="23.9532"
+                        x2="23.9577"
+                        y2="12.9901"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#1724C9" />
+                        <stop offset="1" stop-color="#1C64F2" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint1_linear_11430_22515"
+                        x1="28.0593"
+                        y1="10.5837"
+                        x2="19.7797"
+                        y2="2.33321"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#1C64F2" />
+                        <stop offset="1" stop-color="#0092FF" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint2_linear_11430_22515"
+                        x1="16.9145"
+                        y1="5.2045"
+                        x2="4.42432"
+                        y2="5.99375"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#0092FF" />
+                        <stop offset="1" stop-color="#45B2FF" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint3_linear_11430_22515"
+                        x1="16.0698"
+                        y1="28.846"
+                        x2="27.2866"
+                        y2="25.8192"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#1C64F2" />
+                        <stop offset="1" stop-color="#0092FF" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint4_linear_11430_22515"
+                        x1="8.01881"
+                        y1="15.8661"
+                        x2="15.9825"
+                        y2="24.1181"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#1724C9" />
+                        <stop offset="1" stop-color="#1C64F2" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint5_linear_11430_22515"
+                        x1="26.2004"
+                        y1="21.8189"
+                        x2="31.7569"
+                        y2="10.6178"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#0092FF" />
+                        <stop offset="1" stop-color="#45B2FF" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint6_linear_11430_22515"
+                        x1="6.11387"
+                        y1="9.31427"
+                        x2="3.14054"
+                        y2="20.4898"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#1C64F2" />
+                        <stop offset="1" stop-color="#0092FF" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint7_linear_11430_22515"
+                        x1="21.2932"
+                        y1="8.78271"
+                        x2="10.4278"
+                        y2="11.488"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#1724C9" />
+                        <stop offset="1" stop-color="#1C64F2" />
+                      </linearGradient>
+                      <linearGradient
+                        id="paint8_linear_11430_22515"
+                        x1="7.15667"
+                        y1="21.5399"
+                        x2="14.0824"
+                        y2="31.9579"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stop-color="#0092FF" />
+                        <stop offset="1" stop-color="#45B2FF" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  Flowbite
+                </a>
+                <p class="my-6 text-gray-500 dark:text-gray-400">
+                  Open-source library of over 400+ web components and
+                  interactive elements built for better web.
+                </p>
+                <ul
+                  class="flex flex-wrap justify-center items-center mb-6 text-gray-900 dark:text-white"
+                >
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6">About</a>
+                  </li>
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6">Premium</a>
+                  </li>
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6"
+                      >Campaigns</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6">Blog</a>
+                  </li>
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6"
+                      >Affiliate Program</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6">FAQs</a>
+                  </li>
+                  <li>
+                    <a href="#" class="mr-4 hover:underline md:mr-6">Contact</a>
+                  </li>
+                </ul>
+                <span
+                  class="text-sm text-gray-500 sm:text-center dark:text-gray-400"
+                  >© 2021-2022
+                  <a href="#" class="hover:underline">Flowbite™</a>. All Rights
+                  Reserved.</span
+                >
+              </div>
+            </footer>
+          </section>
+
+          <script>
+            function incrementCartCount() {
+              const countEl = document.getElementById("cartCount");
+              let count = parseInt(countEl.textContent);
+              count++;
+              countEl.textContent = count;
+            }
+            document.querySelectorAll(".cart-icon").forEach((cartIcon) => {
+              cartIcon.addEventListener("click", function () {
+                // پیدا کردن آیکون تیک مربوط به همین محصول
+                const successIcon =
+                  this.closest(".icon-container").querySelector(
+                    ".success-icon"
+                  );
+
+                // مخفی کردن آیکون سبد خرید
+                this.classList.add("hidden");
+
+                // نمایش آیکون تیک
+                successIcon.classList.remove("hidden");
+
+                // بازگشت به حالت اولیه بعد از 2 ثانیه
+                setTimeout(() => {
+                  this.classList.remove("hidden");
+                  successIcon.classList.add("hidden");
+                }, 2000);
+              });
+            });
+
+            // Hero Slider
+            const slides = document.querySelectorAll(".slide");
+            const dots = document.querySelectorAll(".slider-dot");
+            let currentSlide = 0;
+
+            function showSlide(index) {
+              slides.forEach((slide) => slide.classList.remove("active"));
+              dots.forEach((dot) => dot.classList.remove("active"));
+              slides[index].classList.add("active");
+              dots[index].classList.add("active");
+              currentSlide = index;
+            }
+
+            dots.forEach((dot, index) => {
+              dot.addEventListener("click", () => {
+                showSlide(index);
+              });
+            });
+
+            function nextSlide() {
+              currentSlide = (currentSlide + 1) % slides.length;
+              showSlide(currentSlide);
+            }
+
+            // Auto slide every 5 seconds
+            setInterval(nextSlide, 5000);
+
+            // Discount Slider Scroll - Note: Reversed for RTL
+            const scrollLeftBtn = document.getElementById("scroll-left");
+            const scrollRightBtn = document.getElementById("scroll-right");
+            const discountSlider = document.querySelector(".discount-slider");
+
+            scrollLeftBtn.addEventListener("click", () => {
+              discountSlider.scrollBy({ left: 300, behavior: "smooth" }); // Reversed for RTL
+            });
+
+            scrollRightBtn.addEventListener("click", () => {
+              discountSlider.scrollBy({ left: -300, behavior: "smooth" }); // Reversed for RTL
+            });
+
+            // Fade-in animation on scroll
+            const fadeElements = document.querySelectorAll(".fade-in");
+
+            function checkFade() {
+              fadeElements.forEach((element) => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+
+                if (elementTop < windowHeight - 100) {
+                  element.classList.add("fade-visible");
+                }
+              });
+            }
+
+            window.addEventListener("scroll", checkFade);
+            window.addEventListener("load", checkFade);
+
+            document.addEventListener("DOMContentLoaded", function () {
+              // مدیریت اسلایدر هیرو
+              const slides = document.querySelectorAll(".slide");
+              const dots = document.querySelectorAll(".slider-dot");
+              let currentSlide = 0;
+
+              function showSlide(index) {
+                slides.forEach((slide) => slide.classList.remove("active"));
+                dots.forEach((dot) => dot.classList.remove("active"));
+
+                slides[index].classList.add("active");
+                dots[index].classList.add("active");
+                currentSlide = index;
+              }
+
+              dots.forEach((dot) => {
+                dot.addEventListener("click", function () {
+                  showSlide(parseInt(this.dataset.index));
+                });
+              });
+
+              setInterval(() => {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+              }, 5000);
+
+              // مدیریت پاپ‌آپ احراز هویت
+              const authButton = document.getElementById("user-auth-button");
+              const authPopup = document.getElementById("auth-popup");
+
+              authButton.addEventListener("click", function (e) {
+                e.preventDefault();
+                authPopup.classList.remove("hidden");
+                switchTab("login");
+              });
+
+              authPopup.addEventListener("click", function (e) {
+                if (e.target === authPopup) {
+                  authPopup.classList.add("hidden");
+                }
+              });
+
+              // Tab Switching
+              const tabs = {
+                login: document.getElementById("login-tab"),
+                register: document.getElementById("register-tab"),
+                forgot: document.getElementById("forgot-tab"),
+              };
+
+              const contents = {
+                login: document.getElementById("login-content"),
+                register: document.getElementById("register-content"),
+                forgot: document.getElementById("forgot-content"),
+              };
+
+              function switchTab(activeTab) {
+                Object.values(tabs).forEach((tab) => {
+                  tab.classList.remove("border-pink-500", "text-pink-500");
+                  tab.classList.add("text-gray-500");
+                });
+
+                Object.values(contents).forEach((content) => {
+                  content.classList.remove("active");
+                });
+
+                tabs[activeTab].classList.add(
+                  "border-pink-500",
+                  "text-pink-500"
+                );
+                tabs[activeTab].classList.remove("text-gray-500");
+                contents[activeTab].classList.add("active");
+              }
+
+              tabs.login.addEventListener("click", () => switchTab("login"));
+              tabs.register.addEventListener("click", () =>
+                switchTab("register")
+              );
+              tabs.forgot.addEventListener("click", () => switchTab("forgot"));
+
+              // Registration Process
+              const registerForm = document.getElementById("register-form");
+              const registerStep1 = document.getElementById("register-step-1");
+              const registerStep2 = document.getElementById("register-step-2");
+              const registerPhoneDisplay = document.getElementById(
+                "register-phone-display"
+              );
+
+              registerForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const phone = document.getElementById("register-phone").value;
+                registerPhoneDisplay.textContent = phone;
+                registerStep1.classList.remove("active");
+                registerStep2.classList.add("active");
+                startCountdown("register-resend-timer", 120);
+                setupOtpInputs("#register-step-2"); // این خط را اضافه کنید
+              });
+
+              document
+                .getElementById("register-back-btn")
+                .addEventListener("click", function () {
+                  registerStep2.classList.remove("active");
+                  registerStep1.classList.add("active");
+                });
+
+              // Forgot Password Process
+              const forgotForm = document.getElementById("forgot-form");
+              const forgotStep1 = document.getElementById("forgot-step-1");
+              const forgotStep2 = document.getElementById("forgot-step-2");
+              const forgotStep3 = document.getElementById("forgot-step-3");
+              const forgotPhoneDisplay = document.getElementById(
+                "forgot-phone-display"
+              );
+
+              forgotForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const phone = document.getElementById("forgot-phone").value;
+                forgotPhoneDisplay.textContent = phone;
+                forgotStep1.classList.remove("active");
+                forgotStep2.classList.add("active");
+                startCountdown("forgot-resend-timer", 120);
+                setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
+              });
+
+              document
+                .getElementById("forgot-back-btn")
+                .addEventListener("click", function () {
+                  forgotStep2.classList.remove("active");
+                  forgotStep1.classList.add("active");
+                });
+
+              // Improved OTP input handling (LTR focus movement)
+              function setupOtpInputs(containerSelector) {
+                const inputs = Array.from(
+                  document.querySelectorAll(`${containerSelector} .otp-input`)
+                );
+
+                // فوکوس روی آخرین اینپوت (راست‌ترین)
+                inputs[inputs.length - 1].focus();
+
+                inputs.forEach((input, index) => {
+                  // حرکت به چپ هنگام وارد کردن عدد
+                  input.addEventListener("input", function () {
+                    if (this.value.length === 1) {
+                      if (index > 0) {
+                        inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
+                      }
+                    }
+                  });
+
+                  // حرکت به راست هنگام پاک کردن
+                  input.addEventListener("keydown", function (e) {
+                    if (e.key === "Backspace" && this.value.length === 0) {
+                      if (index < inputs.length - 1) {
+                        inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
+                      }
+                    }
+                  });
+                });
+              }
+
+              // Initialize OTP inputs for both forms
+              setupOtpInputs("#register-step-2");
+              setupOtpInputs("#forgot-step-2");
+
+              // Forgot password verification form
+              const forgotVerificationForm = document.getElementById(
+                "forgot-verification-form"
+              );
+              forgotVerificationForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                forgotStep2.classList.remove("active");
+                forgotStep3.classList.add("active");
+              });
+
+              // Login form submission
+              const loginForm = document.getElementById("login-form");
+              loginForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                alert("ورود با موفقیت انجام شد!");
+                authPopup.classList.add("hidden");
+              });
+
+              // Registration verification form
+              const registerVerificationForm = document.getElementById(
+                "register-verification-form"
+              );
+              registerVerificationForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                alert("ثبت نام با موفقیت انجام شد!");
+                authPopup.classList.add("hidden");
+              });
+
+              // New password form submission
+              const newPasswordForm =
+                document.getElementById("new-password-form");
+              newPasswordForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                alert("رمز عبور با موفقیت تغییر یافت!");
+                authPopup.classList.add("hidden");
+              });
+
+              // Countdown timer function
+              function startCountdown(elementId, seconds) {
+                const timerElement = document.getElementById(elementId);
+                const timerSpan = timerElement.querySelector("span");
+
+                let remaining = seconds;
+
+                const interval = setInterval(() => {
+                  const minutes = Math.floor(remaining / 60);
+                  const secs = remaining % 60;
+
+                  timerSpan.textContent = `${minutes
+                    .toString()
+                    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+
+                  if (remaining <= 0) {
+                    clearInterval(interval);
+                    timerElement.innerHTML =
+                      '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
+                  }
+
+                  remaining--;
+                }, 1000);
+              }
+
+              // Phone number input validation
+              const phoneInputs =
+                document.querySelectorAll('input[type="tel"]');
+              phoneInputs.forEach((input) => {
+                input.addEventListener("input", function (e) {
+                  this.value = this.value.replace(/\D/g, "");
+                });
+
+                input.addEventListener("blur", function () {
+                  if (!this.value.startsWith("0") && this.value.length > 0) {
+                    this.value = "0" + this.value;
+                  }
+                });
+              });
+            });
+          </script>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
