@@ -74,6 +74,12 @@ app.get("/userProfile", async (req, res) => {
   res.render("UserProfile");
 });
 
+
+// admin
+app.get("/admin", async (req, res) => {
+  res.render("AdminPanel");
+});
+
 // DB
 mongoose
   .connect(process.env.DB_URL)

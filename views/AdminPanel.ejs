@@ -1,0 +1,1159 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت فروشگاه </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .sidebar-item:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            transform: translateX(-2px);
+            color: white;
+        }
+        
+        .sidebar-item.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+        
+        .product-row:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .modal {
+            backdrop-filter: blur(15px);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        
+        .status-pending { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .status-processing { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .status-shipping { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .status-delivered { background: linear-gradient(135deg, #10b981, #059669); }
+        
+        .category-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .category-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+        
+        .notification-item {
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .notification-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-right: 0 !important;
+            }
+            
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 30;
+            }
+            
+            .mobile-overlay.show {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile Overlay -->
+    <div id="mobileOverlay" class="mobile-overlay" onclick="closeMobileSidebar()"></div>
+    
+    <!-- Top Navbar -->
+    <nav class="glass-card fixed top-0 right-0 left-0 z-50 border-b border-gray-200">
+        <div class="px-4 md:px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+                
+                <!-- Logo -->
+                <div class="flex items-center space-x-reverse space-x-4">
+                    <div class="gradient-bg text-white p-2 md:p-3 rounded-lg">
+                        <i class="fas fa-store text-lg md:text-xl"></i>
+                    </div>
+                    <div class="hidden sm:block">
+                        <h1 class="text-lg md:text-xl font-bold text-gray-800">فروشگاه زیبایی اودور</h1>
+                        <p class="text-xs md:text-sm text-gray-500">پنل مدیریت</p>
+                    </div>
+                </div>
+                
+                <!-- Right Side -->
+                <div class="flex items-center space-x-reverse space-x-2 md:space-x-4">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="p-2 md:p-3 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">3</span>
+                        </button>
+                        
+                        <!-- Notifications Dropdown -->
+                        <div id="notificationsMenu" class="hidden absolute left-0 mt-2 w-80 max-w-sm glass-card rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="font-semibold text-gray-800">اعلان‌ها</h3>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto">
+                                <div class="notification-item p-4">
+                                    <div class="flex items-start space-x-reverse space-x-3">
+                                        <div class="bg-blue-100 p-2 rounded-full">
+                                            <i class="fas fa-shopping-cart text-blue-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-800">سفارش جدید</p>
+                                            <p class="text-xs text-gray-600">سفارش #1004 ثبت شد</p>
+                                            <p class="text-xs text-gray-400 mt-1">5 دقیقه پیش</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="notification-item p-4">
+                                    <div class="flex items-start space-x-reverse space-x-3">
+                                        <div class="bg-green-100 p-2 rounded-full">
+                                            <i class="fas fa-user-plus text-green-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-800">کاربر جدید</p>
+                                            <p class="text-xs text-gray-600">علی محمدی عضو شد</p>
+                                            <p class="text-xs text-gray-400 mt-1">10 دقیقه پیش</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="notification-item p-4">
+                                    <div class="flex items-start space-x-reverse space-x-3">
+                                        <div class="bg-yellow-100 p-2 rounded-full">
+                                            <i class="fas fa-exclamation-triangle text-yellow-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-800">موجودی کم</p>
+                                            <p class="text-xs text-gray-600">رژ لب شانل کمتر از 5 عدد</p>
+                                            <p class="text-xs text-gray-400 mt-1">1 ساعت پیش</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 border-t border-gray-200">
+                                <button class="w-full text-center text-sm text-blue-600 hover:text-blue-800">
+                                    مشاهده همه اعلان‌ها
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile -->
+                    <div class="relative">
+                        <button onclick="toggleProfileMenu()" class="flex items-center space-x-reverse space-x-2 md:space-x-3 p-1 md:p-2 rounded-lg hover:bg-gray-100 transition-all">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233b82f6'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='14' font-weight='bold'%3Eس%3C/text%3E%3C/svg%3E" alt="Profile" class="w-8 h-8 md:w-10 md:h-10 rounded-full">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-semibold text-gray-800">سارا احمدی</p>
+                                <p class="text-xs text-gray-500">مدیر فروشگاه</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-gray-400 hidden md:block"></i>
+                        </button>
+                        
+                        <!-- Profile Dropdown -->
+                        <div id="profileMenu" class="hidden absolute left-0 mt-2 w-48 glass-card rounded-lg shadow-lg border border-gray-200 py-2">
+                            <button onclick="logout()" class="w-full text-right px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-reverse space-x-2 rounded-lg mx-2">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>خروج از سیستم</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed top-16 md:top-20 right-0 h-full w-64 md:w-72 glass-card border-l border-gray-200 z-40">
+        <div class="p-4 md:p-6">
+            <nav class="space-y-2 md:space-y-3">
+                <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
+                    <i class="fas fa-chart-pie text-lg"></i>
+                    <span class="font-medium">داشبورد</span>
+                </button>
+                <button onclick="showSection('products')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
+                    <i class="fas fa-box text-lg"></i>
+                    <span class="font-medium">محصولات</span>
+                </button>
+                <button onclick="showSection('categories')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
+                    <i class="fas fa-tags text-lg"></i>
+                    <span class="font-medium">دسته‌بندی‌ها</span>
+                </button>
+                <button onclick="showSection('orders')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
+                    <i class="fas fa-shopping-cart text-lg"></i>
+                    <span class="font-medium">سفارشات</span>
+                </button>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content mr-0 md:mr-72 mt-16 md:mt-20 p-4 md:p-6">
+        <!-- Dashboard Content -->
+        <div id="dashboardContent">
+            <div class="mb-6 md:mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">خوش آمدید به پنل مدیریت</h2>
+                <p class="text-gray-600">آمار کلی فروشگاه  </p>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div class="mb-2 md:mb-0">
+                            <p class="text-xs md:text-sm text-gray-600 mb-1">کاربران</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800">1,234</p>
+                            <p class="text-xs text-green-500 flex items-center mt-1">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                12%
+                            </p>
+                        </div>
+                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
+                            <i class="fas fa-users text-white text-lg md:text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div class="mb-2 md:mb-0">
+                            <p class="text-xs md:text-sm text-gray-600 mb-1">محصولات</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800">89</p>
+                            <p class="text-xs text-green-500 flex items-center mt-1">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                5%
+                            </p>
+                        </div>
+                        <div class="bg-gradient-to-r from-purple-400 to-purple-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
+                            <i class="fas fa-box text-white text-lg md:text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div class="mb-2 md:mb-0">
+                            <p class="text-xs md:text-sm text-gray-600 mb-1">نظرات</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800">456</p>
+                            <p class="text-xs text-green-500 flex items-center mt-1">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                8%
+                            </p>
+                        </div>
+                        <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
+                            <i class="fas fa-comments text-white text-lg md:text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div class="mb-2 md:mb-0">
+                            <p class="text-xs md:text-sm text-gray-600 mb-1">سفارشات</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800">321</p>
+                            <p class="text-xs text-green-500 flex items-center mt-1">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                15%
+                            </p>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-400 to-green-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
+                            <i class="fas fa-shopping-cart text-white text-lg md:text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sales Chart -->
+            <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-chart-line text-blue-500 ml-2"></i>
+                    نمودار فروش ماهانه
+                </h3>
+                <div class="h-64 md:h-80">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Content -->
+        <div id="productsContent" class="hidden">
+            <div class="mb-4 md:mb-6">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">مدیریت محصولات</h2>
+                <p class="text-gray-600">لیست تمام محصولات زیبایی</p>
+            </div>
+            
+            <div class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">شناسه</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">تصویر</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">نام محصول</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden md:table-cell">دسته‌بندی</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden md:table-cell">برند</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden sm:table-cell">موجودی</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">قیمت</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="productsTableBody">
+                            <!-- Products will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Content -->
+        <div id="categoriesContent" class="hidden">
+            <div class="mb-4 md:mb-6">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">مدیریت دسته‌بندی‌ها</h2>
+                <p class="text-gray-600">دسته‌بندی‌ها و برندهای محصولات</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <!-- Categories List -->
+                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-800">دسته‌بندی‌ها</h3>
+                        <button onclick="addCategory()" class="gradient-bg text-white px-3 md:px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm md:text-base">
+                            <i class="fas fa-plus ml-1"></i>
+                            افزودن
+                        </button>
+                    </div>
+                    <div class="space-y-3" id="categoriesList">
+                        <!-- Categories will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Brands List -->
+                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-800">برندها</h3>
+                        <button onclick="addBrand()" class="gradient-bg text-white px-3 md:px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm md:text-base">
+                            <i class="fas fa-plus ml-1"></i>
+                            افزودن
+                        </button>
+                    </div>
+                    <div class="space-y-3" id="brandsList">
+                        <!-- Brands will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Content -->
+        <div id="ordersContent" class="hidden">
+            <div class="mb-4 md:mb-6">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">مدیریت سفارشات</h2>
+                <p class="text-gray-600">وضعیت و جزئیات سفارشات مشتریان</p>
+            </div>
+            
+            <!-- Order Status Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+                <div class="glass-card status-pending rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
+                    <div class="text-center">
+                        <i class="fas fa-clock text-2xl md:text-3xl mb-2"></i>
+                        <p class="text-xs md:text-sm opacity-90">در انتظار</p>
+                        <p class="text-xl md:text-2xl font-bold">24</p>
+                    </div>
+                </div>
+                <div class="glass-card status-processing rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
+                    <div class="text-center">
+                        <i class="fas fa-cog text-2xl md:text-3xl mb-2"></i>
+                        <p class="text-xs md:text-sm opacity-90">در حال پردازش</p>
+                        <p class="text-xl md:text-2xl font-bold">18</p>
+                    </div>
+                </div>
+                <div class="glass-card status-shipping rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
+                    <div class="text-center">
+                        <i class="fas fa-truck text-2xl md:text-3xl mb-2"></i>
+                        <p class="text-xs md:text-sm opacity-90">در حال ارسال</p>
+                        <p class="text-xl md:text-2xl font-bold">12</p>
+                    </div>
+                </div>
+                <div class="glass-card status-delivered rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
+                    <div class="text-center">
+                        <i class="fas fa-check-circle text-2xl md:text-3xl mb-2"></i>
+                        <p class="text-xs md:text-sm opacity-90">تحویل شده</p>
+                        <p class="text-xl md:text-2xl font-bold">156</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Orders Table -->
+            <div class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">شماره سفارش</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden md:table-cell">نام مشتری</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">مبلغ</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">وضعیت</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden sm:table-cell">تاریخ</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="ordersTableBody">
+                            <!-- Orders will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Product Details Modal -->
+    <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal z-50 flex items-center justify-center p-4">
+        <div class="glass-card rounded-xl md:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-4 md:p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg md:text-xl font-bold text-gray-800">جزئیات محصول</h3>
+                <button onclick="closeModal('productModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <div id="productDetails" class="space-y-4">
+                    <!-- Product details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal z-50 flex items-center justify-center p-4">
+        <div class="glass-card rounded-xl md:rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-4 md:p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg md:text-xl font-bold text-gray-800">ویرایش محصول</h3>
+                <button onclick="closeModal('editModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <form id="editForm" class="space-y-4 md:space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">نام محصول</label>
+                            <input type="text" id="editName" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">تصویر محصول</label>
+                            <input type="file" id="editImage" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">موجودی</label>
+                            <input type="number" id="editStock" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">دسته‌بندی</label>
+                            <select id="editCategory" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">برند</label>
+                            <select id="editBrand" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">برچسب‌ها</label>
+                            <input type="text" id="editTags" placeholder="با کاما جدا کنید" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">توضیحات</label>
+                        <textarea id="editDescription" rows="4" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-4 md:pt-6">
+                        <div class="flex items-center space-x-reverse space-x-3 mb-4">
+                            <input type="checkbox" id="discountCheckbox" onchange="toggleDiscount()" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="discountCheckbox" class="text-sm font-semibold text-gray-700">اعمال تخفیف</label>
+                        </div>
+                        
+                        <div id="priceFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (تومان)</label>
+                                <input type="number" id="editOriginalPrice" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div id="discountPriceField" class="hidden">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">قیمت با تخفیف (تومان)</label>
+                                <input type="number" id="editDiscountPrice" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-reverse sm:space-x-4 pt-4 md:pt-6 border-t border-gray-200">
+                        <button type="button" onclick="closeModal('editModal')" class="px-4 md:px-6 py-2 md:py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
+                            انصراف
+                        </button>
+                        <button type="submit" class="px-4 md:px-6 py-2 md:py-3 gradient-bg text-white rounded-lg hover:opacity-90 transition-all">
+                            ذخیره تغییرات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal z-50 flex items-center justify-center p-4">
+        <div class="glass-card rounded-xl md:rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-4 md:p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg md:text-xl font-bold text-gray-800">جزئیات سفارش</h3>
+                <button onclick="closeModal('orderModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 md:p-6">
+                <div id="orderDetails" class="space-y-4">
+                    <!-- Order details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let products = [
+            {
+                id: '001',
+                name: 'رژ لب مات شانل',
+                category: 'آرایش لب',
+                brand: 'شانل',
+                stock: 25,
+                price: 850000,
+                description: 'رژ لب مات با کیفیت عالی و ماندگاری بالا',
+                tags: 'رژ لب، مات، شانل، آرایش'
+            },
+            {
+                id: '002',
+                name: 'کرم مرطوب کننده',
+                category: 'مراقبت پوست',
+                brand: 'لورآل',
+                stock: 18,
+                price: 450000,
+                description: 'کرم مرطوب کننده مناسب برای انواع پوست',
+                tags: 'کرم، مرطوب کننده، لورآل، پوست'
+            },
+            {
+                id: '003',
+                name: 'پالت سایه چشم',
+                category: 'آرایش چشم',
+                brand: 'میبلین',
+                stock: 12,
+                price: 680000,
+                description: 'پالت سایه چشم با رنگ‌های متنوع و زیبا',
+                tags: 'سایه چشم، پالت، میبلین، آرایش'
+            }
+        ];
+
+        let categories = ['آرایش لب', 'مراقبت پوست', 'آرایش چشم', 'عطر و ادکلن'];
+        let brands = ['شانل', 'لورآل', 'میبلین', 'دیور'];
+
+        let orders = [
+            {
+                id: '#1001',
+                customerName: 'مریم احمدی',
+                amount: 1250000,
+                status: 'pending',
+                date: '1402/08/15',
+                products: [
+                    { name: 'رژ لب مات شانل', quantity: 1, price: 850000 },
+                    { name: 'کرم مرطوب کننده', quantity: 1, price: 450000 }
+                ]
+            },
+            {
+                id: '#1002',
+                customerName: 'فاطمه رضایی',
+                amount: 890000,
+                status: 'processing',
+                date: '1402/08/14',
+                products: [
+                    { name: 'پالت سایه چشم', quantity: 1, price: 680000 }
+                ]
+            },
+            {
+                id: '#1003',
+                customerName: 'زهرا محمدی',
+                amount: 2100000,
+                status: 'delivered',
+                date: '1402/08/13',
+                products: [
+                    { name: 'رژ لب مات شانل', quantity: 2, price: 850000 },
+                    { name: 'کرم مرطوب کننده', quantity: 1, price: 450000 }
+                ]
+            }
+        ];
+
+        let currentEditingProductIndex = -1;
+
+        // Initialize chart
+        let salesChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (salesChart) {
+                salesChart.destroy();
+            }
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور'],
+                    datasets: [{
+                        label: 'فروش (میلیون تومان)',
+                        data: [12, 19, 15, 25, 22, 30],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(59, 130, 246, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(59, 130, 246, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mobile Functions
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        }
+
+        // Navigation Functions
+        function toggleNotifications() {
+            const menu = document.getElementById('notificationsMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function logout() {
+            if (confirm('آیا از خروج از سیستم اطمینان دارید؟')) {
+                alert('خروج از سیستم انجام شد');
+                toggleProfileMenu();
+            }
+        }
+
+        function showSection(section) {
+            // Close mobile sidebar
+            closeMobileSidebar();
+            
+            // Hide all sections
+            document.getElementById('dashboardContent').classList.add('hidden');
+            document.getElementById('productsContent').classList.add('hidden');
+            document.getElementById('categoriesContent').classList.add('hidden');
+            document.getElementById('ordersContent').classList.add('hidden');
+            
+            // Show selected section
+            document.getElementById(section + 'Content').classList.remove('hidden');
+            
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load section data
+            if (section === 'dashboard') {
+                setTimeout(initChart, 100);
+            } else if (section === 'products') {
+                loadProducts();
+            } else if (section === 'categories') {
+                loadCategories();
+                loadBrands();
+            } else if (section === 'orders') {
+                loadOrders();
+            }
+        }
+
+        // Product Functions
+        function loadProducts() {
+            const tbody = document.getElementById('productsTableBody');
+            tbody.innerHTML = '';
+            
+            products.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.className = 'product-row transition-all duration-300';
+                row.innerHTML = `
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">${product.id}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' fill='%23e5e7eb' rx='8'/%3E%3Ctext x='25' y='32' text-anchor='middle' fill='%236b7280' font-size='16'%3E💄%3C/text%3E%3C/svg%3E" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
+                    </td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${product.name}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${product.category}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${product.brand}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${product.stock}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${product.price.toLocaleString()} تومان</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4">
+                        <div class="flex space-x-reverse space-x-1 md:space-x-2">
+                            <button onclick="viewProduct(${index})" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
+                                <i class="fas fa-eye text-sm"></i>
+                            </button>
+                            <button onclick="editProduct(${index})" class="action-btn p-1 md:p-2 text-yellow-600 hover:bg-yellow-50 rounded-full transition-all">
+                                <i class="fas fa-pencil text-sm"></i>
+                            </button>
+                            <button onclick="deleteProduct(${index})" class="action-btn p-1 md:p-2 text-red-600 hover:bg-red-50 rounded-full transition-all">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function viewProduct(index) {
+            const product = products[index];
+            const detailsHtml = `
+                <div class="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-reverse md:space-x-4 mb-6">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e5e7eb' rx='15'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%236b7280' font-size='30'%3E💄%3C/text%3E%3C/svg%3E" alt="Product" class="w-20 h-20 md:w-24 md:h-24 rounded-xl mx-auto md:mx-0">
+                    <div class="text-center md:text-right">
+                        <h4 class="text-xl md:text-2xl font-bold text-gray-800">${product.name}</h4>
+                        <p class="text-gray-600">شناسه: ${product.id}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">دسته‌بندی:</span>
+                        <span class="text-gray-600 block">${product.category}</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">برند:</span>
+                        <span class="text-gray-600 block">${product.brand}</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">موجودی:</span>
+                        <span class="text-gray-600 block">${product.stock} عدد</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">قیمت:</span>
+                        <span class="text-green-600 font-semibold block">${product.price.toLocaleString()} تومان</span>
+                    </div>
+                </div>
+                <div class="glass-card p-4 rounded-xl mb-4">
+                    <span class="font-semibold text-gray-700">توضیحات:</span>
+                    <p class="text-gray-600 mt-2">${product.description}</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl">
+                    <span class="font-semibold text-gray-700">برچسب‌ها:</span>
+                    <p class="text-gray-600 mt-2">${product.tags}</p>
+                </div>
+            `;
+            
+            document.getElementById('productDetails').innerHTML = detailsHtml;
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function editProduct(index) {
+            currentEditingProductIndex = index;
+            const product = products[index];
+            
+            // Populate category and brand options
+            const categorySelect = document.getElementById('editCategory');
+            const brandSelect = document.getElementById('editBrand');
+            
+            categorySelect.innerHTML = '';
+            brandSelect.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                if (cat === product.category) option.selected = true;
+                categorySelect.appendChild(option);
+            });
+            
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                if (brand === product.brand) option.selected = true;
+                brandSelect.appendChild(option);
+            });
+            
+            // Populate form fields
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editStock').value = product.stock;
+            document.getElementById('editDescription').value = product.description;
+            document.getElementById('editTags').value = product.tags;
+            document.getElementById('editOriginalPrice').value = product.price;
+            
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function deleteProduct(index) {
+            if (confirm('آیا از حذف این محصول اطمینان دارید؟')) {
+                products.splice(index, 1);
+                loadProducts();
+                alert('محصول با موفقیت حذف شد');
+            }
+        }
+
+        // Category and Brand Functions
+        function loadCategories() {
+            const container = document.getElementById('categoriesList');
+            container.innerHTML = '';
+            
+            categories.forEach((category, index) => {
+                const item = document.createElement('div');
+                item.className = 'category-item p-3 md:p-4 rounded-xl flex justify-between items-center';
+                item.innerHTML = `
+                    <span class="font-medium text-sm md:text-base">${category}</span>
+                    <button onclick="deleteCategory(${index})" class="text-red-500 hover:text-red-700 p-1">
+                        <i class="fas fa-trash text-sm"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadBrands() {
+            const container = document.getElementById('brandsList');
+            container.innerHTML = '';
+            
+            brands.forEach((brand, index) => {
+                const item = document.createElement('div');
+                item.className = 'category-item p-3 md:p-4 rounded-xl flex justify-between items-center';
+                item.innerHTML = `
+                    <span class="font-medium text-sm md:text-base">${brand}</span>
+                    <button onclick="deleteBrand(${index})" class="text-red-500 hover:text-red-700 p-1">
+                        <i class="fas fa-trash text-sm"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function addCategory() {
+            const name = prompt('نام دسته‌بندی جدید را وارد کنید:');
+            if (name && name.trim()) {
+                if (confirm(`آیا از افزودن دسته‌بندی "${name}" اطمینان دارید؟`)) {
+                    categories.push(name.trim());
+                    loadCategories();
+                    alert('دسته‌بندی جدید اضافه شد');
+                }
+            }
+        }
+
+        function addBrand() {
+            const name = prompt('نام برند جدید را وارد کنید:');
+            if (name && name.trim()) {
+                if (confirm(`آیا از افزودن برند "${name}" اطمینان دارید؟`)) {
+                    brands.push(name.trim());
+                    loadBrands();
+                    alert('برند جدید اضافه شد');
+                }
+            }
+        }
+
+        function deleteCategory(index) {
+            if (confirm(`آیا از حذف دسته‌بندی "${categories[index]}" اطمینان دارید؟`)) {
+                categories.splice(index, 1);
+                loadCategories();
+                alert('دسته‌بندی حذف شد');
+            }
+        }
+
+        function deleteBrand(index) {
+            if (confirm(`آیا از حذف برند "${brands[index]}" اطمینان دارید؟`)) {
+                brands.splice(index, 1);
+                loadBrands();
+                alert('برند حذف شد');
+            }
+        }
+
+        // Order Functions
+        function loadOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+            
+            orders.forEach((order, index) => {
+                const row = document.createElement('tr');
+                row.className = 'product-row transition-all duration-300';
+                
+                const statusClasses = {
+                    pending: 'bg-yellow-100 text-yellow-800',
+                    processing: 'bg-blue-100 text-blue-800',
+                    shipping: 'bg-purple-100 text-purple-800',
+                    delivered: 'bg-green-100 text-green-800'
+                };
+                
+                const statusTexts = {
+                    pending: 'در انتظار',
+                    processing: 'در حال پردازش',
+                    shipping: 'در حال ارسال',
+                    delivered: 'تحویل شده'
+                };
+                
+                row.innerHTML = `
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${order.id}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900 hidden md:table-cell">${order.customerName}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${order.amount.toLocaleString()} تومان</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4">
+                        <select onchange="updateOrderStatus(${index}, this.value)" class="${statusClasses[order.status]} px-2 md:px-3 py-1 rounded-full text-xs font-medium border-none">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>در انتظار</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>در حال پردازش</option>
+                            <option value="shipping" ${order.status === 'shipping' ? 'selected' : ''}>در حال ارسال</option>
+                            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>تحویل شده</option>
+                        </select>
+                    </td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${order.date}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4">
+                        <button onclick="viewOrder(${index})" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
+                            <i class="fas fa-eye text-sm"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function viewOrder(index) {
+            const order = orders[index];
+            
+            const statusTexts = {
+                pending: 'در انتظار',
+                processing: 'در حال پردازش',
+                shipping: 'در حال ارسال',
+                delivered: 'تحویل شده'
+            };
+            
+            const statusColors = {
+                pending: 'bg-yellow-100 text-yellow-800',
+                processing: 'bg-blue-100 text-blue-800',
+                shipping: 'bg-purple-100 text-purple-800',
+                delivered: 'bg-green-100 text-green-800'
+            };
+            
+            let productsHtml = '';
+            order.products.forEach(product => {
+                productsHtml += `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-gray-800">${product.name}</p>
+                            <p class="text-sm text-gray-600">تعداد: ${product.quantity}</p>
+                        </div>
+                        <p class="font-semibold text-gray-800">${product.price.toLocaleString()} تومان</p>
+                    </div>
+                `;
+            });
+            
+            const detailsHtml = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">شماره سفارش:</span>
+                        <span class="text-gray-800 block text-lg">${order.id}</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">نام مشتری:</span>
+                        <span class="text-gray-800 block">${order.customerName}</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">مبلغ کل:</span>
+                        <span class="text-green-600 font-semibold block text-lg">${order.amount.toLocaleString()} تومان</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">وضعیت:</span>
+                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status]}">${statusTexts[order.status]}</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">تاریخ سفارش:</span>
+                        <span class="text-gray-800 block">${order.date}</span>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-4 rounded-xl">
+                    <h4 class="font-semibold text-gray-700 mb-4">محصولات سفارش:</h4>
+                    <div class="space-y-3">
+                        ${productsHtml}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('orderDetails').innerHTML = detailsHtml;
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
+        function updateOrderStatus(index, newStatus) {
+            const statusTexts = {
+                pending: 'در انتظار',
+                processing: 'در حال پردازش',
+                shipping: 'در حال ارسال',
+                delivered: 'تحویل شده'
+            };
+            
+            if (confirm(`آیا از تغییر وضعیت سفارش به "${statusTexts[newStatus]}" اطمینان دارید؟`)) {
+                orders[index].status = newStatus;
+                loadOrders();
+                alert('وضعیت سفارش به‌روزرسانی شد');
+            } else {
+                loadOrders(); // Reload to reset the select
+            }
+        }
+
+        // Modal Functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function toggleDiscount() {
+            const checkbox = document.getElementById('discountCheckbox');
+            const discountField = document.getElementById('discountPriceField');
+            
+            if (checkbox.checked) {
+                discountField.classList.remove('hidden');
+            } else {
+                discountField.classList.add('hidden');
+            }
+        }
+
+        // Form Handlers
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (confirm('آیا از ذخیره تغییرات اطمینان دارید؟')) {
+                if (currentEditingProductIndex >= 0) {
+                    const product = products[currentEditingProductIndex];
+                    product.name = document.getElementById('editName').value;
+                    product.stock = parseInt(document.getElementById('editStock').value);
+                    product.category = document.getElementById('editCategory').value;
+                    product.brand = document.getElementById('editBrand').value;
+                    product.description = document.getElementById('editDescription').value;
+                    product.tags = document.getElementById('editTags').value;
+                    product.price = parseInt(document.getElementById('editOriginalPrice').value);
+                    
+                    loadProducts();
+                    closeModal('editModal');
+                    alert('تغییرات با موفقیت ذخیره شد');
+                }
+            }
+        });
+
+        // Event Listeners
+        document.addEventListener('click', function(e) {
+            // Close modals when clicking outside
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.add('hidden');
+            }
+            
+            // Close dropdowns when clicking outside
+            const notificationsMenu = document.getElementById('notificationsMenu');
+            const profileMenu = document.getElementById('profileMenu');
+            
+            if (!e.target.closest('.fa-bell') && !e.target.closest('#notificationsMenu')) {
+                notificationsMenu.classList.add('hidden');
+            }
+            
+            if (!e.target.closest('button[onclick="toggleProfileMenu()"]') && !e.target.closest('#profileMenu')) {
+                profileMenu.classList.add('hidden');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initChart, 100);
+            loadProducts();
+            loadCategories();
+            loadBrands();
+            loadOrders();
+        });
+    </script>
+</body>
+</html>
