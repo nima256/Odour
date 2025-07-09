@@ -37,7 +37,7 @@ const productSchema = mongoose.Schema(
     },
     brandName: {
       type: String,
-      default: ""
+      default: "",
     },
     catId: {
       type: String,
@@ -80,9 +80,12 @@ const productSchema = mongoose.Schema(
     reviewsNum: {
       type: Number,
     },
-    colors: {
-      type: String,
-    },
+    colors: [
+      {
+        name: { type: String, required: true },
+        rgb: { type: String, required: true },
+      },
+    ],
     btnColor: {
       type: String,
     },
@@ -92,6 +95,15 @@ const productSchema = mongoose.Schema(
     isNew: {
       type: Boolean,
       default: false,
+    },
+    sizes: [
+      {
+        size: { type: String, required: true },
+        usage: { type: String, required: true },
+      },
+    ],
+    isPopular: {
+      type: Boolean,
     },
   },
   { timestamps: true }

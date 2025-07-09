@@ -1040,161 +1040,37 @@
         <div
           class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 fade-in delay-200"
         >
-          <!-- Category 1 -->
+          <% for(let category of categories) {%>
           <div
             class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
           >
             <div
-              class="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center"
+              class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color:<%= category.color %>;"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-pink-500"
+                class="h-8 w-8"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                style="color: <%= category.textColor %>;"
               >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  d="<%= category.imgSvgForHome  %>"
                 />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-800">مراقبت پوست</h3>
-            <p class="text-gray-500 text-sm mt-1">۴۲ محصول</p>
+            <h3 class="text-lg font-semibold text-gray-800">
+              <%= category.name %>
+            </h3>
+            <p class="text-gray-500 text-sm mt-1">
+              <%= category.productCount %> محصول
+            </p>
           </div>
-
-          <!-- Category 2 -->
-          <div
-            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div
-              class="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-purple-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800">آرایشی</h3>
-            <p class="text-gray-500 text-sm mt-1">۵۶ محصول</p>
-          </div>
-
-          <!-- Category 3 -->
-          <div
-            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div
-              class="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-blue-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800">مراقبت مو</h3>
-            <p class="text-gray-500 text-sm mt-1">۳۸ محصول</p>
-          </div>
-
-          <!-- Category 4 -->
-          <div
-            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div
-              class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-green-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800">عطر و ادکلن</h3>
-            <p class="text-gray-500 text-sm mt-1">۲۴ محصول</p>
-          </div>
-
-          <!-- Category 5 -->
-          <div
-            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div
-              class="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-yellow-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800">ابزار آرایشی</h3>
-            <p class="text-gray-500 text-sm mt-1">۱۹ محصول</p>
-          </div>
-
-          <!-- Category 6 -->
-          <div
-            class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div
-              class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8 text-red-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                />
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800">ست‌ها و هدایا</h3>
-            <p class="text-gray-500 text-sm mt-1">۳۱ محصول</p>
-          </div>
+          <% } %>
         </div>
       </div>
     </section>
@@ -1264,216 +1140,6 @@
                   <span class="text-gray-400 line-through text-sm mr-2"
                     >۴۲,۹۹۰ تومان</span
                   >
-                </div>
-                <div class="icon-container">
-                  <!-- آیکون سبد خرید -->
-                  <svg
-                    id="cartIcon"
-                    onclick="incrementCartCount()"
-                    class="cart-icon icon cursor-pointer"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-                    ></path>
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="20" cy="20" r="1"></circle>
-                  </svg>
-
-                  <!-- آیکون تیک (مخفی شده) -->
-                  <svg
-                    id="successIcon"
-                    class="success-icon icon hidden"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Product 2 -->
-          <div
-            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div class="relative">
-              <div class="h-64 bg-purple-100 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-24 w-24 text-purple-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div class="p-4">
-              <div class="flex items-center mb-1">
-                <div class="flex text-yellow-400">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                </div>
-                <span class="text-gray-500 text-sm mr-1">(۹۵)</span>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-800 mb-1">
-                کرم پودر درخشان
-              </h3>
-              <p class="text-gray-600 text-sm mb-3">
-                پوشش متوسط، با جلوه مرطوب
-              </p>
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-pink-500 font-bold">۲۸,۹۹۰ تومان</span>
-                </div>
-                <div class="icon-container">
-                  <!-- آیکون سبد خرید -->
-                  <svg
-                    id="cartIcon"
-                    onclick="incrementCartCount()"
-                    class="cart-icon icon cursor-pointer"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-                    ></path>
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="20" cy="20" r="1"></circle>
-                  </svg>
-
-                  <!-- آیکون تیک (مخفی شده) -->
-                  <svg
-                    id="successIcon"
-                    class="success-icon icon hidden"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Product 3 -->
-          <div
-            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div class="relative">
-              <div class="h-64 bg-blue-100 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-24 w-24 text-blue-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <span
-                class="absolute top-2 right-2 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded"
-                >جدید</span
-              >
-            </div>
-            <div class="p-4">
-              <div class="flex items-center mb-1">
-                <div class="flex text-yellow-400">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="far fa-star"></i>
-                </div>
-                <span class="text-gray-500 text-sm mr-1">(۴۲)</span>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-800 mb-1">
-                میست مرطوب کننده
-              </h3>
-              <p class="text-gray-600 text-sm mb-3">
-                اسپری آب گل رز تازه کننده
-              </p>
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-pink-500 font-bold">۱۸,۹۹۰ تومان</span>
-                  <span class="text-gray-400 line-through text-sm mr-2"
-                    >۲۴,۹۹۰ تومان</span
-                  >
-                </div>
-                <div class="icon-container">
-                  <!-- آیکون سبد خرید -->
-                  <svg
-                    id="cartIcon"
-                    onclick="incrementCartCount()"
-                    class="cart-icon icon cursor-pointer"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-                    ></path>
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="20" cy="20" r="1"></circle>
-                  </svg>
-
-                  <!-- آیکون تیک (مخفی شده) -->
-                  <svg
-                    id="successIcon"
-                    class="success-icon icon hidden"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Product 4 -->
-          <div
-            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-          >
-            <div class="relative">
-              <div class="h-64 bg-green-100 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-24 w-24 text-green-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.758a1 1 0 01-.293.707l-4 4C.817 14.769 2.156 18 4.828 18h10.343c2.673 0 4.012-3.231 2.122-5.121l-4-4A1 1 0 0113 8.172V4.414l.707-.707A1 1 0 0013 2H7zm2 6.172V4h2v4.172a3 3 0 00.879 2.12l1.027 1.028a4 4 0 00-2.171.102l-.47.156a4 4 0 01-2.53 0l-.563-.187a1.993 1.993 0 00-.114-.035l1.063-1.063A3 3 0 009 8.172z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div class="p-4">
-              <div class="flex items-center mb-1">
-                <div class="flex text-yellow-400">
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star-half-alt"></i>
-                </div>
-                <span class="text-gray-500 text-sm mr-1">(۷۶)</span>
-              </div>
-              <h3 class="text-lg font-semibold text-gray-800 mb-1">
-                عطر گیاهی
-              </h3>
-              <p class="text-gray-600 text-sm mb-3">رایحه گل طبیعی</p>
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-pink-500 font-bold">۴۹,۹۹۰ تومان</span>
                 </div>
                 <div class="icon-container">
                   <!-- آیکون سبد خرید -->

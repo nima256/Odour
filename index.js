@@ -54,8 +54,26 @@ app.use(
   })
 );
 
+app.locals.toPersianDigits = function (input) {
+  if (input === undefined || input === null) return "";
+  return input.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+};
+
 app.get("/", async (req, res) => {
-  res.render("Home");
+  const categories = await Category.find({});
+  const products = await Product.find({}).limit(4);
+
+  const categoriesWithCounts = await Promise.all(
+    categories.map(async (cat) => {
+      const count = await Product.countDocuments({ category: cat._id });
+      return {
+        ...cat._doc, // spread the original category fields
+        productCount: count, // add a new property
+      };
+    })
+  );
+
+  res.render("Home", { categories: categoriesWithCounts });
 });
 
 app.get("/shop", async (req, res) => {
@@ -77,8 +95,13 @@ app.get("/shop", async (req, res) => {
   res.render("Shop", { products, categories: categoriesWithCounts, brands });
 });
 
-app.get("/productDetails/:id", async (req, res) => {
-  res.render("ProductDetails");
+app.get("/productDetails/:slug", async (req, res) => {
+  const slug = req.params.slug;
+  const product = await Product.findOne({ slug });
+
+  console.log(product.sizes[0]);
+
+  res.render("ProductDetails", { product });
 });
 
 app.get("/cart", async (req, res) => {

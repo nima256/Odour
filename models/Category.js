@@ -19,10 +19,16 @@ const categorySchema = mongoose.Schema(
     color: {
       type: String,
     },
+    textColor: {
+      type: String,
+    },
     parentId: {
       type: String,
     },
     emoji: {
+      type: String,
+    },
+    imgSvgForHome: {
       type: String,
     },
   },

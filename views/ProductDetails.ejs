@@ -153,15 +153,15 @@
             <!-- Logo -->
             <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
                 <div class="h-full overflow-hidden flex items-center">
-                    <img src="media/logo.png" alt="لوگوی گلو بیوتی" class="h-full w-auto object-contain">
+                    <img src="/logo.png" alt="لوگوی گلو بیوتی" class="h-full w-auto object-contain">
                 </div>
             </a>
 
 
             <!-- Desktop Menu -->
             <div class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2">
-                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
-                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
+                <a href="/" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
+                <a href="/shop" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
                 <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
                 <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
                 <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
@@ -247,24 +247,17 @@
                 <!-- Main Image -->
                 <div class="mb-8">
                     <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                        <img id="main-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fdf2f8'/%3E%3Cstop offset='100%25' style='stop-color:%23fce7f3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='500' height='500' rx='24' fill='url(%23bg)'/%3E%3Cellipse cx='250' cy='180' rx='40' ry='120' fill='%23ec4899'/%3E%3Crect x='210' y='280' width='80' height='60' rx='12' fill='%23be185d'/%3E%3Ctext x='250' y='380' text-anchor='middle' fill='%23be185d' font-size='16' font-family='Arial'%3Eرژ لب مایع مات%3C/text%3E%3C/svg%3E" alt="رژ لب مایع مات" class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl">
+                        <img id="main-image" src="<%= product.images[0] %>" alt="<%= product.name %>" class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl">
                     </div>
                 </div>
                 
                 <!-- Thumbnail Gallery -->
-                <div class="flex space-x-4 space-x-reverse overflow-x-auto pb-4">
+                <div class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1">
+                    <% for (let image of product.images) {%>
                     <div class="thumbnail active bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='12' fill='%23fdf2f8'/%3E%3Cellipse cx='40' cy='30' rx='8' ry='20' fill='%23ec4899'/%3E%3Crect x='32' y='45' width='16' height='12' rx='3' fill='%23be185d'/%3E%3C/svg%3E" alt="نمای اصلی" class="w-16 h-16 object-contain rounded-xl">
+                        <img src="<%= image %>" alt="<%= product.name %>" class="w-16 h-16 object-contain rounded-xl">
                     </div>
-                    <div class="thumbnail bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='12' fill='%23fef2f2'/%3E%3Cellipse cx='40' cy='30' rx='8' ry='20' fill='%23dc2626'/%3E%3Crect x='32' y='45' width='16' height='12' rx='3' fill='%23991b1b'/%3E%3C/svg%3E" alt="رنگ قرمز" class="w-16 h-16 object-contain rounded-xl">
-                    </div>
-                    <div class="thumbnail bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='12' fill='%23fffbeb'/%3E%3Cellipse cx='40' cy='30' rx='8' ry='20' fill='%23d97706'/%3E%3Crect x='32' y='45' width='16' height='12' rx='3' fill='%23a16207'/%3E%3C/svg%3E" alt="رنگ نود" class="w-16 h-16 object-contain rounded-xl">
-                    </div>
-                    <div class="thumbnail bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' rx='12' fill='%23fff7ed'/%3E%3Cellipse cx='40' cy='30' rx='8' ry='20' fill='%23f97316'/%3E%3Crect x='32' y='45' width='16' height='12' rx='3' fill='%23c2410c'/%3E%3C/svg%3E" alt="رنگ مرجانی" class="w-16 h-16 object-contain rounded-xl">
-                    </div>
+                    <% } %>
                 </div>
             </div>
 
@@ -272,22 +265,52 @@
             <div class="order-2 lg:order-1 space-y-8">
                 <!-- Product Title & Price -->
                 <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">رژ لب مایع مات لاکچری</h1>
-                    <p class="text-gray-600 mb-5 text-lg">برند: گلامور بیوتی</p>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4"><%= product?.name %></h1>
+                    <p class="text-gray-600 mb-5 text-lg">برند: <%= product?.brandName %></p>
                     <div class="flex items-center space-x-4 space-x-reverse mb-6">
-                        <span class="text-3xl font-bold text-pink-600">۳۲۵,۰۰۰ تومان</span>
-                        <span class="text-lg text-gray-400 line-through">۴۲۰,۰۰۰ تومان</span>
-                        <span class="bg-pink-100 text-pink-800 text-sm font-medium px-4 py-2 rounded-full">۲۳% تخفیف</span>
+                    <% if (product?.offerPrice) { %>
+                    <span class="text-3xl font-bold text-pink-600"><%= toPersianDigits(product?.offerPrice) %> تومان</span>
+                    <span class="text-lg text-gray-400 line-through"><%= toPersianDigits(product?.price) %> تومان</span>
+                    <span class="bg-pink-100 text-pink-800 text-sm font-medium px-4 py-2 rounded-full">
+                        <%= toPersianDigits(product?.discount) %>% تخفیف
+                    </span>
+                    <% } else { %>
+                    <span class="text-3xl font-bold text-pink-600"><%= toPersianDigits(product?.price) %> تومان</span>
+                    <% } %>
                     </div>
                     <div class="flex items-center space-x-3 space-x-reverse">
+                        <% const fullStars = Math.floor(product?.rating); %>
+                        <% const halfStar = product?.rating % 1 >= 0.5; %>
+                        <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
                         <div class="flex text-yellow-400">
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        <% for (let i = 0; i < fullStars; i++) { %>
+                            <!-- Full Star -->
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        <% } %>
+
+                        <% if (halfStar) { %>
+                            <!-- Half Star (custom SVG or CSS) -->
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                            <defs>
+                                <linearGradient id="halfGrad">
+                                <stop offset="50%" stop-color="currentColor"/>
+                                <stop offset="50%" stop-color="transparent"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill="url(#halfGrad)"/>
+                            </svg>
+                        <% } %>
+
+                        <% for (let i = 0; i < emptyStars; i++) { %>
+                            <!-- Empty Star -->
+                            <svg class="w-5 h-5 text-gray-300 fill-current" viewBox="0 0 20 20">
+                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                        <% } %>
                         </div>
-                        <span class="text-gray-600 text-sm font-medium">(۸۷ نظر)</span>
+                        <span class="text-gray-600 text-sm font-medium">(<%= product?.reviewsNum %> نظر)</span>
                     </div>
                 </div>
 
@@ -295,44 +318,34 @@
                 <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
                     <h3 class="text-xl font-semibold text-gray-900 mb-6">انتخاب رنگ:</h3>
                     <div class="grid grid-cols-4 gap-6 mb-6">
-                        <div class="text-center">
-                            <div class="color-swatch selected w-14 h-14 bg-pink-500 rounded-full mx-auto mb-3 shadow-lg border-2 border-white" data-color="صورتی کلاسیک"></div>
-                            <span class="text-sm text-gray-600 font-medium">کلاسیک</span>
-                        </div>
-                        <div class="text-center">
-                            <div class="color-swatch w-14 h-14 bg-red-600 rounded-full mx-auto mb-3 shadow-lg border-2 border-white" data-color="قرمز یاقوتی"></div>
-                            <span class="text-sm text-gray-600 font-medium">یاقوتی</span>
-                        </div>
-                        <div class="text-center">
-                            <div class="color-swatch w-14 h-14 bg-orange-400 rounded-full mx-auto mb-3 shadow-lg border-2 border-white" data-color="نود طبیعی"></div>
-                            <span class="text-sm text-gray-600 font-medium">نود</span>
-                        </div>
-                        <div class="text-center">
-                            <div class="color-swatch w-14 h-14 bg-orange-500 rounded-full mx-auto mb-3 shadow-lg border-2 border-white" data-color="مرجانی گرم"></div>
-                            <span class="text-sm text-gray-600 font-medium">مرجانی</span>
-                        </div>
+                        <% product.colors.forEach((color, index) => { %>
+                            <div class="text-center">
+                                <div style="background-color:<%= color.rgb %>;"
+                                    class="color-swatch w-14 h-14 rounded-full mx-auto mb-3 shadow-lg border-2 border-white <%= index === 0 ? 'selected' : '' %>"
+                                    data-color="<%= color.name %>">
+                                </div>
+                                <span class="text-sm text-gray-600 font-medium"><%= color.name %></span>
+                            </div>
+                        <% }) %>
                     </div>
-                    <p class="text-sm text-gray-600">رنگ انتخابی: <span id="selected-color" class="font-semibold text-pink-600">صورتی کلاسیک</span></p>
+                    <p class="text-sm text-gray-600">
+                        رنگ انتخابی:
+                        <span id="selected-color" class="font-semibold text-pink-600"><%= product.colors[0].name %></span>
+                    </p>
                 </div>
 
                 <!-- Volume Selector -->
                 <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
                     <h3 class="text-xl font-semibold text-gray-900 mb-6">انتخاب حجم:</h3>
                     <div class="grid grid-cols-3 gap-4 mb-6">
-                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent" data-volume="۱۰ میلی‌لیتر">
-                            <div class="text-lg font-bold">۱۰ml</div>
-                            <div class="text-xs text-gray-500 mt-1">مسافرتی</div>
+                        <% product.sizes.forEach((size, index) => { %>
+                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent <%= index === 0 ? 'selected' : '' %>" data-volume="<%= toPersianDigits(size.size) %>">
+                            <div class="text-lg font-bold"><%= toPersianDigits(size.size) %></div>
+                            <div class="text-xs text-gray-500 mt-1"><%= size.usage %></div>
                         </button>
-                        <button class="volume-option selected px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent" data-volume="۲۰ میلی‌لیتر">
-                            <div class="text-lg font-bold">۲۰ml</div>
-                            <div class="text-xs mt-1">استاندارد</div>
-                        </button>
-                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent" data-volume="۳۰ میلی‌لیتر">
-                            <div class="text-lg font-bold">۳۰ml</div>
-                            <div class="text-xs text-gray-500 mt-1">اکونومی</div>
-                        </button>
+                        <% }) %>
                     </div>
-                    <p class="text-sm text-gray-600">حجم انتخابی: <span id="selected-volume" class="font-semibold text-pink-600">۲۰ میلی‌لیتر</span></p>
+                    <p class="text-sm text-gray-600">حجم انتخابی: <span id="selected-volume" class="font-semibold text-pink-600"><%= toPersianDigits(product.sizes[0].size) %></span></p>
                 </div>
 
                 <!-- Key Features -->
@@ -406,17 +419,12 @@
                     <h3 class="text-xl font-semibold text-gray-900 mb-6">توضیحات محصول</h3>
                     <div class="prose prose-gray max-w-none">
                         <p class="text-gray-700 leading-relaxed mb-5 text-base">
-                            رژ لب مایع مات لاکچری با فرمول پیشرفته و کیفیت بی‌نظیر، انتخابی عالی برای خانم‌های شیک‌پوش است. این محصول با بافت کرمی و نرم، به راحتی روی لب‌ها پخش می‌شود و پس از خشک شدن، فینیش مات زیبا و یکنواختی ایجاد می‌کند.
-                        </p>
-                        <p class="text-gray-700 leading-relaxed mb-5 text-base">
-                            فرمول غنی شده با ویتامین E و روغن‌های طبیعی، ضمن ایجاد رنگ زیبا و پوشش کامل، از خشکی لب‌ها جلوگیری می‌کند. این رژ لب تا ۱۲ ساعت بر روی لب‌ها باقی می‌ماند و نیازی به تجدید مکرر ندارد.
-                        </p>
-                        <p class="text-gray-700 leading-relaxed text-base">
-                            مناسب برای تمام مناسبت‌ها از جمله استفاده روزانه، مهمانی‌ها و مراسم خاص. رنگ‌بندی متنوع این محصول امکان انتخاب مناسب برای هر سلیقه و تن پوستی را فراهم می‌کند.
+                            <%= product.description %>
                         </p>
                     </div>
                 </div>
             </div>
+            
         </div>
     </main>
 
@@ -425,19 +433,14 @@
             // Image gallery functionality
             const thumbnails = document.querySelectorAll('.thumbnail');
             const mainImage = document.getElementById('main-image');
-            
-            const imageMap = {
-                0: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fdf2f8'/%3E%3Cstop offset='100%25' style='stop-color:%23fce7f3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='500' height='500' rx='24' fill='url(%23bg)'/%3E%3Cellipse cx='250' cy='180' rx='40' ry='120' fill='%23ec4899'/%3E%3Crect x='210' y='280' width='80' height='60' rx='12' fill='%23be185d'/%3E%3Ctext x='250' y='380' text-anchor='middle' fill='%23be185d' font-size='16' font-family='Arial'%3Eرژ لب مایع مات%3C/text%3E%3C/svg%3E",
-                1: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fef2f2'/%3E%3Cstop offset='100%25' style='stop-color:%23fee2e2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='500' height='500' rx='24' fill='url(%23bg)'/%3E%3Cellipse cx='250' cy='180' rx='40' ry='120' fill='%23dc2626'/%3E%3Crect x='210' y='280' width='80' height='60' rx='12' fill='%23991b1b'/%3E%3Ctext x='250' y='380' text-anchor='middle' fill='%23991b1b' font-size='16' font-family='Arial'%3Eرنگ قرمز یاقوتی%3C/text%3E%3C/svg%3E",
-                2: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fffbeb'/%3E%3Cstop offset='100%25' style='stop-color:%23fef3c7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='500' height='500' rx='24' fill='url(%23bg)'/%3E%3Cellipse cx='250' cy='180' rx='40' ry='120' fill='%23d97706'/%3E%3Crect x='210' y='280' width='80' height='60' rx='12' fill='%23a16207'/%3E%3Ctext x='250' y='380' text-anchor='middle' fill='%23a16207' font-size='16' font-family='Arial'%3Eرنگ نود طبیعی%3C/text%3E%3C/svg%3E",
-                3: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500' viewBox='0 0 500 500'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fff7ed'/%3E%3Cstop offset='100%25' style='stop-color:%23fed7aa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='500' height='500' rx='24' fill='url(%23bg)'/%3E%3Cellipse cx='250' cy='180' rx='40' ry='120' fill='%23f97316'/%3E%3Crect x='210' y='280' width='80' height='60' rx='12' fill='%23c2410c'/%3E%3Ctext x='250' y='380' text-anchor='middle' fill='%23c2410c' font-size='16' font-family='Arial'%3Eرنگ مرجانی گرم%3C/text%3E%3C/svg%3E"
-            };
+
+            const productImages = <%- JSON.stringify(product.images) %>;
             
             thumbnails.forEach((thumb, index) => {
                 thumb.addEventListener('click', () => {
                     thumbnails.forEach(t => t.classList.remove('active'));
                     thumb.classList.add('active');
-                    mainImage.src = imageMap[index];
+                    mainImage.src = productImages[index];
                 });
             });
 

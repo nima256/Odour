@@ -631,6 +631,9 @@
         }
 
         // Render products
+          function toPersianDigits(str) {
+            return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+          }
         function renderProducts() {
           const container = document.getElementById("products-container");
           const isListView = currentView === "list";
@@ -642,26 +645,25 @@
           container.innerHTML = filteredProducts
             .map((product) => {
               return `
-                       <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
+              <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
+                <a href="/productDetails/${product.slug}">
                           ${
                             isListView
                               ? ""
                               : `
                         <div class="relative">
                             <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-br"><img src=${product.images[0]} alt=""></div>
-                                ${product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${product.discount}% تخفیف</div>` : ''}
-                                ${product.isNew ? `<div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
-                                <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${product.rating} (${product.reviewsNum} نظر)</div>
+                                <div class="absolute inset-0 bg-gradient-to-br"><img src=${product.images[0]} alt=${product.name}></div>
+                                ${product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
+                                ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
+                                <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${ toPersianDigits(product.rating)} (${toPersianDigits(product.reviewsNum)} نظر)</div>
                             </div>
                         </div>
                         `
                           }
                           <div class="p-6 ${isListView ? "flex-1" : ""}">
                               <div class="flex justify-between items-start mb-3">
-                                  <div class="${
-                                    product.colors
-                                  } px-3 py-1 rounded-full text-xs font-medium">
+                                  <div class="px-3 py-1 rounded-full text-xs font-medium">
                                       ${product.catName}
                                   </div>
                                   <button class="text-gray-400 hover:text-red-500 transition-colors">
@@ -700,6 +702,7 @@
                                       : ""
                                   }
                               </div>
+                              </a>
                       <button onclick="addToCartAlert('${
                         product.name
                       }')" class="w-full bg-gradient-to-r ${
@@ -709,6 +712,7 @@
       </button>
                               </div>
                       </div>
+
                   `;
             })
             .join("");
