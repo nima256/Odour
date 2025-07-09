@@ -35,6 +35,10 @@ const productSchema = mongoose.Schema(
       type: String,
       default: "",
     },
+    brandName: {
+      type: String,
+      default: ""
+    },
     catId: {
       type: String,
       default: "",
@@ -50,6 +54,11 @@ const productSchema = mongoose.Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
+      required: true,
+    },
+    brand: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Brand",
       required: true,
     },
     countInStock: {
@@ -68,18 +77,21 @@ const productSchema = mongoose.Schema(
       type: String,
       default: null,
     },
-    brand: {
-      type: String,
-    },
     reviewsNum: {
       type: Number,
     },
-    colors: [String],
-    emoji: {
+    colors: {
       type: String,
     },
     btnColor: {
       type: String,
+    },
+    discount: {
+      type: Number,
+    },
+    isNew: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

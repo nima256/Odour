@@ -22,13 +22,12 @@ const categorySchema = mongoose.Schema(
     parentId: {
       type: String,
     },
+    emoji: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
-
-categorySchema.virtual("id").get(function () {
-  return this._id.toHexString();
-});
 
 categorySchema.set("toJSON", {
   virtual: true,

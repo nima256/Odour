@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Product = require("./models/Product");
 const Category = require("./models/Category");
+const Brand = require("./models/Brand");
 
 mongoose
   .connect("mongodb://localhost:27017/odour")
@@ -11,6 +12,11 @@ mongoose
     const category2 = await Category.findOne({ slug: "مراقبت-پوست" });
     const category3 = await Category.findOne({ slug: "مراقبت-مو" });
     const category4 = await Category.findOne({ slug: "عطر-و-ادکلن" });
+
+    const brand2 = await Brand.findOne({ slug: "لورآل" });
+    const brand1 = await Brand.findOne({ slug: "شانل" });
+    const brand3 = await Brand.findOne({ slug: "میبلین" });
+    const brand4 = await Brand.findOne({ slug: "نیوآ" });
 
     if (!category1) {
       console.error("Category not found");
@@ -29,6 +35,23 @@ mongoose
       return;
     }
 
+    if (!brand1) {
+      console.error("Brand not found");
+      return;
+    }
+    if (!brand2) {
+      console.error("Brand not found");
+      return;
+    }
+    if (!brand3) {
+      console.error("Brand not found");
+      return;
+    }
+    if (!brand4) {
+      console.error("Brand not found");
+      return;
+    }
+
     const productSeeds = [
       {
         name: "رژ لب مات پریمیوم",
@@ -39,21 +62,22 @@ mongoose
           "https://ik.imagekit.io/vez3rkmrk/products/17399563912b1d4213b20d6cceb19b98d088da9bea.jpg?updatedAt=1751987030130",
         ],
         price: 320000,
-        offerPrice: 150000,
         catName: "آرایش صورت",
+        brandName: "لورآل",
         catId: category1._id,
         subCatId: "",
         subCat: "",
         category: category1._id,
+        brand: brand1._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-purple-100 text-purple-800",
         reviewsNum: 24,
-        emoji: "💄",
         lilDescription: "رنگ‌های جذاب و ماندگار با فرمول مخصوص",
-        btnColor: "from-purple-600 to-pink-600"
+        btnColor: "from-purple-600 to-pink-600",
+        discount: 15,
       },
       {
         name: "عطر گل یاس پاریسی",
@@ -66,19 +90,21 @@ mongoose
         price: 420000,
         offerPrice: 120000,
         catName: "مراقبت پوست",
+        brandName: "شانل",
         catId: category2._id,
         subCatId: "",
         subCat: "",
         category: category2._id,
+        brand: brand2._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-blue-100 text-blue-800",
         reviewsNum: 12,
-        emoji: "🧴",
-        lilDescription: "آبرسانی عمیق و جوان‌سازی پوست"
-        btnColor: "from-purple-600 to-pink-600"
+        lilDescription: "آبرسانی عمیق و جوان‌سازی پوست",
+        btnColor: "from-blue-600 to-teal-600",
+        isNew: true,
       },
       {
         name: "پالت سایه چشم",
@@ -91,18 +117,20 @@ mongoose
         price: 320000,
         offerPrice: 150000,
         catName: "مراقبت مو",
+        brandName: "میبلین",
         catId: category3._id,
         subCatId: "",
         subCat: "",
         category: category3._id,
+        brand: brand3._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-green-100 text-green-800",
         reviewsNum: 76,
-        emoji: "🌸",
-        lilDescription: "رایحه‌ای لوکس و جذاب برای مناسبات خاص"
+        lilDescription: "رایحه‌ای لوکس و جذاب برای مناسبات خاص",
+        btnColor: "from-green-600 to-emerald-600",
       },
       {
         name: "سرم هیالورونیک اسید",
@@ -113,20 +141,21 @@ mongoose
           "https://ik.imagekit.io/vez3rkmrk/products/1716949163951f30fa3d07071c04cfb4e0c1a79ac5.jpg?updatedAt=1751986989305",
         ],
         price: 126000,
-        offerPrice: 20000,
         catName: "عطر و ادکلن",
+        brandName: "نیوآ",
         catId: category4._id,
         subCatId: "",
         subCat: "",
         category: category4._id,
+        brand: brand4._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-orange-100 text-orange-800",
         reviewsNum: 98,
-        emoji: "💇‍♀️",
-        lilDescription: "تقویت و نرمی موهای آسیب‌دیده"
+        lilDescription: "تقویت و نرمی موهای آسیب‌دیده",
+        btnColor: "from-yellow-600 to-orange-600",
       },
       {
         name: "بالم مرطوب‌کننده لب",
@@ -139,18 +168,21 @@ mongoose
         price: 560000,
         offerPrice: 544000,
         catName: "آرایش صورت",
+        brandName: "لورآل",
         catId: category1._id,
         subCatId: "",
         subCat: "",
         category: category1._id,
+        brand: brand1._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-purple-100 text-purple-800",
         reviewsNum: 154,
-        emoji: "✨",
-        lilDescription: "12 رنگ متنوع برای آرایش حرفه‌ای"
+        lilDescription: "12 رنگ متنوع برای آرایش حرفه‌ای",
+        btnColor: "from-purple-600 to-pink-600",
+        isNew: true,
       },
       {
         name: "شامپو ترمیم‌ کننده",
@@ -163,18 +195,21 @@ mongoose
         price: 888000,
         offerPrice: 876000,
         catName: "مراقبت پوست",
+        brandName: "شانل",
         catId: category2._id,
         subCatId: "",
         subCat: "",
         category: category2._id,
+        brand: brand2._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-blue-100 text-blue-800",
         reviewsNum: 87,
-        emoji: "💋",
-        lilDescription: "نرمی و حفاظت طولانی مدت"
+        lilDescription: "نرمی و حفاظت طولانی مدت",
+        btnColor: "from-blue-600 to-teal-600",
+        discount: 30,
       },
       {
         name: "کرم ضد آفتاب",
@@ -185,20 +220,21 @@ mongoose
           "https://ik.imagekit.io/vez3rkmrk/products/17168929153b6ff3276c9fedbe8f8758dad6001e47.jpg?updatedAt=1751986995912",
         ],
         price: 920000,
-        offerPrice: 310000,
         catName: "مراقبت مو",
+        brandName: "میبلین",
         catId: category3._id,
         subCatId: "",
         subCat: "",
         category: category3._id,
+        brand: brand3._id,
         countInStock: 5,
         rating: 2,
         isFeatured: true,
         weight: "10",
-        colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
+        colors: "bg-green-100 text-green-800",
         reviewsNum: 24,
-        emoji: "☀️",
-        lilDescription: "محافظت کامل در برابر اشعه UV"
+        lilDescription: "محافظت کامل در برابر اشعه UV",
+        btnColor: "from-green-600 to-emerald-600",
       },
     ];
 
@@ -208,46 +244,3 @@ mongoose
     mongoose.disconnect();
   })
   .catch(console.error);
-
-// const categorySeeds = [
-//   {
-//     name: "آرایش صورت",
-//     slug: "آرایش صورت",
-//     images: [],
-//     color: "",
-//   },
-//   {
-//     name: "مراقبت پوست",
-//     slug: "مراقبت پوست",
-//     images: [],
-//     color: "",
-//   },
-//   {
-//     name: "مراقبت مو",
-//     slug: "مراقبت مو",
-//     images: [],
-//     color: "",
-//   },
-//   {
-//     name: "عطر و ادکلن",
-//     slug: "عطر و ادکلن",
-//     images: [],
-//     color: "",
-//   },
-// ];
-
-// Product.insertMany(productSeeds)
-//     .then(p => {
-//         console.log("Product successful");
-//     })
-//     .catch(e => {
-//         console.log(e);
-//     });
-
-// Category.insertMany(categorySeeds)
-//   .then((p) => {
-//     console.log("Category successful");
-//   })
-//   .catch((e) => {
-//     console.log(e);
-//   });

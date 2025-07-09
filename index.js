@@ -23,6 +23,7 @@ const isLoggedIn = require("./middlewares/isLoggedIn");
 // Models
 const Product = require("./models/Product");
 const Category = require("./models/Category");
+const Brand = require("./models/Brand");
 
 // For Production
 // app.use(
@@ -58,8 +59,22 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/shop", async (req, res) => {
-  const products = await Product.find({})
-  res.render("Shop" , {products});
+  const products = await Product.find({});
+  const categories = await Category.find({});
+  const brands = await Brand.find({});
+
+  // count products for each category
+  const categoriesWithCounts = await Promise.all(
+    categories.map(async (cat) => {
+      const count = await Product.countDocuments({ category: cat._id });
+      return {
+        ...cat._doc, // spread the original category fields
+        productCount: count, // add a new property
+      };
+    })
+  );
+
+  res.render("Shop", { products, categories: categoriesWithCounts, brands });
 });
 
 app.get("/productDetails/:id", async (req, res) => {
@@ -73,7 +88,6 @@ app.get("/cart", async (req, res) => {
 app.get("/userProfile", async (req, res) => {
   res.render("UserProfile");
 });
-
 
 // admin
 app.get("/admin", async (req, res) => {

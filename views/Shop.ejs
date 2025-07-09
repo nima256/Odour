@@ -426,50 +426,21 @@
             <div class="mb-8">
               <h3 class="font-bold text-gray-700 mb-4 text-lg">دسته‌بندی‌ها</h3>
               <div class="space-y-3">
+                <% for(let category of categories) { %>
                 <div
                   class="category-chip rounded-2xl p-4 shadow-md"
-                  data-category="makeup"
+                  data-category="<%= category.name %>"
                 >
                   <div class="flex justify-between items-center">
-                    <span class="font-medium">💄 آرایش صورت</span>
+                    <span class="font-medium"
+                      ><%= category.name %> <%= category.emoji %></span
+                    >
                     <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
-                      >3</span
+                      ><%= category.productCount %></span
                     >
                   </div>
                 </div>
-                <div
-                  class="category-chip rounded-2xl p-4 shadow-md"
-                  data-category="skincare"
-                >
-                  <div class="flex justify-between items-center">
-                    <span class="font-medium">🧴 مراقبت پوست</span>
-                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
-                      >2</span
-                    >
-                  </div>
-                </div>
-                <div
-                  class="category-chip rounded-2xl p-4 shadow-md"
-                  data-category="haircare"
-                >
-                  <div class="flex justify-between items-center">
-                    <span class="font-medium">💇‍♀️ مراقبت مو</span>
-                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
-                      >1</span
-                    >
-                  </div>
-                </div>
-                <div
-                  class="category-chip rounded-2xl p-4 shadow-md"
-                  data-category="perfume"
-                >
-                  <div class="flex justify-between items-center">
-                    <span class="font-medium">🌸 عطر و ادکلن</span>
-                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
-                      >1</span
-                    >
-                  </div>
-                </div>
+                <% } %>
               </div>
             </div>
 
@@ -512,34 +483,15 @@
                 برندهای محبوب
               </h3>
               <div class="grid grid-cols-2 gap-3">
+                <% for(let brand of brands) { %>
                 <div
                   class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
-                  data-brand="loreal"
+                  data-brand="<%= brand.name %>"
                 >
-                  <div class="text-2xl mb-1">✨</div>
-                  <div class="text-sm font-medium">لورآل</div>
+                  <div class="text-2xl mb-1"><%= brand.emoji %></div>
+                  <div class="text-sm font-medium"><%= brand.name %></div>
                 </div>
-                <div
-                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
-                  data-brand="chanel"
-                >
-                  <div class="text-2xl mb-1">💎</div>
-                  <div class="text-sm font-medium">شانل</div>
-                </div>
-                <div
-                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
-                  data-brand="maybelline"
-                >
-                  <div class="text-2xl mb-1">🌟</div>
-                  <div class="text-sm font-medium">میبلین</div>
-                </div>
-                <div
-                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
-                  data-brand="nivea"
-                >
-                  <div class="text-2xl mb-1">💫</div>
-                  <div class="text-sm font-medium">نیوآ</div>
-                </div>
+                <% } %>
               </div>
             </div>
 
@@ -653,509 +605,324 @@
       <span id="toast-message"></span>
     </div>
     <script>
-      // Product data
-      const products = [
-        {
-          id: 1,
-          name: "رژ لب مات پریمیوم",
-          description: "رنگ‌های جذاب و ماندگار با فرمول مخصوص",
-          price: 245000,
-          originalPrice: 350000,
-          category: "makeup",
-          brand: "loreal",
-          rating: 4.8,
-          reviews: 124,
-          emoji: "💄",
-          colors: ["bg-red-500", "bg-pink-500", "bg-purple-500"],
-          isNew: false,
-          discount: 30,
-        },
-        {
-          id: 2,
-          name: "سرم هیالورونیک اسید",
-          description: "آبرسانی عمیق و جوان‌سازی پوست",
-          price: 680000,
-          originalPrice: null,
-          category: "skincare",
-          brand: "nivea",
-          rating: 4.9,
-          reviews: 89,
-          emoji: "🧴",
-          colors: [],
-          isNew: true,
-          discount: 0,
-        },
-        {
-          id: 3,
-          name: "عطر گل یاس پاریسی",
-          description: "رایحه‌ای لوکس و جذاب برای مناسبات خاص",
-          price: 1450000,
-          originalPrice: null,
-          category: "perfume",
-          brand: "chanel",
-          rating: 5.0,
-          reviews: 67,
-          emoji: "🌸",
-          colors: [],
-          isNew: false,
-          discount: 0,
-        },
-        {
-          id: 4,
-          name: "شامپو ترمیم‌کننده",
-          description: "تقویت و نرمی موهای آسیب‌دیده",
-          price: 320000,
-          originalPrice: null,
-          category: "haircare",
-          brand: "loreal",
-          rating: 4.7,
-          reviews: 156,
-          emoji: "💇‍♀️",
-          colors: [],
-          isNew: false,
-          discount: 0,
-        },
-        {
-          id: 5,
-          name: "پالت سایه چشم",
-          description: "12 رنگ متنوع برای آرایش حرفه‌ای",
-          price: 580000,
-          originalPrice: null,
-          category: "makeup",
-          brand: "maybelline",
-          rating: 4.6,
-          reviews: 98,
-          emoji: "✨",
-          colors: [],
-          isNew: false,
-          discount: 0,
-        },
-        {
-          id: 6,
-          name: "بالم مرطوب‌کننده لب",
-          description: "نرمی و حفاظت طولانی مدت",
-          price: 125000,
-          originalPrice: null,
-          category: "makeup",
-          brand: "nivea",
-          rating: 4.6,
-          reviews: 203,
-          emoji: "💋",
-          colors: [],
-          isNew: false,
-          discount: 0,
-        },
-        {
-          id: 7,
-          name: "کرم ضد آفتاب",
-          description: "محافظت کامل در برابر اشعه UV",
-          price: 450000,
-          originalPrice: 520000,
-          category: "skincare",
-          brand: "nivea",
-          rating: 4.8,
-          reviews: 145,
-          emoji: "☀️",
-          colors: [],
-          isNew: true,
-          discount: 15,
-        },
-      ];
+        // State
+        const productFromServer = <%- JSON.stringify(products) %>;
+        let currentView = "grid";
+        let filteredProducts = [...productFromServer];
+        let selectedCategories = [];
+        let selectedBrands = [];
+        let maxPrice = 2000000;
+        let searchQuery = "";
+        let sortBy = "default";
 
-      // State
-      const productFromServer = <%- JSON.stringify(products) %>;
-      let currentView = "grid";
-      let filteredProducts = [...productFromServer];
-      let selectedCategories = [];
-      let selectedBrands = [];
-      let maxPrice = 2000000;
-      let searchQuery = "";
-      let sortBy = "default";
+        // Utility functions
+        function formatPrice(price) {
+          return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+        }
 
-      // Utility functions
-      function formatPrice(price) {
-        return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
-      }
+        function showNotification(message) {
+          const notification = document.getElementById("notification");
+          const notificationText = document.getElementById("notification-text");
+          notificationText.textContent = message;
+          notification.classList.add("show");
+          setTimeout(() => {
+            notification.classList.remove("show");
+          }, 3000);
+        }
 
-      function showNotification(message) {
-        const notification = document.getElementById("notification");
-        const notificationText = document.getElementById("notification-text");
-        notificationText.textContent = message;
-        notification.classList.add("show");
-        setTimeout(() => {
-          notification.classList.remove("show");
-        }, 3000);
-      }
+        // Render products
+        function renderProducts() {
+          const container = document.getElementById("products-container");
+          const isListView = currentView === "list";
 
-      // Render products
-      function renderProducts() {
-        const container = document.getElementById("products-container");
-        const isListView = currentView === "list";
+          container.className = isListView
+            ? "space-y-6 list-view"
+            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
 
-        container.className = isListView
-          ? "space-y-6 list-view"
-          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
-
-        container.innerHTML = filteredProducts
-          .map((product) => {
-            const categoryColors = {
-              makeup: "bg-purple-100 text-purple-800",
-              skincare: "bg-blue-100 text-blue-800",
-              haircare: "bg-green-100 text-green-800",
-              perfume: "bg-orange-100 text-orange-800",
-            };
-
-            const categoryNames = {
-              makeup: "آرایش صورت",
-              skincare: "مراقبت پوست",
-              haircare: "مراقبت مو",
-              perfume: "عطر و ادکلن",
-            };
-
-            const gradientColors = {
-              makeup: "from-purple-600 to-pink-600",
-              skincare: "from-blue-600 to-teal-600",
-              haircare: "from-green-600 to-emerald-600",
-              perfume: "from-yellow-600 to-orange-600",
-            };
-
-            return `
-                     <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
-                        ${
-                          isListView
-                            ? ""
-                            : `
+          container.innerHTML = filteredProducts
+            .map((product) => {
+              return `
+                       <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
+                          ${
+                            isListView
+                              ? ""
+                              : `
                         <div class="relative">
-                            <div class="w-full h-64 bg-gradient-to-br from-${
-                              product.category === "makeup"
-                                ? "pink"
-                                : product.category === "skincare"
-                                ? "blue"
-                                : product.category === "haircare"
-                                ? "green"
-                                : "yellow"
-                            }-200 via-${
-                                product.category === "makeup"
-                                  ? "purple"
-                                  : product.category === "skincare"
-                                  ? "cyan"
-                                  : product.category === "haircare"
-                                  ? "emerald"
-                                  : "orange"
-                              }-200 to-${
-                                product.category === "makeup"
-                                  ? "indigo"
-                                  : product.category === "skincare"
-                                  ? "teal"
-                                  : product.category === "haircare"
-                                  ? "teal"
-                                  : "red"
-                              }-200 flex items-center justify-center relative overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-br from-${
-                                  product.category === "makeup"
-                                    ? "pink"
-                                    : product.category === "skincare"
-                                    ? "blue"
-                                    : product.category === "haircare"
-                                    ? "green"
-                                    : "yellow"
-                                }-400/20 to-${
-                                product.category === "makeup"
-                                  ? "purple"
-                                  : product.category === "skincare"
-                                  ? "teal"
-                                  : product.category === "haircare"
-                                  ? "teal"
-                                  : "red"
-                              }-400/20"></div>
-                                <div class="text-6xl">${product.emoji}</div>
-                                ${
-                                  product.discount > 0
-                                    ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${product.discount}% تخفیف</div>`
-                                    : ""
-                                }
-                                ${
-                                  product.isNew
-                                    ? `<div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>`
-                                    : ""
-                                }
-                                <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${
-                                  product.rating
-                                } (${product.reviews} نظر)</div>
+                            <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-br"><img src=${product.images[0]} alt=""></div>
+                                ${product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${product.discount}% تخفیف</div>` : ''}
+                                ${product.isNew ? `<div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
+                                <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${product.rating} (${product.reviewsNum} نظر)</div>
                             </div>
                         </div>
                         `
-                        }
-                        <div class="p-6 ${isListView ? "flex-1" : ""}">
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="${
-                                  categoryColors[product.category]
-                                } px-3 py-1 rounded-full text-xs font-medium">
-                                    ${categoryNames[product.category]}
-                                </div>
-                                <button class="text-gray-400 hover:text-red-500 transition-colors">
-                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <h3 class="font-bold text-xl text-gray-800 mb-2 text-right">${
-                              product.name
-                            }</h3>
-                            <p class="text-gray-600 text-sm mb-4 text-right">${
-                              product.description
-                            }</p>
-                            <div class="flex justify-between items-center mb-4">
-                                <div class="text-right">
-                                    ${
-                                      product.originalPrice
-                                        ? `<div class="text-gray-400 line-through text-sm">${formatPrice(
-                                            product.originalPrice
-                                          )}</div>`
-                                        : ""
-                                    }
-                                    <div class="price-gradient font-bold text-xl">${formatPrice(
-                                      product.price
-                                    )}</div>
-                                </div>
-                                ${
-                                  product.colors.length > 0
-                                    ? `
-                                <div class="flex gap-1">
-                                    ${product.colors
-                                      .map(
-                                        (color) =>
-                                          `<div class="w-4 h-4 ${color} rounded-full border-2 border-white shadow-sm"></div>`
-                                      )
-                                      .join("")}
-                                </div>
-                                `
-                                    : ""
-                                }
-                            </div>
-                    <button onclick="addToCartAlert('${
-                      product.name
-                    }')" class="w-full bg-gradient-to-r ${
-              gradientColors[product.category]
-            } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
-        افزودن به سبد خرید
-    </button>
-                            </div>
-                    </div>
-                `;
-          })
-          .join("");
+                          }
+                          <div class="p-6 ${isListView ? "flex-1" : ""}">
+                              <div class="flex justify-between items-start mb-3">
+                                  <div class="${
+                                    product.colors
+                                  } px-3 py-1 rounded-full text-xs font-medium">
+                                      ${product.catName}
+                                  </div>
+                                  <button class="text-gray-400 hover:text-red-500 transition-colors">
+                                      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                                      </svg>
+                                  </button>
+                              </div>
+                              <h3 class="font-bold text-xl text-gray-800 mb-2 text-right">${
+                                product.name
+                              }</h3>
+                              <p class="text-gray-600 text-sm mb-4 text-right">${
+                                product.lilDescription
+                              }</p>
+                              <div class="flex justify-between items-center mb-4">
+                                  <div class="text-right">
+                                      ${
+                                        product.offerPrice
+                                          ? `<div class="text-gray-400 line-through text-sm">${formatPrice(
+                                              product.offerPrice
+                                            )}</div>`
+                                          : ""
+                                      }
+                                      <div class="price-gradient font-bold text-xl">${formatPrice(
+                                        product.price
+                                      )}
+                                      </div>
+                                  </div>
+                                  ${
+                                    product.colors.length > 0
+                                      ? `
+                                  <div class="flex gap-1">
+                                      <div class="w-4 h-4 ${product.colors} rounded-full border-2 border-white shadow-sm"></div>
+                                  </div>
+                                  `
+                                      : ""
+                                  }
+                              </div>
+                      <button onclick="addToCartAlert('${
+                        product.name
+                      }')" class="w-full bg-gradient-to-r ${
+                product.btnColor
+              } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+          افزودن به سبد خرید
+      </button>
+                              </div>
+                      </div>
+                  `;
+            })
+            .join("");
 
-        // Update product count
-        document.getElementById(
-          "product-count"
-        ).textContent = `نمایش ${filteredProducts.length} از ${products.length} محصول`;
-      }
-      function addToCartAlert(productName) {
-        alert(`محصول "${productName}" با موفقیت به سبد خرید اضافه شد!`);
-      }
-      // تابع افزایش عدد سبد خرید
-      function addToCart(productName) {
-        // 1. پیدا کردن عنصر عدد سبد خرید
-        const cartCount = document.querySelector(".cart-count");
-
-        // 2. افزایش عدد فعلی + 1
-        let currentCount = parseInt(cartCount.textContent) || 0;
-        currentCount++;
-        cartCount.textContent = currentCount;
-
-        // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
-        localStorage.setItem("cartCount", currentCount);
-
-        // 4. نمایش پیام (اختیاری)
-        alert(`${productName} به سبد خرید اضافه شد!`);
-      }
-
-      // بارگذاری عدد ذخیره شده هنگام لود صفحه
-      window.addEventListener("DOMContentLoaded", () => {
-        const savedCount = localStorage.getItem("cartCount");
-        if (savedCount) {
-          document.querySelector(".cart-count").textContent = savedCount;
+          // Update product count
+          document.getElementById(
+            "product-count"
+          ).textContent = `نمایش ${filteredProducts.length} از ${productFromServer.length} محصول`;
         }
-      });
-      // Filter products
-      function filterProducts() {
-        filteredProducts = products.filter((product) => {
-          // Category filter
-          if (
-            selectedCategories.length > 0 &&
-            !selectedCategories.includes(product.category)
-          ) {
-            return false;
-          }
+        function addToCartAlert(productName) {
+          alert(`محصول "${productName}" با موفقیت به سبد خرید اضافه شد!`);
+        }
+        // تابع افزایش عدد سبد خرید
+        function addToCart(productName) {
+          // 1. پیدا کردن عنصر عدد سبد خرید
+          const cartCount = document.querySelector(".cart-count");
 
-          // Brand filter
-          if (
-            selectedBrands.length > 0 &&
-            !selectedBrands.includes(product.brand)
-          ) {
-            return false;
-          }
+          // 2. افزایش عدد فعلی + 1
+          let currentCount = parseInt(cartCount.textContent) || 0;
+          currentCount++;
+          cartCount.textContent = currentCount;
 
-          // Price filter
-          if (product.price > maxPrice) {
-            return false;
-          }
+          // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
+          localStorage.setItem("cartCount", currentCount);
 
-          // Search filter
-          if (
-            searchQuery &&
-            !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            !product.description
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          ) {
-            return false;
-          }
-
-          return true;
-        });
-
-        // Sort products
-        switch (sortBy) {
-          case "price-low":
-            filteredProducts.sort((a, b) => a.price - b.price);
-            break;
-          case "price-high":
-            filteredProducts.sort((a, b) => b.price - a.price);
-            break;
-          case "newest":
-            filteredProducts.sort((a, b) => b.isNew - a.isNew);
-            break;
-          case "rating":
-            filteredProducts.sort((a, b) => b.rating - a.rating);
-            break;
-          default:
-            // Default sorting by popularity (rating * reviews)
-            filteredProducts.sort(
-              (a, b) => b.rating * b.reviews - a.rating * a.reviews
-            );
+          // 4. نمایش پیام (اختیاری)
+          alert(`${productName} به سبد خرید اضافه شد!`);
         }
 
-        renderProducts();
-      }
-
-      // Event listeners
-      document.addEventListener("DOMContentLoaded", function () {
-        // Initial render
-        renderProducts();
-
-        // View toggle buttons
-        document
-          .getElementById("grid-view")
-          .addEventListener("click", function () {
-            currentView = "grid";
-            this.classList.add("bg-purple-100");
-            this.classList.remove("bg-gray-100");
-            document.getElementById("list-view").classList.add("bg-gray-100");
-            document
-              .getElementById("list-view")
-              .classList.remove("bg-purple-100");
-            renderProducts();
-          });
-
-        document
-          .getElementById("list-view")
-          .addEventListener("click", function () {
-            currentView = "list";
-            this.classList.add("bg-purple-100");
-            this.classList.remove("bg-gray-100");
-            document.getElementById("grid-view").classList.add("bg-gray-100");
-            document
-              .getElementById("grid-view")
-              .classList.remove("bg-purple-100");
-            renderProducts();
-          });
-
-        // Sort dropdown
-        document
-          .getElementById("sort-select")
-          .addEventListener("change", function () {
-            sortBy = this.value;
-            filterProducts();
-            showNotification("محصولات مرتب شدند!");
-          });
-
-        // Search input
-        document
-          .getElementById("search-input")
-          .addEventListener("input", function () {
-            searchQuery = this.value;
-            filterProducts();
-          });
-
-        // Price range slider
-        const priceRange = document.getElementById("price-range");
-        const currentPriceDisplay = document.getElementById("current-price");
-
-        priceRange.addEventListener("input", function () {
-          maxPrice = parseInt(this.value);
-          currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)}`;
-          filterProducts();
+        // بارگذاری عدد ذخیره شده هنگام لود صفحه
+        window.addEventListener("DOMContentLoaded", () => {
+          const savedCount = localStorage.getItem("cartCount");
+          if (savedCount) {
+            document.querySelector(".cart-count").textContent = savedCount;
+          }
         });
+        // Filter products
+        function filterProducts() {
+          filteredProducts = productFromServer.filter((product) => {
+            // Category filter
+            if (
+              selectedCategories.length > 0 &&
+              !selectedCategories.includes(product.catName)
+            ) {
+              return false;
+            }
 
-        // Category filters
-        document.querySelectorAll(".category-chip").forEach((chip) => {
-          chip.addEventListener("click", function () {
-            const category = this.dataset.category;
-            if (selectedCategories.includes(category)) {
-              selectedCategories = selectedCategories.filter(
-                (c) => c !== category
+            // Brand filter
+            if (
+              selectedBrands.length > 0 &&
+              !selectedBrands.includes(product.brandName)
+            ) {
+              return false;
+            }
+
+            // Price filter
+            if (product.price > maxPrice) {
+              return false;
+            }
+
+            // Search filter
+            if (
+              searchQuery &&
+              !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+              !product.lilDescription
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+            ) {
+              return false;
+            }
+
+            return true;
+          });
+
+          // Sort products
+          switch (sortBy) {
+            case "price-low":
+              filteredProducts.sort((a, b) => a.price - b.price);
+              break;
+            case "price-high":
+              filteredProducts.sort((a, b) => b.price - a.price);
+              break;
+            case "newest":
+              filteredProducts.sort((a, b) => b.isNew - a.isNew);
+              break;
+            case "rating":
+              filteredProducts.sort((a, b) => b.rating - a.rating);
+              break;
+            default:
+              // Default sorting by popularity (rating * reviews)
+              filteredProducts.sort(
+                (a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum
               );
-              this.classList.remove("active");
-            } else {
-              selectedCategories.push(category);
-              this.classList.add("active");
-            }
-            filterProducts();
-          });
-        });
+          }
 
-        // Brand filters
-        document.querySelectorAll(".brand-filter").forEach((filter) => {
-          filter.addEventListener("click", function () {
-            const brand = this.dataset.brand;
-            if (selectedBrands.includes(brand)) {
-              selectedBrands = selectedBrands.filter((b) => b !== brand);
-              this.classList.remove("bg-purple-100");
-              this.classList.add("bg-white/70");
-            } else {
-              selectedBrands.push(brand);
+          renderProducts();
+        }
+
+        // Event listeners
+        document.addEventListener("DOMContentLoaded", function () {
+          // Initial render
+          renderProducts();
+
+          // View toggle buttons
+          document
+            .getElementById("grid-view")
+            .addEventListener("click", function () {
+              currentView = "grid";
               this.classList.add("bg-purple-100");
-              this.classList.remove("bg-white/70");
-            }
+              this.classList.remove("bg-gray-100");
+              document.getElementById("list-view").classList.add("bg-gray-100");
+              document
+                .getElementById("list-view")
+                .classList.remove("bg-purple-100");
+              renderProducts();
+            });
+
+          document
+            .getElementById("list-view")
+            .addEventListener("click", function () {
+              currentView = "list";
+              this.classList.add("bg-purple-100");
+              this.classList.remove("bg-gray-100");
+              document.getElementById("grid-view").classList.add("bg-gray-100");
+              document
+                .getElementById("grid-view")
+                .classList.remove("bg-purple-100");
+              renderProducts();
+            });
+
+          // Sort dropdown
+          document
+            .getElementById("sort-select")
+            .addEventListener("change", function () {
+              sortBy = this.value;
+              filterProducts();
+              showNotification("محصولات مرتب شدند!");
+            });
+
+          // Search input
+          document
+            .getElementById("search-input")
+            .addEventListener("input", function () {
+              searchQuery = this.value;
+              filterProducts();
+            });
+
+          // Price range slider
+          const priceRange = document.getElementById("price-range");
+          const currentPriceDisplay = document.getElementById("current-price");
+
+          priceRange.addEventListener("input", function () {
+            maxPrice = parseInt(this.value);
+            currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)}`;
             filterProducts();
           });
+
+          // Category filters
+          document.querySelectorAll(".category-chip").forEach((chip) => {
+            chip.addEventListener("click", function () {
+              const category = this.dataset.category;
+              if (selectedCategories.includes(category)) {
+                selectedCategories = selectedCategories.filter(
+                  (c) => c !== category
+                );
+                this.classList.remove("active");
+              } else {
+                selectedCategories.push(category);
+                this.classList.add("active");
+              }
+              filterProducts();
+            });
+          });
+
+          // Brand filters
+          document.querySelectorAll(".brand-filter").forEach((filter) => {
+            filter.addEventListener("click", function () {
+              const brand = this.dataset.brand;
+              if (selectedBrands.includes(brand)) {
+                selectedBrands = selectedBrands.filter((b) => b !== brand);
+                this.classList.remove("bg-purple-100");
+                this.classList.add("bg-white/70");
+              } else {
+                selectedBrands.push(brand);
+                this.classList.add("bg-purple-100");
+                this.classList.remove("bg-white/70");
+              }
+              filterProducts();
+            });
+          });
+
+          // Apply filters button
+          document
+            .getElementById("apply-filters")
+            .addEventListener("click", function () {
+              filterProducts();
+              showNotification("فیلترها با موفقیت اعمال شدند!");
+            });
         });
+        function addToCartAlert(productName) {
+          // نمایش toast
+          const toast = document.getElementById("toast");
+          const toastMessage = document.getElementById("toast-message");
 
-        // Apply filters button
-        document
-          .getElementById("apply-filters")
-          .addEventListener("click", function () {
-            filterProducts();
-            showNotification("فیلترها با موفقیت اعمال شدند!");
-          });
-      });
-      function addToCartAlert(productName) {
-        // نمایش toast
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toast-message");
+          toastMessage.textContent = `محصول "${productName}" به سبد خرید اضافه شد`;
+          toast.classList.remove("hidden");
 
-        toastMessage.textContent = `محصول "${productName}" به سبد خرید اضافه شد`;
-        toast.classList.remove("hidden");
+          // پس از 3 ثانیه toast را مخفی کنید
+          setTimeout(() => {
+            toast.classList.add("hidden");
+          }, 3000);
 
-        // پس از 3 ثانیه toast را مخفی کنید
-        setTimeout(() => {
-          toast.classList.add("hidden");
-        }, 3000);
-
-        // در اینجا می‌توانید منطق واقعی اضافه به سبد خرید را نیز اضافه کنید
-      }
+          // در اینجا می‌توانید منطق واقعی اضافه به سبد خرید را نیز اضافه کنید
+        }
     </script>
   </body>
 </html>
