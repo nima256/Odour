@@ -1068,7 +1068,7 @@
               <%= category.name %>
             </h3>
             <p class="text-gray-500 text-sm mt-1">
-              <%= category.productCount %> محصول
+              <%= toPersianDigits(category.productCount) %> محصول
             </p>
           </div>
           <% } %>
@@ -1196,30 +1196,20 @@
                 <div
                   class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
                 >
-                  <div class="h-48 bg-pink-200 relative">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="absolute inset-0 h-full w-full text-pink-300 opacity-50"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                        clip-rule="evenodd"
+                  <a href="/weblogDetails/<%= weblog.slug %>">
+                    <div class="h-48 bg-pink-200 relative">
+                      <img
+                        src="<%= weblog.images[0] %>"
+                        alt=""
+                        style="height: 100%; width: 100%"
                       />
-                    </svg>
-                    <div
-                      class="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span class="text-3xl">✨</span>
                     </div>
-                  </div>
+                  </a>
                   <div class="p-5">
                     <div class="flex items-center text-gray-500 text-sm mb-3">
                       <i class="far fa-calendar-alt ml-2"></i>
                       <span
-                        ><%= weblog.createTarikh.split(" ").slice(1).join(" ")
+                        ><%= weblog.createTarikh.split(" ").slice(2).join(" ")
                         %></span
                       >
                       <span class="mx-2">•</span>
@@ -1231,7 +1221,7 @@
                     </h3>
                     <p class="text-gray-600 mb-4"><%= weblog.desciption %></p>
                     <a
-                      href="#"
+                      href="/weblogDetails/<%= weblog.slug %>"
                       class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
                     >
                       بیشتر بخوانید

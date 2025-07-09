@@ -55,6 +55,11 @@ app.use(
   })
 );
 
+app.locals.toPersianDigitsForSizes = function (input) {
+  if (input === undefined || input === null) return "";
+  return input.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+};
+
 app.locals.toPersianDigits = function (num) {
   if (num === null || num === undefined || isNaN(num)) return "";
   const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
@@ -103,13 +108,21 @@ app.get("/productDetails/:slug", async (req, res) => {
   const slug = req.params.slug;
   const product = await Product.findOne({ slug });
 
-  console.log(product.sizes[0]);
+  console.log(product.sizes[0].size);
 
   res.render("ProductDetails", { product });
 });
 
 app.get("/cart", async (req, res) => {
   res.render("Cart");
+});
+
+app.get("/weblog", async (req, res) => {
+  res.render("Weblog");
+});
+
+app.get("/weblogDetails/:slug", async (req, res) => {
+  res.render("WeblogDetails");
 });
 
 app.get("/userProfile", async (req, res) => {

@@ -339,13 +339,13 @@
                     <h3 class="text-xl font-semibold text-gray-900 mb-6">انتخاب حجم:</h3>
                     <div class="grid grid-cols-3 gap-4 mb-6">
                         <% product.sizes.forEach((size, index) => { %>
-                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent <%= index === 0 ? 'selected' : '' %>" data-volume="<%= toPersianDigits(size.size) %>">
-                            <div class="text-lg font-bold"><%= toPersianDigits(size.size) %></div>
+                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent <%= index === 0 ? 'selected' : '' %>" data-volume="<%= toPersianDigitsForSizes(size.size) %>">
+                            <div class="text-lg font-bold"><%= toPersianDigitsForSizes(size.size) %></div>
                             <div class="text-xs text-gray-500 mt-1"><%= size.usage %></div>
                         </button>
                         <% }) %>
                     </div>
-                    <p class="text-sm text-gray-600">حجم انتخابی: <span id="selected-volume" class="font-semibold text-pink-600"><%= toPersianDigits(product.sizes[0].size) %></span></p>
+                    <p class="text-sm text-gray-600">حجم انتخابی: <span id="selected-volume" class="font-semibold text-pink-600"><%= toPersianDigitsForSizes(product.sizes[0].size) %></span></p>
                 </div>
 
                 <!-- Key Features -->
