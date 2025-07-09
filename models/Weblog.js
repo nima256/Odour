@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { getPersianDate } = require("../helper/getPersianDate");
 
-const categorySchema = mongoose.Schema(
+const weblogSchema = mongoose.Schema(
   {
     name: {
       type: String,
@@ -12,24 +12,18 @@ const categorySchema = mongoose.Schema(
       required: true,
       unique: true,
     },
+    desciption: {
+      type: String,
+    },
+    weblogText: {
+      type: String,
+    },
     images: [
       {
         type: String,
       },
     ],
-    color: {
-      type: String,
-    },
-    textColor: {
-      type: String,
-    },
-    parentId: {
-      type: String,
-    },
-    emoji: {
-      type: String,
-    },
-    imgSvgForHome: {
+    author: {
       type: String,
     },
     createTarikh: {
@@ -43,9 +37,9 @@ const categorySchema = mongoose.Schema(
   { timestamps: true }
 );
 
-categorySchema.set("toJSON", {
+weblogSchema.set("toJSON", {
   virtual: true,
 });
 
-const Category = mongoose.model("Category", categorySchema);
-module.exports = Category;
+const Weblog = mongoose.model("Weblog", weblogSchema);
+module.exports = Weblog;

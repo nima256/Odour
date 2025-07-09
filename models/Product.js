@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { getPersianDate } = require("../helper/getPersianDate");
 
 const productSchema = mongoose.Schema(
   {
@@ -104,6 +105,13 @@ const productSchema = mongoose.Schema(
     ],
     isPopular: {
       type: Boolean,
+    },
+    createTarikh: {
+      type: String,
+      default: () => getPersianDate(),
+    },
+    updateTarikh: {
+      type: String,
     },
   },
   { timestamps: true }

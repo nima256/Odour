@@ -646,11 +646,12 @@
             .map((product) => {
               return `
               <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
-                <a href="/productDetails/${product.slug}">
+
                           ${
                             isListView
                               ? ""
                               : `
+                        <a href="/productDetails/${product.slug}">
                         <div class="relative">
                             <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
                                 <div class="absolute inset-0 bg-gradient-to-br"><img src=${product.images[0]} alt=${product.name}></div>
@@ -659,8 +660,10 @@
                                 <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${ toPersianDigits(product.rating)} (${toPersianDigits(product.reviewsNum)} نظر)</div>
                             </div>
                         </div>
+                        </a>
                         `
                           }
+                        <a href="/productDetails/${product.slug}">
                           <div class="p-6 ${isListView ? "flex-1" : ""}">
                               <div class="flex justify-between items-start mb-3">
                                   <div class="px-3 py-1 rounded-full text-xs font-medium">
@@ -703,6 +706,7 @@
                                   }
                               </div>
                               </a>
+
                       <button onclick="addToCartAlert('${
                         product.name
                       }')" class="w-full bg-gradient-to-r ${

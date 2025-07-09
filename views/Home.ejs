@@ -1045,7 +1045,8 @@
             class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
           >
             <div
-              class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color:<%= category.color %>;"
+              class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+              style="background-color: <%= category.color %>"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1053,7 +1054,7 @@
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                style="color: <%= category.textColor %>;"
+                style="color: <%= category.textColor %>"
               >
                 <path
                   stroke-linecap="round"
@@ -1089,58 +1090,63 @@
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200"
         >
           <!-- Product 1 -->
+          <% for (let product of products) {%>
           <div
             class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
           >
-            <div class="relative">
-              <div class="h-64 bg-pink-100 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-24 w-24 text-pink-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 100-12 6 6 0 000 12z"
-                    clip-rule="evenodd"
+            <a href="/productDetails/${product.slug}">
+              <div class="relative">
+                <div class="h-64 bg-pink-100 flex items-center justify-center">
+                  <img
+                    src="<%= product.images[0] %>"
+                    alt=""
+                    style="height: 100%; width: 100%"
                   />
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 4a6 6 0 100 12 6 6 0 000-12zm0 10a4 4 0 100-8 4 4 0 000 8z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                </div>
               </div>
-              <span
-                class="absolute top-2 right-2 bg-pink-500 text-white text-xs font-semibold px-2 py-1 rounded"
-                >پرفروش</span
-              >
-            </div>
+            </a>
             <div class="p-4">
               <div class="flex items-center mb-1">
+                <% const fullStars = Math.floor(product.rating); const
+                hasHalfStar = product.rating % 1 >= 0.5; const emptyStars = 5 -
+                fullStars - (hasHalfStar ? 1 : 0); %>
+
                 <div class="flex text-yellow-400">
+                  <% for (let i = 0; i < fullStars; i++) { %>
                   <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
-                  <i class="fas fa-star"></i>
+                  <% } %> <% if (hasHalfStar) { %>
                   <i class="fas fa-star-half-alt"></i>
+                  <% } %> <% for (let i = 0; i < emptyStars; i++) { %>
+                  <i class="far fa-star"></i>
+                  <% } %>
                 </div>
-                <span class="text-gray-500 text-sm mr-1">(۱۲۸)</span>
+                <span class="text-gray-500 text-sm mr-1"
+                  >(<%= toPersianDigits(product.reviewsNum) %>)</span
+                >
               </div>
               <h3 class="text-lg font-semibold text-gray-800 mb-1">
-                سرم درخشان کننده
+                <%= product.name %>
               </h3>
               <p class="text-gray-600 text-sm mb-3">
-                فرمول آبرسان با ویتامین C
+                <%= product.lilDescription %>
               </p>
               <div class="flex items-center justify-between">
+                <% if(product.offerPrice) {%>
                 <div>
-                  <span class="text-pink-500 font-bold">۳۴,۹۹۰ تومان</span>
+                  <span class="text-pink-500 font-bold"
+                    ><%= toPersianDigits(product.offerPrice) %> تومان</span
+                  >
                   <span class="text-gray-400 line-through text-sm mr-2"
-                    >۴۲,۹۹۰ تومان</span
+                    ><%= toPersianDigits(product.price) %> تومان</span
                   >
                 </div>
+                <% } else {%>
+                <div>
+                  <span class="text-pink-500 font-bold"
+                    ><%= toPersianDigits(product.price) %> تومان</span
+                  >
+                </div>
+                <% } %>
                 <div class="icon-container">
                   <!-- آیکون سبد خرید -->
                   <svg
@@ -1168,6 +1174,7 @@
               </div>
             </div>
           </div>
+          <% } %>
 
           <!-- Blog Section -->
           <section
@@ -1185,6 +1192,7 @@
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200"
               >
                 <!-- Blog Post 1 -->
+                <% for (let weblog of weblogs) {%>
                 <div
                   class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
                 >
@@ -1210,18 +1218,18 @@
                   <div class="p-5">
                     <div class="flex items-center text-gray-500 text-sm mb-3">
                       <i class="far fa-calendar-alt ml-2"></i>
-                      <span>۲۲ خرداد ۱۴۰۲</span>
+                      <span
+                        ><%= weblog.createTarikh.split(" ").slice(1).join(" ")
+                        %></span
+                      >
                       <span class="mx-2">•</span>
                       <i class="far fa-user ml-2"></i>
-                      <span>نویسنده: سارا</span>
+                      <span>نویسنده: <%= weblog.author %></span>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                      ۱۰ نکته مراقبت از پوست در تابستان که باید بدانید
+                      <%= weblog.name %>
                     </h3>
-                    <p class="text-gray-600 mb-4">
-                      از پوست خود در ماه‌های گرم تابستان با این نکات ضروری
-                      محافظت و تغذیه کنید.
-                    </p>
+                    <p class="text-gray-600 mb-4"><%= weblog.desciption %></p>
                     <a
                       href="#"
                       class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
@@ -1244,181 +1252,7 @@
                     </a>
                   </div>
                 </div>
-
-                <!-- Blog Post 2 -->
-                <div
-                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-                >
-                  <div class="h-48 bg-purple-200 relative">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="absolute inset-0 h-full w-full text-purple-300 opacity-50"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
-                      />
-                    </svg>
-                    <div
-                      class="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span class="text-3xl">💄</span>
-                    </div>
-                  </div>
-                  <div class="p-5">
-                    <div class="flex items-center text-gray-500 text-sm mb-3">
-                      <i class="far fa-calendar-alt ml-2"></i>
-                      <span>۱۸ خرداد ۱۴۰۲</span>
-                      <span class="mx-2">•</span>
-                      <i class="far fa-user ml-2"></i>
-                      <span>نویسنده: الهام</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                      راهنمای کامل برس‌های آرایشی
-                    </h3>
-                    <p class="text-gray-600 mb-4">
-                      بیاموزید که کدام برس‌ها را در مجموعه خود نیاز دارید و
-                      چگونه از آنها برای آرایش بی‌نقص استفاده کنید.
-                    </p>
-                    <a
-                      href="#"
-                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
-                    >
-                      بیشتر بخوانید
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mr-1 rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-
-                <!-- Blog Post 3 -->
-                <div
-                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-                >
-                  <div class="h-48 bg-purple-200 relative">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="absolute inset-0 h-full w-full text-purple-300 opacity-50"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
-                      />
-                    </svg>
-                    <div
-                      class="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span class="text-3xl">💄</span>
-                    </div>
-                  </div>
-                  <div class="p-5">
-                    <div class="flex items-center text-gray-500 text-sm mb-3">
-                      <i class="far fa-calendar-alt ml-2"></i>
-                      <span>۱۸ خرداد ۱۴۰۲</span>
-                      <span class="mx-2">•</span>
-                      <i class="far fa-user ml-2"></i>
-                      <span>نویسنده: الهام</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                      راهنمای کامل برس‌های آرایشی
-                    </h3>
-                    <p class="text-gray-600 mb-4">
-                      بیاموزید که کدام برس‌ها را در مجموعه خود نیاز دارید و
-                      چگونه از آنها برای آرایش بی‌نقص استفاده کنید.
-                    </p>
-                    <a
-                      href="#"
-                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
-                    >
-                      بیشتر بخوانید
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mr-1 rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-                <div
-                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-                >
-                  <div class="h-48 bg-purple-200 relative">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="absolute inset-0 h-full w-full text-purple-300 opacity-50"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"
-                      />
-                    </svg>
-                    <div
-                      class="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span class="text-3xl">💄</span>
-                    </div>
-                  </div>
-                  <div class="p-5">
-                    <div class="flex items-center text-gray-500 text-sm mb-3">
-                      <i class="far fa-calendar-alt ml-2"></i>
-                      <span>۱۸ خرداد ۱۴۰۲</span>
-                      <span class="mx-2">•</span>
-                      <i class="far fa-user ml-2"></i>
-                      <span>نویسنده: الهام</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                      راهنمای کامل برس‌های آرایشی
-                    </h3>
-                    <p class="text-gray-600 mb-4">
-                      بیاموزید که کدام برس‌ها را در مجموعه خود نیاز دارید و
-                      چگونه از آنها برای آرایش بی‌نقص استفاده کنید.
-                    </p>
-                    <a
-                      href="#"
-                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
-                    >
-                      بیشتر بخوانید
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mr-1 rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
+                <% } %>
               </div>
             </div>
 

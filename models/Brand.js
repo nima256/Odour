@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { getPersianDate } = require("../helper/getPersianDate");
 
 const brandSchema = mongoose.Schema(
   {
@@ -12,6 +13,13 @@ const brandSchema = mongoose.Schema(
       unique: true,
     },
     emoji: {
+      type: String,
+    },
+    createTarikh: {
+      type: String,
+      default: () => getPersianDate(),
+    },
+    updateTarikh: {
       type: String,
     },
   },

@@ -24,6 +24,7 @@ const isLoggedIn = require("./middlewares/isLoggedIn");
 const Product = require("./models/Product");
 const Category = require("./models/Category");
 const Brand = require("./models/Brand");
+const Weblog = require("./models/Weblog");
 
 // For Production
 // app.use(
@@ -54,14 +55,17 @@ app.use(
   })
 );
 
-app.locals.toPersianDigits = function (input) {
-  if (input === undefined || input === null) return "";
-  return input.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+app.locals.toPersianDigits = function (num) {
+  if (num === null || num === undefined || isNaN(num)) return "";
+  const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+  const withCommas = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
 };
 
 app.get("/", async (req, res) => {
   const categories = await Category.find({});
-  const products = await Product.find({}).limit(4);
+  const products = await Product.find({ isPopular: true });
+  const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
 
   const categoriesWithCounts = await Promise.all(
     categories.map(async (cat) => {
@@ -73,7 +77,7 @@ app.get("/", async (req, res) => {
     })
   );
 
-  res.render("Home", { categories: categoriesWithCounts });
+  res.render("Home", { categories: categoriesWithCounts, products, weblogs });
 });
 
 app.get("/shop", async (req, res) => {
