@@ -226,6 +226,91 @@
         transform: translateX(0);
         opacity: 1;
       }
+      /* استایل‌های پاپ‌آپ احراز هویت */
+      #auth-popup {
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      }
+
+      #auth-popup:not(.hidden) {
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content,
+      .form-step {
+        display: none;
+      }
+
+      .tab-content.active,
+      .form-step.active {
+        display: block;
+      }
+
+      input:focus {
+        outline: none;
+      }
+
+      /* استایل کدهای تایید */
+      .otp-input {
+        width: 3rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        direction: ltr;
+        /* این خط رو اضافه کنید */
+      }
+
+      /* انیمیشن پاپ‌آپ */
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal-content {
+        animation: modalFadeIn 0.3s ease-out;
+      }
+      /* استایل پایه برای آیکون‌ها */
+      .icon {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .cart-icon {
+        color: #333;
+      }
+
+      .cart-icon:hover {
+        color: #007bff;
+      }
+
+      .success-icon {
+        color: #28a745;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .icon-container {
+        width: 24px;
+        height: 24px;
+      }
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -395,6 +480,396 @@
     </script>
     <br /><br /><br />
     <div class="container mx-auto px-4 py-8">
+      <div
+        id="auth-popup"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+      >
+        <div
+          class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content"
+        >
+          <!-- Tab Navigation -->
+          <div class="flex border-b">
+            <button
+              id="login-tab"
+              class="tab-btn flex-1 py-4 text-center font-medium text-pink-500 border-b-2 border-pink-500"
+            >
+              ورود
+            </button>
+            <button
+              id="register-tab"
+              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
+            >
+              ثبت نام
+            </button>
+            <button
+              id="forgot-tab"
+              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
+            >
+              بازیابی رمز
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <div id="login-content" class="tab-content active p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+              ورود به حساب کاربری
+            </h2>
+            <form
+              action="/api/authentication/signIn"
+              method="post"
+              id="login-form"
+              class="space-y-5"
+            >
+              <div>
+                <label class="block text-gray-700 mb-2" for="login-phone"
+                  >شماره موبایل</label
+                >
+                <input
+                  type="tel"
+                  name="mobile"
+                  id="login-phone"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="09xxxxxxxxx"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-2" for="login-password"
+                  >رمز عبور</label
+                >
+                <input
+                  type="password"
+                  name="password"
+                  id="login-password"
+                  class="w-full px-4 py-3 rounded-lg border"
+                  placeholder="رمز عبور خود را وارد کنید"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+              >
+                ورود
+              </button>
+            </form>
+          </div>
+
+          <!-- Registration Form -->
+          <div id="register-content" class="tab-content p-6">
+            <!-- Step 1: Registration Form -->
+            <div id="register-step-1" class="form-step active">
+              <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+                ایجاد حساب کاربری
+              </h2>
+              <form
+                action="/api/authentication/signUp"
+                method="post"
+                id="register-form"
+                class="space-y-4"
+              >
+                <div>
+                  <label class="block text-gray-700 mb-2" for="register-name"
+                    >نام و نام خانوادگی</label
+                  >
+                  <input
+                    type="text"
+                    name="fullName"
+                    id="register-name"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="نام کامل خود را وارد کنید"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-gray-700 mb-2" for="register-phone"
+                    >شماره موبایل</label
+                  >
+                  <input
+                    type="tel"
+                    name="mobile"
+                    id="register-phone"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="09xxxxxxxxx"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-gray-700 mb-2" for="register-email"
+                    >ایمیل (اختیاری)</label
+                  >
+                  <input
+                    type="email"
+                    name="email"
+                    id="register-email"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-gray-700 mb-2"
+                    for="register-password"
+                    >رمز عبور</label
+                  >
+                  <input
+                    type="password"
+                    name="password"
+                    id="register-password"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="حداقل 8 کاراکتر"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-gray-700 mb-2"
+                    for="register-confirm-password"
+                    >تکرار رمز عبور</label
+                  >
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    id="register-confirm-password"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="تکرار رمز عبور"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors mt-2"
+                >
+                  ثبت نام
+                </button>
+              </form>
+            </div>
+
+            <!-- Step 2: Verification Code -->
+            <div id="register-step-2" class="form-step">
+              <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+                تایید شماره موبایل
+              </h2>
+              <p class="text-gray-600 text-center mb-5">
+                کد تایید به شماره
+                <span id="register-phone-display" class="font-bold"></span>
+                ارسال شد
+              </p>
+              <form id="register-verification-form" class="space-y-5">
+                <div class="text-center">
+                  <label class="block text-gray-700 mb-4 text-center"
+                    >کد تایید را وارد کنید</label
+                  >
+                  <!-- در بخش ثبت نام -->
+                  <div class="flex justify-center gap-2 mb-3">
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div
+                    id="register-resend-timer"
+                    class="text-sm text-gray-500 mb-3"
+                  >
+                    ارسال مجدد کد تا <span>۰۲:۰۰</span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                >
+                  تایید و ورود
+                </button>
+                <button
+                  type="button"
+                  id="register-back-btn"
+                  class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
+                >
+                  بازگشت
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Forgot Password Form -->
+          <div id="forgot-content" class="tab-content p-6">
+            <!-- Step 1: Phone Number -->
+            <div id="forgot-step-1" class="form-step active">
+              <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+                بازیابی رمز عبور
+              </h2>
+              <form id="forgot-form" class="space-y-5">
+                <div>
+                  <label class="block text-gray-700 mb-2" for="forgot-phone"
+                    >شماره موبایل</label
+                  >
+                  <input
+                    type="tel"
+                    id="forgot-phone"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="09xxxxxxxxx"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                >
+                  ارسال کد تایید
+                </button>
+              </form>
+            </div>
+
+            <!-- Step 2: Verification Code -->
+            <div id="forgot-step-2" class="form-step">
+              <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+                تایید کد
+              </h2>
+              <p class="text-gray-600 text-center mb-5">
+                کد تایید به شماره
+                <span id="forgot-phone-display" class="font-bold"></span> ارسال
+                شد
+              </p>
+              <form id="forgot-verification-form" class="space-y-5">
+                <div class="text-center">
+                  <label class="block text-gray-700 mb-4 text-center"
+                    >کد تایید را وارد کنید</label
+                  >
+                  <!-- در بخش ثبت نام -->
+                  <div class="flex justify-center gap-2 mb-3">
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div
+                    id="forgot-resend-timer"
+                    class="text-sm text-gray-500 mb-3"
+                  >
+                    ارسال مجدد کد تا <span>۰۲:۰۰</span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                >
+                  تایید
+                </button>
+                <button
+                  type="button"
+                  id="forgot-back-btn"
+                  class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
+                >
+                  بازگشت
+                </button>
+              </form>
+            </div>
+
+            <!-- Step 3: New Password -->
+            <div id="forgot-step-3" class="form-step">
+              <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+                تعیین رمز عبور جدید
+              </h2>
+              <form id="new-password-form" class="space-y-5">
+                <div>
+                  <label class="block text-gray-700 mb-2" for="new-password"
+                    >رمز عبور جدید</label
+                  >
+                  <input
+                    type="password"
+                    id="new-password"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="حداقل 6 کاراکتر"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-gray-700 mb-2"
+                    for="confirm-new-password"
+                    >تکرار رمز عبور جدید</label
+                  >
+                  <input
+                    type="password"
+                    id="confirm-new-password"
+                    class="w-full px-4 py-3 rounded-lg border"
+                    placeholder="تکرار رمز عبور جدید"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                >
+                  ذخیره و ورود
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Header Section -->
       <div class="text-center mb-12">
         <h1
@@ -931,6 +1406,319 @@
               showNotification("فیلترها با موفقیت اعمال شدند!");
             });
         });
+        // مدیریت پاپ‌آپ احراز هویت
+              const authButton = document.getElementById("user-auth-button");
+              const authPopup = document.getElementById("auth-popup");
+
+              authButton.addEventListener("click", function (e) {
+                e.preventDefault();
+                authPopup.classList.remove("hidden");
+                switchTab("login");
+              });
+
+              authPopup.addEventListener("click", function (e) {
+                if (e.target === authPopup) {
+                  authPopup.classList.add("hidden");
+                }
+              });
+
+              // Tab Switching
+              const tabs = {
+                login: document.getElementById("login-tab"),
+                register: document.getElementById("register-tab"),
+                forgot: document.getElementById("forgot-tab"),
+              };
+
+              const contents = {
+                login: document.getElementById("login-content"),
+                register: document.getElementById("register-content"),
+                forgot: document.getElementById("forgot-content"),
+              };
+
+              function switchTab(activeTab) {
+                Object.values(tabs).forEach((tab) => {
+                  tab.classList.remove("border-pink-500", "text-pink-500");
+                  tab.classList.add("text-gray-500");
+                });
+
+                Object.values(contents).forEach((content) => {
+                  content.classList.remove("active");
+                });
+
+                tabs[activeTab].classList.add(
+                  "border-pink-500",
+                  "text-pink-500"
+                );
+                tabs[activeTab].classList.remove("text-gray-500");
+                contents[activeTab].classList.add("active");
+              }
+
+              tabs.login.addEventListener("click", () => switchTab("login"));
+              tabs.register.addEventListener("click", () =>
+                switchTab("register")
+              );
+              tabs.forgot.addEventListener("click", () => switchTab("forgot"));
+
+              // Improved OTP input handling (LTR focus movement)
+              function getOtpValue(containerSelector) {
+                const inputs = Array.from(
+                  document.querySelectorAll(`${containerSelector} .otp-input`)
+                );
+                return inputs.map((input) => input.value).join("");
+              }
+
+              // Registration Process
+              const registerForm = document.getElementById("register-form");
+              const registerStep1 = document.getElementById("register-step-1");
+              const registerStep2 = document.getElementById("register-step-2");
+              const registerPhoneDisplay = document.getElementById(
+                "register-phone-display"
+              );
+
+              registerForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const formDataRegister = new FormData(registerForm);
+                const phone = document.getElementById("register-phone").value;
+                registerPhoneDisplay.textContent = phone;
+                registerStep1.classList.remove("active");
+                registerStep2.classList.add("active");
+                startCountdown("register-resend-timer", 120);
+                setupOtpInputs("#register-step-2");
+
+                fetch("/api/mobile/sendOtp", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ mobile: phone }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.success) {
+                      // Only run this if otp was successful
+                      // otp verification form
+                      const registerVerificationForm = document.getElementById(
+                        "register-verification-form"
+                      );
+
+                      registerVerificationForm.addEventListener(
+                        "submit",
+                        function (e) {
+                          e.preventDefault();
+                          // alert("ثبت نام با موفقیت انجام شد!");
+                          const otpValue = getOtpValue("#register-step-2");
+                          const reversedOtpValue = otpValue
+                            .split("")
+                            .reverse()
+                            .join("");
+                          fetch("/api/mobile/verifyOtp", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              mobile: phone,
+                              otp: reversedOtpValue,
+                            }),
+                          })
+                            .then((res) => res.json())
+                            .then((data) => {
+                              if (data.success) {
+                                fetch("/api/authentication/signUp", {
+                                  method: "POST",
+                                  body: formDataRegister,
+                                })
+                                  .then((res) => res.json())
+                                  .then((data) => {
+                                    if (data.success) {
+                                      // Only run this if registration was successful
+                                      alert(data.message);
+                                      location.reload();
+                                    } else {
+                                      // Show error message
+                                      alert(data.message); // You can use a toast or modal instead
+                                    }
+                                  })
+                                  .catch((err) => {
+                                    console.error("Error:", err);
+                                    alert(
+                                      "مشکلی در ارتباط با سرور به وجود آمده است"
+                                    );
+                                  });
+                                authPopup.classList.add("hidden");
+                              } else {
+                                alert(data.message);
+                              }
+                            })
+                            .catch((err) => {
+                              console.error("Error:", err);
+                              alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                            });
+                        }
+                      );
+                    } else {
+                      // Show error message
+                      alert(data.message);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error:", err);
+                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                  });
+              });
+
+              document
+                .getElementById("register-back-btn")
+                .addEventListener("click", function () {
+                  registerStep2.classList.remove("active");
+                  registerStep1.classList.add("active");
+                });
+
+              // Forgot Password Process
+              const forgotForm = document.getElementById("forgot-form");
+              const forgotStep1 = document.getElementById("forgot-step-1");
+              const forgotStep2 = document.getElementById("forgot-step-2");
+              const forgotStep3 = document.getElementById("forgot-step-3");
+              const forgotPhoneDisplay = document.getElementById(
+                "forgot-phone-display"
+              );
+
+              forgotForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const phone = document.getElementById("forgot-phone").value;
+                forgotPhoneDisplay.textContent = phone;
+                forgotStep1.classList.remove("active");
+                forgotStep2.classList.add("active");
+                startCountdown("forgot-resend-timer", 120);
+                setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
+              });
+
+              document
+                .getElementById("forgot-back-btn")
+                .addEventListener("click", function () {
+                  forgotStep2.classList.remove("active");
+                  forgotStep1.classList.add("active");
+                });
+              function setupOtpInputs(containerSelector) {
+                const inputs = Array.from(
+                  document.querySelectorAll(`${containerSelector} .otp-input`)
+                );
+
+                // فوکوس روی آخرین اینپوت (راست‌ترین)
+                inputs[inputs.length - 1].focus();
+
+                inputs.forEach((input, index) => {
+                  // حرکت به چپ هنگام وارد کردن عدد
+                  input.addEventListener("input", function () {
+                    if (this.value.length === 1) {
+                      if (index > 0) {
+                        inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
+                      }
+                    }
+                  });
+
+                  // حرکت به راست هنگام پاک کردن
+                  input.addEventListener("keydown", function (e) {
+                    if (e.key === "Backspace" && this.value.length === 0) {
+                      if (index < inputs.length - 1) {
+                        inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
+                      }
+                    }
+                  });
+                });
+              }
+
+              // Initialize OTP inputs for both forms
+              setupOtpInputs("#register-step-2");
+              setupOtpInputs("#forgot-step-2");
+
+              // Forgot password verification form
+              const forgotVerificationForm = document.getElementById(
+                "forgot-verification-form"
+              );
+              forgotVerificationForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                forgotStep2.classList.remove("active");
+                forgotStep3.classList.add("active");
+              });
+
+              // Login form submission
+              const loginForm = document.getElementById("login-form");
+
+              loginForm.addEventListener("submit", function (e) {
+                const formDataLogin = new FormData(loginForm);
+                e.preventDefault();
+                fetch("/api/authentication/signIn", {
+                  method: "POST",
+                  body: formDataLogin,
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.success) {
+                      // Only run this if registration was successful
+                      alert(data.message);
+                      location.reload();
+                      authPopup.classList.add("hidden");
+                    } else {
+                      // Show error message
+                      alert(data.message); // You can use a toast or modal instead
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error:", err);
+                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                  });
+              });
+
+              // New password form submission
+              const newPasswordForm =
+                document.getElementById("new-password-form");
+              newPasswordForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                alert("رمز عبور با موفقیت تغییر یافت!");
+                authPopup.classList.add("hidden");
+              });
+
+              // Countdown timer function
+              function startCountdown(elementId, seconds) {
+                const timerElement = document.getElementById(elementId);
+                const timerSpan = timerElement.querySelector("span");
+
+                let remaining = seconds;
+
+                const interval = setInterval(() => {
+                  const minutes = Math.floor(remaining / 60);
+                  const secs = remaining % 60;
+
+                  timerSpan.textContent = `${minutes
+                    .toString()
+                    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+
+                  if (remaining <= 0) {
+                    clearInterval(interval);
+                    timerElement.innerHTML =
+                      '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
+                  }
+
+                  remaining--;
+                }, 1000);
+              }
+
+              // Phone number input validation
+              const phoneInputs =
+                document.querySelectorAll('input[type="tel"]');
+              phoneInputs.forEach((input) => {
+                input.addEventListener("input", function (e) {
+                  this.value = this.value.replace(/\D/g, "");
+                });
+
+                input.addEventListener("blur", function () {
+                  if (!this.value.startsWith("0") && this.value.length > 0) {
+                    this.value = "0" + this.value;
+                  }
+                });
+              });
         function addToCartAlert(productName,id) {
             fetch("/api/cart/add", {
                 method: "POST",
