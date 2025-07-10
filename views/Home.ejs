@@ -1732,9 +1732,6 @@
                               if (data.success) {
                                 fetch("/api/authentication/signUp", {
                                   method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
                                   body: formDataRegister,
                                 })
                                   .then((res) => res.json())

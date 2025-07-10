@@ -9,10 +9,6 @@ const emailValidator = require("email-validator");
 const User = require("../models/User");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 
-// For access to req.body
-router.use(express.json());
-router.use(express.urlencoded({ extended: true }));
-
 router.post("/signUp", upload.none(), async (req, res) => {
   try {
     if (req.session.userId) {

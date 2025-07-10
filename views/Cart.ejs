@@ -535,12 +535,14 @@
               شماره سفارش: <span class="font-normal" id="order-number"></span>
             </p>
           </div>
-          <button
-            id="back-to-shop"
-            class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition text-lg"
-          >
-            بازگشت به فروشگاه
-          </button>
+          <a href="/userProfile">
+            <button
+              id="back-to-shop"
+              class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition text-lg"
+            >
+              رهگیری سفارش
+            </button>
+          </a>
         </div>
       </div>
     </div>
@@ -911,10 +913,10 @@
 
       // Render summary page
       function renderSummary() {
-        const fullName = document.getElementById("full-name").value;
+        const fullName = document.getElementById("full-name").getAttribute("placeholder");
         const postalCode = document.getElementById("postal-code").value;
         const address = document.getElementById("address").value;
-        const phone = document.getElementById("phone").value;
+        const phone = document.getElementById("phone").getAttribute("placeholder");
 
         document.getElementById("summary-customer-info").innerHTML = `
             <p>${fullName}</p>
@@ -930,6 +932,9 @@
         summaryProducts.innerHTML = "";
 
         cartItemsFromServer.forEach((product) => {
+          let forPrice = product.price * product.quantity
+          let forOfferPrice = product.offerPrice * product.quantity
+
           const itemTotal = product.price * product.quantity;
           const productElement = document.createElement("div");
           productElement.className = "flex justify-between items-center";
@@ -938,7 +943,7 @@
                     <div class="product-image ml-4" style="width: 50px; height: 50px;">
                         <img src="${product.image}" alt="">
                     </div>
-                    <div class="text-gray-800">${formatPrice(itemTotal)}</div>
+                    <div class="text-gray-800">${product.offerPrice ? formatPrice(forOfferPrice) : formatPrice(forPrice)}</div>
                 </div>
                 <div class="text-gray-600 text-right">${product.name} × ${
             product.quantity
@@ -983,9 +988,7 @@
         }
 
         if (pageId === "confirmation-page") {
-          const orderNumber =
-            "ORD-" + Math.floor(100000 + Math.random() * 900000);
-          document.getElementById("order-number").textContent = orderNumber;
+          document.getElementById("order-number").textContent = "<%- JSON.stringify(user.orders.at(-1)?.OrderNum) %>"
         }
 
         window.scrollTo(0, 0);
@@ -1047,12 +1050,10 @@
           .addEventListener("click", () => showPage("shipping-page"));
         document
           .getElementById("complete-purchase")
-          .addEventListener("click", () => {showPage("confirmation-page"))
+          .addEventListener("click", () => showPage("confirmation-page"));
         document
           .getElementById("back-to-shop")
-          .addEventListener("click", () => {
-            showPage("cart-page")
-          });
+          .addEventListener("click", () => showPage("cart-page"));
 
         document
           .getElementById("shipping-method")

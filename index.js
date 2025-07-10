@@ -137,9 +137,9 @@ app.get("/productDetails/:slug", async (req, res) => {
 });
 
 app.get("/cart", async (req, res) => {
-  const user = await User.findById(req.session.userId).populate(
-    "cart.productId"
-  );
+  const user = await User.findById(req.session.userId)
+    .populate("cart.productId")
+    .populate("orders");
 
   if (!user || !user.cart) {
     return res.redirect("/");

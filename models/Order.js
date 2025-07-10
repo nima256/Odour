@@ -4,7 +4,7 @@ const { getPersianDate } = require("../helper/getPersianDate");
 
 const orderSchema = new Schema({
   OrderNum: {
-    type: Number,
+    type: String,
     required: true,
   },
   postcode: {
