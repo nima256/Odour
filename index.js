@@ -56,6 +56,7 @@ const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/order");
+const { isLoggedIn } = require("./middlewares/isLoggedIn");
 
 app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
@@ -74,11 +75,18 @@ app.locals.toPersianDigits = function (num) {
   return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
 };
 
+function generateOrderNumber() {
+  const randomNum = Math.floor(100000 + Math.random() * 900000); // random 6-digit number from 100000 to 999999
+  return `ORD-${randomNum}`;
+}
+
 app.get("/", async (req, res) => {
   const categories = await Category.find({});
   const products = await Product.find({ isPopular: true });
   const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
   const user = await User.findById(req.session.userId);
+
+  req.session.OrderNum = generateOrderNumber();
 
   const cartCount = user?.cart?.length || 0;
 
@@ -136,7 +144,7 @@ app.get("/productDetails/:slug", async (req, res) => {
   res.render("ProductDetails", { product });
 });
 
-app.get("/cart", async (req, res) => {
+app.get("/cart", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.session.userId)
     .populate("cart.productId")
     .populate("orders");
@@ -159,7 +167,7 @@ app.get("/cart", async (req, res) => {
     };
   });
 
-  res.render("Cart", { cartItems, user });
+  res.render("Cart", { cartItems, user, OrderNum: req.session.OrderNum });
 });
 
 app.get("/weblog", async (req, res) => {
@@ -170,7 +178,7 @@ app.get("/weblogDetails/:slug", async (req, res) => {
   res.render("WeblogDetails");
 });
 
-app.get("/userProfile", async (req, res) => {
+app.get("/userProfile", isLoggedIn, async (req, res) => {
   res.render("UserProfile");
 });
 

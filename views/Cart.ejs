@@ -988,7 +988,7 @@
         }
 
         if (pageId === "confirmation-page") {
-          document.getElementById("order-number").textContent = "<%- JSON.stringify(user.orders.at(-1)?.OrderNum) %>"
+          document.getElementById("order-number").textContent = "<%= OrderNum %>"
         }
 
         window.scrollTo(0, 0);

@@ -320,7 +320,8 @@
               <span
                 style="bottom: 15px; right: 7px"
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                ><%= toPersianDigits(cartCount) %></span>
+                ><%= toPersianDigits(cartCount) %></span
+              >
               <% } else {%><% } %>
             </button>
           </div>
@@ -726,9 +727,7 @@
                               </div>
                               </a>
 
-                      <button onclick="addToCartAlert('${
-                        product.name
-                      }')" class="w-full bg-gradient-to-r ${
+                      <button onclick="addToCartAlert('${product.name}', '${product._id}')" class="w-full bg-gradient-to-r ${
                 product.btnColor
               } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
           افزودن به سبد خرید
@@ -744,9 +743,6 @@
           document.getElementById(
             "product-count"
           ).textContent = `نمایش ${toPersianDigits(filteredProducts.length)} از ${toPersianDigits( productFromServer.length)} محصول`;
-        }
-        function addToCartAlert(productName) {
-          alert(`محصول "${productName}" با موفقیت به سبد خرید اضافه شد!`);
         }
         // تابع افزایش عدد سبد خرید
         function addToCart(productName) {
@@ -935,18 +931,42 @@
               showNotification("فیلترها با موفقیت اعمال شدند!");
             });
         });
-        function addToCartAlert(productName) {
+        function addToCartAlert(productName,id) {
+            fetch("/api/cart/add", {
+                method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                productId: id,
+              }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  // Only run this if registration was successful
+                  const toast = document.getElementById("toast");
+                  const toastMessage = document.getElementById("toast-message");
+
+                  toastMessage.textContent = `محصول "${productName}" به سبد خرید اضافه شد`;
+                  toast.classList.remove("hidden");
+
+                  // پس از 3 ثانیه toast را مخفی کنید
+                  setTimeout(() => {
+                    toast.classList.add("hidden");
+                  }, 3000);
+                  location.reload();
+                } else {
+                  // Show error message
+                  alert(data.message); // You can use a toast or modal instead
+                }
+              })
+              .catch((err) => {
+                console.error("Error:", err);
+                alert("مشکلی در ارتباط با سرور به وجود آمده است");
+              });
           // نمایش toast
-          const toast = document.getElementById("toast");
-          const toastMessage = document.getElementById("toast-message");
 
-          toastMessage.textContent = `محصول "${productName}" به سبد خرید اضافه شد`;
-          toast.classList.remove("hidden");
-
-          // پس از 3 ثانیه toast را مخفی کنید
-          setTimeout(() => {
-            toast.classList.add("hidden");
-          }, 3000);
 
           // در اینجا می‌توانید منطق واقعی اضافه به سبد خرید را نیز اضافه کنید
         }

@@ -10,10 +10,7 @@ const upload = multer();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
-function generateOrderNumber() {
-  const randomNum = Math.floor(100000 + Math.random() * 900000); // random 6-digit number from 100000 to 999999
-  return `ORD-${randomNum}`;
-}
+
 
 router.post("/", upload.none(), isLoggedIn, async (req, res) => {
   try {
@@ -42,10 +39,8 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
 
     const productIds = user.cart.map((item) => item.productId._id);
 
-    const orderNum = generateOrderNumber();
-
     const newOrder = new Order({
-      OrderNum: orderNum,
+      OrderNum: req.session.OrderNum,
       postcode,
       address,
       user: userId,
