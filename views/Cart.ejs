@@ -204,7 +204,7 @@
       >
         <div class="relative">
           <button
-            onclick="window.location.href='cart.html';"
+            onclick="window.location.href='/cart';"
             class="relative text-gray-700 hover:text-pink-500 transition-colors"
           >
             <i class="fas fa-shopping-bag text-xl"></i>
@@ -752,31 +752,6 @@
         `,
       };
 
-      // Sample products data
-      const products = [
-        {
-          id: 1,
-          name: "گوشی موبایل سامسونگ",
-          price: 12500000,
-          quantity: 1,
-          image: productImages.phone,
-        },
-        {
-          id: 2,
-          name: "هدفون بی سیم",
-          price: 2800000,
-          quantity: 1,
-          image: productImages.headphones,
-        },
-        {
-          id: 3,
-          name: "پاور بانک 10000mAh",
-          price: 1500000,
-          quantity: 2,
-          image: productImages.powerbank,
-        },
-      ];
-
       const cartItemsFromServer = <%- JSON.stringify(cartItems) %>;
 
 
@@ -802,8 +777,11 @@
       // Calculate subtotal
       function calculateSubtotal() {
         return cartItemsFromServer.reduce(
-          (total, product) => total + product.price * product.quantity,
-          0
+          (total, product) =>
+            {
+              total + product.price * product.quantity,
+              0
+            }
         );
       }
 
@@ -823,7 +801,8 @@
         cartItemsContainer.innerHTML = "";
 
         cartItemsFromServer.forEach((product) => {
-          const itemTotal = product.price * product.quantity;
+          let forPrice = product.price * product.quantity
+          let forOfferPrice = product.offerPrice * product.quantity
 
           const itemElement = document.createElement("div");
           itemElement.className =
@@ -837,9 +816,10 @@
                         <h3 class="font-bold text-gray-800 text-right">${
                           product.name
                         }</h3>
-                        <p class="text-gray-600 text-right">${formatPrice(
-                          product.price
-                        )}</p>
+
+                    <p class="text-gray-600 text-right">
+                      ${product.offerPrice ? formatPrice(product.offerPrice) : formatPrice(product.price)}
+                    </p>
                     </div>
                 </div>
                 <div class="flex items-center self-end md:self-auto">
@@ -848,9 +828,7 @@
                         <span class="px-4 py-1">${product.quantity}</span>
                         <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity - 1})" ${product.quantity <= 1 ? "disabled" : ""}>-</button>
                     </div>
-                    <div class="font-bold text-gray-800">${formatPrice(
-                      itemTotal
-                    )}</div>
+                    <div class="font-bold text-gray-800">${product.offerPrice ? formatPrice(forOfferPrice) : formatPrice(forPrice)}</div>
                 </div>
             `;
           cartItemsContainer.appendChild(itemElement);

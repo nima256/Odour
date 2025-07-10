@@ -307,11 +307,13 @@
               class="relative text-gray-700 hover:text-pink-500 transition-colors"
             >
               <i class="fas fa-shopping-bag text-xl"></i>
+              <% if(user) { %>
               <span
                 id="cartCount"
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                ><%= cartCount %></span
+                ><%= toPersianDigits(cartCount) %></span
               >
+              <% } else {%><% } %>
             </button>
           </div>
           <% if (!user) {%>
