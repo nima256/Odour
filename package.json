@@ -19,6 +19,8 @@
     "express-session": "^1.18.1",
     "jalaali-js": "^1.2.8",
     "mongoose": "^8.16.2",
-    "nodemon": "^3.1.10"
+    "multer": "^2.0.1",
+    "nodemon": "^3.1.10",
+    "redis": "^5.6.0"
   }
 }

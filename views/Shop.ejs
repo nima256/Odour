@@ -453,7 +453,7 @@
                       ><%= category.name %> <%= category.emoji %></span
                     >
                     <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
-                      ><%= category.productCount %></span
+                      ><%= toPersianDigits(category.productCount) %></span
                     >
                   </div>
                 </div>
@@ -467,10 +467,10 @@
               <div class="bg-white/70 rounded-2xl p-6 shadow-lg">
                 <div class="flex justify-between mb-4">
                   <span class="text-sm text-gray-600" id="min-price-display"
-                    >50,000 تومان</span
+                    >۵۰,۰۰۰ تومان</span
                   >
                   <span class="text-sm text-gray-600" id="max-price-display"
-                    >2,000,000 تومان</span
+                    >۲,۰۰۰,۰۰۰ تومان</span
                   >
                 </div>
                 <div class="relative mb-4">
@@ -488,7 +488,7 @@
                     class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium"
                     id="current-price"
                   >
-                    تا 1,000,000 تومان
+                    تا ۱,۰۰۰,۰۰۰ تومان
                   </span>
                 </div>
               </div>
@@ -597,12 +597,12 @@
                 <button
                   class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl shadow-lg"
                 >
-                  1
+                  ۱
                 </button>
                 <button
                   class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
                 >
-                  2
+                  ۲
                 </button>
                 <button
                   class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
@@ -634,7 +634,8 @@
 
         // Utility functions
         function formatPrice(price) {
-          return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+          // return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+          return price.toLocaleString("fa-IR");
         }
 
         function showNotification(message) {
@@ -887,7 +888,7 @@
 
           priceRange.addEventListener("input", function () {
             maxPrice = parseInt(this.value);
-            currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)}`;
+            currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice).toLocaleString("fa-IR")} تومان`;
             filterProducts();
           });
 

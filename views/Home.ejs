@@ -303,7 +303,7 @@
         >
           <div class="relative">
             <button
-              onclick="window.location.href='cart.html';"
+              onclick="window.location.href='/cart';"
               class="relative text-gray-700 hover:text-pink-500 transition-colors"
             >
               <i class="fas fa-shopping-bag text-xl"></i>
@@ -520,13 +520,19 @@
           <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
             ورود به حساب کاربری
           </h2>
-          <form id="login-form" class="space-y-5">
+          <form
+            action="/api/authentication/signIn"
+            method="post"
+            id="login-form"
+            class="space-y-5"
+          >
             <div>
               <label class="block text-gray-700 mb-2" for="login-phone"
                 >شماره موبایل</label
               >
               <input
                 type="tel"
+                name="mobile"
                 id="login-phone"
                 class="w-full px-4 py-3 rounded-lg border"
                 placeholder="09xxxxxxxxx"
@@ -539,6 +545,7 @@
               >
               <input
                 type="password"
+                name="password"
                 id="login-password"
                 class="w-full px-4 py-3 rounded-lg border"
                 placeholder="رمز عبور خود را وارد کنید"
@@ -561,26 +568,32 @@
             <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
               ایجاد حساب کاربری
             </h2>
-            <form id="register-form" class="space-y-4">
+            <form
+              action="/api/authentication/signUp"
+              method="post"
+              id="register-form"
+              class="space-y-4"
+            >
               <div>
                 <label class="block text-gray-700 mb-2" for="register-name"
                   >نام و نام خانوادگی</label
                 >
                 <input
                   type="text"
+                  name="fullName"
                   id="register-name"
                   class="w-full px-4 py-3 rounded-lg border"
                   placeholder="نام کامل خود را وارد کنید"
                   required
                 />
               </div>
-              scroll-left
               <div>
                 <label class="block text-gray-700 mb-2" for="register-phone"
                   >شماره موبایل</label
                 >
                 <input
                   type="tel"
+                  name="mobile"
                   id="register-phone"
                   class="w-full px-4 py-3 rounded-lg border"
                   placeholder="09xxxxxxxxx"
@@ -593,6 +606,7 @@
                 >
                 <input
                   type="email"
+                  name="email"
                   id="register-email"
                   class="w-full px-4 py-3 rounded-lg border"
                   placeholder="email@example.com"
@@ -604,9 +618,10 @@
                 >
                 <input
                   type="password"
+                  name="password"
                   id="register-password"
                   class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="حداقل 6 کاراکتر"
+                  placeholder="حداقل 8 کاراکتر"
                   required
                 />
               </div>
@@ -618,6 +633,7 @@
                 >
                 <input
                   type="password"
+                  name="confirmPassword"
                   id="register-confirm-password"
                   class="w-full px-4 py-3 rounded-lg border"
                   placeholder="تکرار رمز عبور"
@@ -1612,6 +1628,14 @@
               );
               tabs.forgot.addEventListener("click", () => switchTab("forgot"));
 
+              // Improved OTP input handling (LTR focus movement)
+              function getOtpValue(containerSelector) {
+                const inputs = Array.from(
+                  document.querySelectorAll(`${containerSelector} .otp-input`)
+                );
+                return inputs.map((input) => input.value).join("");
+              }
+
               // Registration Process
               const registerForm = document.getElementById("register-form");
               const registerStep1 = document.getElementById("register-step-1");
@@ -1622,12 +1646,94 @@
 
               registerForm.addEventListener("submit", function (e) {
                 e.preventDefault();
+
+                const formDataRegister = new FormData(registerForm);
                 const phone = document.getElementById("register-phone").value;
                 registerPhoneDisplay.textContent = phone;
                 registerStep1.classList.remove("active");
                 registerStep2.classList.add("active");
                 startCountdown("register-resend-timer", 120);
-                setupOtpInputs("#register-step-2"); // این خط را اضافه کنید
+                setupOtpInputs("#register-step-2");
+
+                fetch("/api/mobile/sendOtp", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ mobile: phone }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.success) {
+                      // Only run this if otp was successful
+                      // otp verification form
+                      const registerVerificationForm = document.getElementById(
+                        "register-verification-form"
+                      );
+
+                      registerVerificationForm.addEventListener(
+                        "submit",
+                        function (e) {
+                          e.preventDefault();
+                          // alert("ثبت نام با موفقیت انجام شد!");
+                          const otpValue = getOtpValue("#register-step-2");
+                          const reversedOtpValue = otpValue
+                            .split("")
+                            .reverse()
+                            .join("");
+                          fetch("/api/mobile/verifyOtp", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              mobile: phone,
+                              otp: reversedOtpValue,
+                            }),
+                          })
+                            .then((res) => res.json())
+                            .then((data) => {
+                              if (data.success) {
+                                fetch("/api/authentication/signUp", {
+                                  method: "POST",
+                                  body: formDataRegister,
+                                })
+                                  .then((res) => res.json())
+                                  .then((data) => {
+                                    if (data.success) {
+                                      // Only run this if registration was successful
+                                      alert("yex");
+                                    } else {
+                                      // Show error message
+                                      alert(data.message); // You can use a toast or modal instead
+                                    }
+                                  })
+                                  .catch((err) => {
+                                    console.error("Error:", err);
+                                    alert(
+                                      "مشکلی در ارتباط با سرور به وجود آمده است"
+                                    );
+                                  });
+                                authPopup.classList.add("hidden");
+                              } else {
+                                alert(data.message);
+                              }
+                            })
+                            .catch((err) => {
+                              console.error("Error:", err);
+                              alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                            });
+                        }
+                      );
+                    } else {
+                      // Show error message
+                      alert(data.message);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error:", err);
+                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                  });
               });
 
               document
@@ -1662,8 +1768,6 @@
                   forgotStep2.classList.remove("active");
                   forgotStep1.classList.add("active");
                 });
-
-              // Improved OTP input handling (LTR focus movement)
               function setupOtpInputs(containerSelector) {
                 const inputs = Array.from(
                   document.querySelectorAll(`${containerSelector} .otp-input`)
@@ -1709,20 +1813,29 @@
 
               // Login form submission
               const loginForm = document.getElementById("login-form");
-              loginForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                alert("ورود با موفقیت انجام شد!");
-                authPopup.classList.add("hidden");
-              });
 
-              // Registration verification form
-              const registerVerificationForm = document.getElementById(
-                "register-verification-form"
-              );
-              registerVerificationForm.addEventListener("submit", function (e) {
+              loginForm.addEventListener("submit", function (e) {
+                const formData = new FormData(loginForm);
                 e.preventDefault();
-                alert("ثبت نام با موفقیت انجام شد!");
-                authPopup.classList.add("hidden");
+                fetch("/api/authentication/signIn", {
+                  method: "POST",
+                  body: formData,
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.success) {
+                      // Only run this if registration was successful
+                      alert(data.message);
+                      authPopup.classList.add("hidden");
+                    } else {
+                      // Show error message
+                      alert(data.message); // You can use a toast or modal instead
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error:", err);
+                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                  });
               });
 
               // New password form submission

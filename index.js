@@ -13,12 +13,7 @@ app.set("views", path.join(__dirname, "views"));
 // Public folder for css js font and etc.
 app.use(express.static("public/"));
 
-// For access to req.body
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Middlewares
-
 
 // Models
 const Product = require("./models/Product");
@@ -50,10 +45,17 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: false,
-      maxAge: 1000 * 60 * 60 * 1, 
+      maxAge: 1000 * 60 * 60 * 1,
     },
   })
 );
+
+// Routes
+const authenticationRoutes = require("./routes/authentication");
+const mobileRoutes = require("./routes/mobile");
+
+app.use("/api/authentication", authenticationRoutes);
+app.use("/api/mobile", mobileRoutes);
 
 app.locals.toPersianDigitsForSizes = function (input) {
   if (input === undefined || input === null) return "";
