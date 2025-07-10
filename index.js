@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Middlewares
-const isLoggedIn = require("./middlewares/isLoggedIn");
+
 
 // Models
 const Product = require("./models/Product");
@@ -29,14 +29,14 @@ const Weblog = require("./models/Weblog");
 // For Production
 // app.use(
 //   session({
-//     secret: process.env.SESSION_SECRET, // Always keep this secret in environment variables
+//     secret: process.env.SESSION_SECRET,
 //     resave: false,
 //     saveUninitialized: false,
 //     cookie: {
 //       httpOnly: true,
-//       secure: true, // Requires HTTPS
-//       sameSite: "lax", // Helps prevent CSRF
-//       maxAge: 1000 * 60 * 60 * 2, // 2 hours
+//       secure: true,
+//       sameSite: "lax",
+//       maxAge: 1000 * 60 * 60 * 2,
 //     },
 //   })
 // );
@@ -44,13 +44,13 @@ const Weblog = require("./models/Weblog");
 // Basic Setup
 app.use(
   session({
-    secret: "randomShitguys", // Required: Used to sign the session ID cookie
-    resave: false, // Don't save session if unmodified
-    saveUninitialized: false, // Don't create session until something is stored
+    secret: "randomShitguys",
+    resave: false,
+    saveUninitialized: false,
     cookie: {
-      httpOnly: true, // Prevent client-side JS from accessing the cookie
-      secure: false, // Set to true if using HTTPS
-      maxAge: 1000 * 60 * 60 * 1, // 1 hour
+      httpOnly: true,
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 1, 
     },
   })
 );
@@ -107,8 +107,6 @@ app.get("/shop", async (req, res) => {
 app.get("/productDetails/:slug", async (req, res) => {
   const slug = req.params.slug;
   const product = await Product.findOne({ slug });
-
-  console.log(product.sizes[0].size);
 
   res.render("ProductDetails", { product });
 });

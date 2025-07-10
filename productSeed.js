@@ -130,7 +130,7 @@ mongoose
         reviewsNum: 12,
         lilDescription: "آبرسانی عمیق و جوان‌سازی پوست",
         btnColor: "from-blue-600 to-teal-600",
-        isNew: true,
+        isNewProdcut: true,
         discount: 15,
       },
       {
@@ -247,7 +247,7 @@ mongoose
         reviewsNum: 154,
         lilDescription: "12 رنگ متنوع برای آرایش حرفه‌ای",
         btnColor: "from-purple-600 to-pink-600",
-        isNew: true,
+        isNewProdcut: true,
         discount: 6,
       },
       {

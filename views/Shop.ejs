@@ -227,6 +227,23 @@
         opacity: 1;
       }
     </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const selectedCategory = localStorage.getItem("selectedCategory");
+        if (selectedCategory) {
+          const chip = document.querySelector(
+            `.category-chip[data-category="${selectedCategory}"]`
+          );
+          if (chip) {
+            // فعال‌سازی کلاس و اضافه کردن به selectedCategories
+            chip.classList.add("active");
+            selectedCategories.push(selectedCategory);
+            filterProducts(); // اعمال فیلتر
+          }
+          localStorage.removeItem("selectedCategory"); // پاک کردن برای دفعات بعدی
+        }
+      });
+    </script>
   </head>
   <body
     class="bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 min-h-screen"
@@ -724,7 +741,7 @@
           // Update product count
           document.getElementById(
             "product-count"
-          ).textContent = `نمایش ${filteredProducts.length} از ${productFromServer.length} محصول`;
+          ).textContent = `نمایش ${toPersianDigits(filteredProducts.length)} از ${toPersianDigits( productFromServer.length)} محصول`;
         }
         function addToCartAlert(productName) {
           alert(`محصول "${productName}" با موفقیت به سبد خرید اضافه شد!`);
