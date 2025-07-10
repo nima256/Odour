@@ -226,12 +226,12 @@
     >
       <div class="flex flex-col px-4 py-2">
         <a
-          href="#"
+          href="/"
           class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
           >خانه</a
         >
         <a
-          href="#"
+          href="/shop"
           class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
           >فروشگاه</a
         >
@@ -777,6 +777,9 @@
         },
       ];
 
+      const cartItemsFromServer = <%- JSON.stringify(cartItems) %>;
+
+
       // Discount code (for demo)
       const validDiscountCode = "TAKHFIF20";
       const discountAmount = 500000;
@@ -798,7 +801,7 @@
 
       // Calculate subtotal
       function calculateSubtotal() {
-        return products.reduce(
+        return cartItemsFromServer.reduce(
           (total, product) => total + product.price * product.quantity,
           0
         );
@@ -819,7 +822,7 @@
         const cartItemsContainer = document.getElementById("cart-items");
         cartItemsContainer.innerHTML = "";
 
-        products.forEach((product) => {
+        cartItemsFromServer.forEach((product) => {
           const itemTotal = product.price * product.quantity;
 
           const itemElement = document.createElement("div");
@@ -828,7 +831,7 @@
           itemElement.innerHTML = `
                 <div class="flex items-start mb-4 md:mb-0">
                     <div class="product-image ml-4">
-                        ${product.image()}
+                      <img src="${product.image}" alt="">
                     </div>
                     <div class="flex-1">
                         <h3 class="font-bold text-gray-800 text-right">${
@@ -841,15 +844,9 @@
                 </div>
                 <div class="flex items-center self-end md:self-auto">
                     <div class="flex items-center border border-gray-300 rounded-md overflow-hidden ml-4">
-                        <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity(${
-                          product.id
-                        }, ${product.quantity + 1})">+</button>
+                        <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity + 1})">+</button>
                         <span class="px-4 py-1">${product.quantity}</span>
-                        <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity(${
-                          product.id
-                        }, ${product.quantity - 1})" ${
-            product.quantity <= 1 ? "disabled" : ""
-          }>-</button>
+                        <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity - 1})" ${product.quantity <= 1 ? "disabled" : ""}>-</button>
                     </div>
                     <div class="font-bold text-gray-800">${formatPrice(
                       itemTotal
@@ -867,12 +864,16 @@
       function updateQuantity(productId, newQuantity) {
         if (newQuantity < 1) return;
 
-        const productIndex = products.findIndex((p) => p.id === productId);
+        const productIndex = cartItemsFromServer.findIndex(
+          (p) => String(p._id) === String(productId)
+        );
+
         if (productIndex !== -1) {
-          products[productIndex].quantity = newQuantity;
+          cartItemsFromServer[productIndex].quantity = newQuantity;
           renderCartItems();
         }
       }
+
 
       // Update totals display
       function updateTotals() {
@@ -927,14 +928,14 @@
         const summaryProducts = document.getElementById("summary-products");
         summaryProducts.innerHTML = "";
 
-        products.forEach((product) => {
+        cartItemsFromServer.forEach((product) => {
           const itemTotal = product.price * product.quantity;
           const productElement = document.createElement("div");
           productElement.className = "flex justify-between items-center";
           productElement.innerHTML = `
                 <div class="flex items-center">
                     <div class="product-image ml-4" style="width: 50px; height: 50px;">
-                        ${product.image()}
+                        <img src="${product.image}" alt="">
                     </div>
                     <div class="text-gray-800">${formatPrice(itemTotal)}</div>
                 </div>

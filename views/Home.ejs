@@ -310,16 +310,24 @@
               <span
                 id="cartCount"
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                >0</span
+                ><%= cartCount %></span
               >
             </button>
           </div>
+          <% if (!user) {%>
           <button
             id="user-auth-button"
             class="text-gray-700 hover:text-pink-500 transition-colors"
           >
             <i class="fas fa-user text-xl"></i>
           </button>
+          <% } else { %>
+          <a href="/userProfile">
+            <button class="text-gray-700 hover:text-pink-500 transition-colors">
+              <i class="fas fa-user text-xl"></i>
+            </button>
+          </a>
+          <% } %>
         </div>
       </div>
 
@@ -1167,9 +1175,10 @@
                 <% } %>
                 <div class="icon-container">
                   <!-- آیکون سبد خرید -->
+
                   <svg
                     id="cartIcon"
-                    onclick="incrementCartCount()"
+                    onclick="incrementCartCount('<%= product._id %>')"
                     class="cart-icon icon cursor-pointer"
                     viewBox="0 0 24 24"
                   >
@@ -1464,11 +1473,36 @@
             function setSelectedCategory(categoryName) {
               localStorage.setItem("selectedCategory", categoryName);
             }
-            function incrementCartCount() {
-              const countEl = document.getElementById("cartCount");
-              let count = parseInt(countEl.textContent);
-              count++;
-              countEl.textContent = count;
+            function incrementCartCount(id) {
+              fetch("/api/cart/add", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  productId: id,
+                }),
+              })
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data.success) {
+                    // Only run this if registration was successful
+                    alert(data.message);
+                    location.reload();
+                  } else {
+                    // Show error message
+                    alert(data.message); // You can use a toast or modal instead
+                  }
+                })
+                .catch((err) => {
+                  console.error("Error:", err);
+                  alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                });
+
+              // const countEl = document.getElementById("cartCount");
+              // let count = parseInt(countEl.textContent);
+              // count++;
+              // countEl.textContent = count;
             }
             document.querySelectorAll(".cart-icon").forEach((cartIcon) => {
               cartIcon.addEventListener("click", function () {
@@ -1702,7 +1736,8 @@
                                   .then((data) => {
                                     if (data.success) {
                                       // Only run this if registration was successful
-                                      alert("yex");
+                                      alert(data.message);
+                                      location.reload();
                                     } else {
                                       // Show error message
                                       alert(data.message); // You can use a toast or modal instead
@@ -1815,17 +1850,18 @@
               const loginForm = document.getElementById("login-form");
 
               loginForm.addEventListener("submit", function (e) {
-                const formData = new FormData(loginForm);
+                const formDataLogin = new FormData(loginForm);
                 e.preventDefault();
                 fetch("/api/authentication/signIn", {
                   method: "POST",
-                  body: formData,
+                  body: formDataLogin,
                 })
                   .then((res) => res.json())
                   .then((data) => {
                     if (data.success) {
                       // Only run this if registration was successful
                       alert(data.message);
+                      location.reload();
                       authPopup.classList.add("hidden");
                     } else {
                       // Show error message

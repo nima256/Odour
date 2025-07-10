@@ -7,14 +7,18 @@ const emailValidator = require("email-validator");
 
 // Models
 const User = require("../models/User");
+const { isLoggedIn } = require("../middlewares/isLoggedIn");
 
 // For access to req.body
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
 router.post("/signUp", upload.none(), async (req, res) => {
-    console.log("in signup")
   try {
+    if (req.session.userId) {
+      res.status(500).json({ success: false, message: "" });
+      return;
+    }
     if (
       !req.body ||
       !req.body.fullName ||
@@ -26,7 +30,6 @@ router.post("/signUp", upload.none(), async (req, res) => {
       res
         .status(400)
         .json({ success: false, message: "لطفا تمام فیلد ها را پر کنید" });
-      res.redirect("/");
       return;
     }
 
@@ -39,7 +42,6 @@ router.post("/signUp", upload.none(), async (req, res) => {
         success: false,
         message: "شماره موبایل خود را درست وارد کنید",
       });
-      res.redirect("/");
       return;
     }
     if (exsistUser) {
@@ -47,13 +49,11 @@ router.post("/signUp", upload.none(), async (req, res) => {
         success: false,
         message: "شماره موبایل وارد شده ثبت شده است لطفا وارد شوید",
       });
-      res.redirect("/");
       return;
     }
 
     if (!emailValidator.validate(email)) {
       res.status(400).json({ success: false, message: "ایمیل شما معتبر نیست" });
-      res.redirect("/");
       return;
     }
 
@@ -62,7 +62,6 @@ router.post("/signUp", upload.none(), async (req, res) => {
         success: false,
         message: "رمز عبور باید حداقل ۸ کاراکتر باشد",
       });
-      res.redirect("/");
       return;
     }
     if (!regex.test(password)) {
@@ -70,7 +69,6 @@ router.post("/signUp", upload.none(), async (req, res) => {
         success: false,
         message: "رمز عبور باید شامل حروف انگلیسی و اعداد باشد",
       });
-      res.redirect("/");
       return;
     }
     if (password !== confirmPassword) {
@@ -78,7 +76,6 @@ router.post("/signUp", upload.none(), async (req, res) => {
         success: false,
         message: "رمز عبور شما با تکرار آن همخوانی ندارد",
       });
-      res.redirect("/");
       return;
     }
 
@@ -86,6 +83,8 @@ router.post("/signUp", upload.none(), async (req, res) => {
     const hash = await bcrypt.hash(password, salt);
     const user = new User({ fullName, mobile, email, password: hash });
     await user.save();
+
+    req.session.userId = user._id;
 
     return res
       .status(201)
@@ -98,11 +97,14 @@ router.post("/signUp", upload.none(), async (req, res) => {
 
 router.post("/signIn", upload.none(), async (req, res) => {
   try {
+    if (req.session.userId) {
+      res.status(500).json({ success: false, message: "" });
+      return;
+    }
     if (!req.body || !req.body.mobile || !req.body.password) {
       res
         .status(400)
         .json({ success: false, message: "لطفا تمام فیلد ها را پر کنید" });
-      res.redirect("/");
       return;
     }
 
@@ -113,7 +115,6 @@ router.post("/signIn", upload.none(), async (req, res) => {
         success: false,
         message: "شماره موبایل خود را درست وارد کنید",
       });
-      res.redirect("/");
       return;
     }
     if (password.length < 8) {
@@ -121,28 +122,27 @@ router.post("/signIn", upload.none(), async (req, res) => {
         success: false,
         message: "رمز عبور باید حداقل ۸ کاراکتر باشد",
       });
-      res.redirect("/");
       return;
     }
 
     const user = await User.findOne({ mobile });
     if (!user) {
-      res.status().json({
+      res.status(404).json({
         success: false,
         message: "شماره موبایل یا رمز عبور شما اشتباه است",
       });
-      res.redirect("/");
       return;
     }
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      res.status().json({
+      res.status(400).json({
         success: false,
         message: "شماره موبایل یا رمز عبور شما اشتباه است",
       });
-      res.redirect("/");
       return;
     }
+
+    req.session.userId = user._id;
 
     return res
       .status(201)

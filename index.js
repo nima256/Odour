@@ -20,6 +20,7 @@ const Product = require("./models/Product");
 const Category = require("./models/Category");
 const Brand = require("./models/Brand");
 const Weblog = require("./models/Weblog");
+const User = require("./models/User");
 
 // For Production
 // app.use(
@@ -53,9 +54,11 @@ app.use(
 // Routes
 const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
+const cartRoutes = require("./routes/cart");
 
 app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
+app.use("/api/cart", cartRoutes);
 
 app.locals.toPersianDigitsForSizes = function (input) {
   if (input === undefined || input === null) return "";
@@ -73,6 +76,9 @@ app.get("/", async (req, res) => {
   const categories = await Category.find({});
   const products = await Product.find({ isPopular: true });
   const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
+  const user = await User.findById(req.session.userId);
+
+  const cartCount = user?.cart?.length || 0;
 
   const categoriesWithCounts = await Promise.all(
     categories.map(async (cat) => {
@@ -84,7 +90,13 @@ app.get("/", async (req, res) => {
     })
   );
 
-  res.render("Home", { categories: categoriesWithCounts, products, weblogs });
+  res.render("Home", {
+    categories: categoriesWithCounts,
+    products,
+    weblogs,
+    user,
+    cartCount,
+  });
 });
 
 app.get("/shop", async (req, res) => {
@@ -107,14 +119,37 @@ app.get("/shop", async (req, res) => {
 });
 
 app.get("/productDetails/:slug", async (req, res) => {
-  const slug = req.params.slug;
+  const slug = req?.params?.slug;
   const product = await Product.findOne({ slug });
 
   res.render("ProductDetails", { product });
 });
 
 app.get("/cart", async (req, res) => {
-  res.render("Cart");
+  const user = await User.findById(req.session.userId).populate(
+    "cart.productId"
+  );
+
+  // اگه کاربر لاگین نبود یا سبدش خالی بود
+  if (!user || !user.cart) {
+    return res.redirect("/");
+  }
+
+  // ساختن آرایه‌ی تمیز و قابل استفاده در EJS
+  const cartItems = user.cart.map((item) => {
+    const prod = item.productId;
+    return {
+      _id: prod._id,
+      name: prod.name,
+      slug: prod.slug,
+      price: prod.price,
+      offerPrice: prod.offerPrice,
+      image: prod.images?.[0] || "", // اولین عکس
+      quantity: item.quantity, // ذخیره‌ی quantity به عنوان qty
+    };
+  });
+
+  res.render("Cart", { cartItems });
 });
 
 app.get("/weblog", async (req, res) => {
