@@ -1,0 +1,869 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وبلاگ اودور - صفحه اصلی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'persian': ['Vazir', 'Tahoma', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&amp;display=swap');
+        body {
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+        }
+        .blog-card {
+            transition: all 0.3s ease;
+        }
+        .blog-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        .hero-illustration {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-persian">
+ <nav class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Logo -->
+<a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
+    <div class="h-full overflow-hidden flex items-center">
+        <img src="media/logo.png" alt="لوگوی گلو بیوتی" class="h-full w-auto object-contain">
+    </div>
+</a>
+
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2">
+                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
+                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
+                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
+                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
+                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
+                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">تماس با ما</a>
+            </div>
+
+            <!-- Icons -->
+            <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
+                <div class="relative">
+                    <button onclick="window.location.href='cart.html';" class="relative text-gray-700 hover:text-pink-500 transition-colors">
+                        <i class="fas fa-shopping-bag text-xl"></i>
+     </button>
+
+                </div>
+                <button id="user-auth-button" class="text-gray-700 hover:text-pink-500 transition-colors">
+                    <i class="fas fa-user text-xl"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md">
+            <div class="flex flex-col px-4 py-2">
+                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
+                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
+                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
+                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
+                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
+                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">تماس با ما</a>
+            </div>
+        </div>
+    </nav>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // بستن منو هنگام کلیک خارج از آن
+        document.addEventListener('click', function(event) {
+            if (!mobileMenu.contains(event.target) && event.target !== mobileMenuButton) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+</script>
+
+<br><br><br>
+
+    <!-- Homepage -->
+    <div id="homepage">
+        <!-- Hero Section -->
+        <section class="gradient-bg text-white py-20 relative overflow-hidden">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col lg:flex-row items-center">
+                    <div class="lg:w-1/2 text-center lg:text-right mb-10 lg:mb-0">
+                        <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                            به دنیای 
+                            <span class="text-yellow-300">ODOUR</span> 
+                            خوش آمدید
+                        </h2>
+                        <p class="text-xl mb-8 opacity-90 leading-relaxed">
+                            جدیدترین مقالات زیبایی را در اینجا کشف کنید
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                            <button class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                شروع مطالعه
+                            </button>
+                            <button class="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-purple-600 transition-all duration-300">
+                                درباره ما
+                            </button>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 flex justify-center">
+                        <div class="hero-illustration">
+                            <svg width="400" height="300" viewBox="0 0 400 300" class="w-full max-w-md">
+                                <!-- Background Circle -->
+                                <circle cx="200" cy="150" r="120" fill="rgba(255,255,255,0.1)" />
+                                
+                                <!-- Book -->
+                                <rect x="150" y="100" width="100" height="80" rx="8" fill="#ffffff" />
+                                <rect x="155" y="105" width="90" height="70" rx="4" fill="#f8fafc" />
+                                
+                                <!-- Book Pages -->
+                                <line x1="165" y1="115" x2="235" y2="115" stroke="#e2e8f0" stroke-width="2" />
+                                <line x1="165" y1="125" x2="220" y2="125" stroke="#e2e8f0" stroke-width="2" />
+                                <line x1="165" y1="135" x2="235" y2="135" stroke="#e2e8f0" stroke-width="2" />
+                                <line x1="165" y1="145" x2="210" y2="145" stroke="#e2e8f0" stroke-width="2" />
+                                <line x1="165" y1="155" x2="225" y2="155" stroke="#e2e8f0" stroke-width="2" />
+                                <line x1="165" y1="165" x2="215" y2="165" stroke="#e2e8f0" stroke-width="2" />
+                                
+                                <!-- Floating Elements -->
+                                <circle cx="120" cy="80" r="15" fill="#fbbf24" opacity="0.8" />
+                                <circle cx="280" cy="90" r="12" fill="#34d399" opacity="0.8" />
+                                <circle cx="100" cy="200" r="10" fill="#f472b6" opacity="0.8" />
+                                <circle cx="300" cy="220" r="18" fill="#60a5fa" opacity="0.8" />
+                                
+                                <!-- Stars -->
+                                <polygon points="80,120 85,130 95,130 87,137 90,147 80,140 70,147 73,137 65,130 75,130" fill="#fbbf24" opacity="0.7" />
+                                <polygon points="320,160 323,166 330,166 325,170 327,177 320,173 313,177 315,170 310,166 317,166" fill="#f472b6" opacity="0.7" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Decorative Elements -->
+            <div class="absolute top-10 left-10 w-20 h-20 bg-white opacity-10 rounded-full"></div>
+            <div class="absolute bottom-10 right-10 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div class="p-6">
+                        <div class="text-3xl font-bold text-purple-600 mb-2">۲۵۰+</div>
+                        <div class="text-gray-600">مقاله منتشر شده</div>
+                    </div>
+                    <div class="p-6">
+                        <div class="text-3xl font-bold text-blue-600 mb-2">۱۰۰۰+</div>
+                        <div class="text-gray-600">خواننده فعال</div>
+                    </div>
+                    <div class="p-6">
+                        <div class="text-3xl font-bold text-green-600 mb-2">۵۰+</div>
+                        <div class="text-gray-600">نویسنده متخصص</div>
+                    </div>
+                    <div class="p-6">
+                        <div class="text-3xl font-bold text-pink-600 mb-2">۹۸٪</div>
+                        <div class="text-gray-600">رضایت کاربران</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Posts Grid -->
+        <section class="py-20 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">آخرین مقالات</h3>
+                    <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                        جدیدترین و بهترین مقالات در زمینه تکنولوژی، طراحی و برنامه‌نویسی
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Blog Card 1 -->
+                    <article class="blog-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer" onclick="showBlogPost(1)">
+                        <div class="h-48 bg-gradient-to-br from-blue-400 to-purple-600 p-6 flex items-center justify-center">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="text-white">
+                                <rect x="10" y="20" width="100" height="60" rx="8" fill="currentColor" opacity="0.2"/>
+                                <rect x="15" y="25" width="90" height="50" rx="4" fill="currentColor"/>
+                                <circle cx="30" cy="40" r="8" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="45" y="35" width="50" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="45" y="45" width="35" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="20" y="55" width="70" height="3" rx="1" fill="rgba(255,255,255,0.2)"/>
+                                <rect x="20" y="62" width="50" height="3" rx="1" fill="rgba(255,255,255,0.2)"/>
+                            </svg>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">طراحی وب</span>
+                            </div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800 line-clamp-2">راهنمای کامل طراحی وب مدرن</h4>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                                <span>علی احمدی</span>
+                                <span>۱۴۰۳/۰۸/۱۵</span>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">در این مقاله به بررسی جدیدترین تکنیک‌های طراحی وب و نحوه پیاده‌سازی آن‌ها می‌پردازیم...</p>
+                            <button class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                                ادامه مطلب
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Blog Card 2 -->
+                    <article class="blog-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer" onclick="showBlogPost(2)">
+                        <div class="h-48 bg-gradient-to-br from-green-400 to-blue-500 p-6 flex items-center justify-center">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="text-white">
+                                <circle cx="60" cy="40" r="25" fill="currentColor" opacity="0.2"/>
+                                <circle cx="60" cy="40" r="20" fill="none" stroke="currentColor" stroke-width="3"/>
+                                <path d="M50 40 L57 47 L70 34" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="30" cy="20" r="3" fill="currentColor" opacity="0.6"/>
+                                <circle cx="90" cy="25" r="4" fill="currentColor" opacity="0.6"/>
+                                <circle cx="25" cy="60" r="2" fill="currentColor" opacity="0.6"/>
+                                <circle cx="95" cy="55" r="3" fill="currentColor" opacity="0.6"/>
+                            </svg>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">بهینه‌سازی</span>
+                            </div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">بهترین روش‌های بهینه‌سازی سایت</h4>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                                <span>مریم کریمی</span>
+                                <span>۱۴۰۳/۰۸/۱۲</span>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">تکنیک‌های مؤثر برای افزایش سرعت و عملکرد وب‌سایت شما را در این مقاله بیاموزید...</p>
+                            <button class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                                ادامه مطلب
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Blog Card 3 -->
+                    <article class="blog-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer" onclick="showBlogPost(3)">
+                        <div class="h-48 bg-gradient-to-br from-pink-400 to-red-500 p-6 flex items-center justify-center">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="text-white">
+                                <rect x="20" y="15" width="80" height="50" rx="8" fill="currentColor" opacity="0.2"/>
+                                <rect x="25" y="20" width="70" height="40" rx="4" fill="currentColor"/>
+                                <text x="35" y="35" font-family="monospace" font-size="8" fill="rgba(255,255,255,0.8)">function() {</text>
+                                <text x="40" y="45" font-family="monospace" font-size="8" fill="rgba(255,255,255,0.8)">return true;</text>
+                                <text x="35" y="55" font-family="monospace" font-size="8" fill="rgba(255,255,255,0.8)">}</text>
+                                <circle cx="15" cy="25" r="2" fill="currentColor" opacity="0.6"/>
+                                <circle cx="105" cy="30" r="3" fill="currentColor" opacity="0.6"/>
+                                <circle cx="10" cy="55" r="2" fill="currentColor" opacity="0.6"/>
+                            </svg>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-pink-100 text-pink-800 text-xs px-3 py-1 rounded-full">جاوااسکریپت</span>
+                            </div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">آموزش جاوااسکریپت پیشرفته</h4>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                                <span>حسن محمدی</span>
+                                <span>۱۴۰۳/۰۸/۱۰</span>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">مفاهیم پیشرفته جاوااسکریپت را از صفر تا صد در این دوره جامع فرا بگیرید...</p>
+                            <button class="w-full bg-gradient-to-r from-pink-600 to-red-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                                ادامه مطلب
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Blog Card 4 -->
+                    <article class="blog-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer" onclick="showBlogPost(4)">
+                        <div class="h-48 bg-gradient-to-br from-yellow-400 to-orange-500 p-6 flex items-center justify-center">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="text-white">
+                                <rect x="30" y="20" width="60" height="40" rx="6" fill="currentColor" opacity="0.2"/>
+                                <rect x="35" y="25" width="50" height="30" rx="3" fill="currentColor"/>
+                                <rect x="40" y="30" width="15" height="8" rx="2" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="60" y="30" width="20" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="60" y="35" width="15" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="40" y="42" width="40" height="2" rx="1" fill="rgba(255,255,255,0.2)"/>
+                                <rect x="40" y="47" width="30" height="2" rx="1" fill="rgba(255,255,255,0.2)"/>
+                                <circle cx="20" cy="30" r="3" fill="currentColor" opacity="0.6"/>
+                                <circle cx="100" cy="35" r="2" fill="currentColor" opacity="0.6"/>
+                            </svg>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">CSS</span>
+                            </div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">معرفی فریمورک‌های جدید CSS</h4>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                                <span>فاطمه رضایی</span>
+                                <span>۱۴۰۳/۰۸/۰۸</span>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">بررسی کامل جدیدترین فریمورک‌های CSS و مقایسه آن‌ها با یکدیگر...</p>
+                            <button class="w-full bg-gradient-to-r from-yellow-600 to-orange-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                                ادامه مطلب
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Blog Card 5 -->
+                    <article class="blog-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer" onclick="showBlogPost(5)">
+                        <div class="h-48 bg-gradient-to-br from-indigo-400 to-purple-500 p-6 flex items-center justify-center">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="text-white">
+                                <circle cx="60" cy="40" r="20" fill="currentColor" opacity="0.2"/>
+                                <circle cx="60" cy="40" r="15" fill="currentColor"/>
+                                <circle cx="60" cy="35" r="6" fill="rgba(255,255,255,0.3)"/>
+                                <path d="M54 45 Q60 50 66 45" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none"/>
+                                <circle cx="35" cy="25" r="4" fill="currentColor" opacity="0.6"/>
+                                <circle cx="85" cy="30" r="3" fill="currentColor" opacity="0.6"/>
+                                <circle cx="30" cy="55" r="2" fill="currentColor" opacity="0.6"/>
+                                <circle cx="90" cy="50" r="3" fill="currentColor" opacity="0.6"/>
+                                <path d="M40 15 L45 25 L35 25 Z" fill="currentColor" opacity="0.4"/>
+                                <path d="M80 55 L85 65 L75 65 Z" fill="currentColor" opacity="0.4"/>
+                            </svg>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full">UX/UI</span>
+                            </div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">طراحی تجربه کاربری مؤثر</h4>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                                <span>امیر حسینی</span>
+                                <span>۱۴۰۳/۰۸/۰۵</span>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">اصول و قوانین طراحی UX که هر طراح باید بداند و در پروژه‌هایش اعمال کند...</p>
+                            <button class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                                ادامه مطلب
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Blog Card 6 -->
+                    <article class="blog-card bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer" onclick="showBlogPost(6)">
+                        <div class="h-48 bg-gradient-to-br from-teal-400 to-blue-500 p-6 flex items-center justify-center">
+                            <svg width="120" height="80" viewBox="0 0 120 80" class="text-white">
+                                <circle cx="60" cy="40" r="18" fill="currentColor" opacity="0.2"/>
+                                <circle cx="60" cy="40" r="12" fill="currentColor"/>
+                                <circle cx="55" cy="37" r="2" fill="rgba(255,255,255,0.8)"/>
+                                <circle cx="65" cy="37" r="2" fill="rgba(255,255,255,0.8)"/>
+                                <path d="M55 45 Q60 48 65 45" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" fill="none"/>
+                                <rect x="45" y="25" width="8" height="3" rx="1" fill="currentColor" opacity="0.6"/>
+                                <rect x="67" y="25" width="8" height="3" rx="1" fill="currentColor" opacity="0.6"/>
+                                <circle cx="30" cy="20" r="3" fill="currentColor" opacity="0.5"/>
+                                <circle cx="90" cy="25" r="2" fill="currentColor" opacity="0.5"/>
+                                <circle cx="25" cy="60" r="2" fill="currentColor" opacity="0.5"/>
+                                <circle cx="95" cy="55" r="3" fill="currentColor" opacity="0.5"/>
+                                <path d="M20 35 Q25 30 30 35" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/>
+                                <path d="M90 45 Q95 40 100 45" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/>
+                            </svg>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-3">
+                                <span class="bg-teal-100 text-teal-800 text-xs px-3 py-1 rounded-full">هوش مصنوعی</span>
+                            </div>
+                            <h4 class="text-lg font-semibold mb-3 text-gray-800">آینده هوش مصنوعی در وب</h4>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                                <span>سارا موسوی</span>
+                                <span>۱۴۰۳/۰۸/۰۳</span>
+                            </div>
+                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">بررسی تأثیر هوش مصنوعی بر آینده توسعه وب و فرصت‌های پیش رو...</p>
+                            <button class="w-full bg-gradient-to-r from-teal-600 to-blue-600 text-white py-2 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                                ادامه مطلب
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Section -->
+        <section class="py-20 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+            <div class="container mx-auto px-4 text-center">
+                <h3 class="text-3xl font-bold mb-4">عضو خبرنامه ما شوید</h3>
+                <p class="text-xl mb-8 opacity-90">جدیدترین مقالات را مستقیماً در ایمیل خود دریافت کنید</p>
+                <div class="max-w-md mx-auto flex gap-4">
+                    <input type="email" placeholder="ایمیل شما" class="flex-1 px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
+                    <button class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                        عضویت
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Blog Post Page -->
+    <div id="blogpost" class="min-h-screen hidden">
+        <div class="container mx-auto px-4 py-8">
+            <button onclick="showHomepage()" class="mb-6 flex items-center text-purple-600 hover:text-purple-800 transition-colors">
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                بازگشت به صفحه اصلی
+            </button>
+            
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Main Content -->
+                <main class="lg:w-2/3">
+                    <article class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <div id="post-image" class="h-80 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                            <svg width="200" height="120" viewBox="0 0 200 120" class="text-white">
+                                <rect x="50" y="30" width="100" height="60" rx="8" fill="currentColor" opacity="0.3"/>
+                                <rect x="55" y="35" width="90" height="50" rx="4" fill="currentColor"/>
+                                <circle cx="70" cy="50" r="8" fill="rgba(255,255,255,0.4)"/>
+                                <rect x="85" y="45" width="50" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+                                <rect x="85" y="55" width="35" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+                                <rect x="60" y="65" width="70" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                                <rect x="60" y="72" width="50" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                            </svg>
+                        </div>
+                        <div class="p-8">
+                            <div class="flex items-center mb-4">
+                                <span id="post-category" class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">طراحی وب</span>
+                            </div>
+                            <h1 id="post-title" class="text-3xl font-bold mb-6 text-gray-800 leading-tight">راهنمای کامل طراحی وب مدرن</h1>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mb-8 pb-6 border-b">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm ml-3">
+                                        ع
+                                    </div>
+                                    <div>
+                                        <div id="post-author" class="font-semibold text-gray-700">علی احمدی</div>
+                                        <div id="post-date" class="text-xs">۱۴۰۳/۰۸/۱۵</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-reverse space-x-4">
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        ۱۲۳ بازدید
+                                    </span>
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        ۲۵ پسند
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="post-content" class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
+                                <!-- Content will be loaded here -->
+                            </div>
+                        </div>
+                    </article>
+                </main>
+
+                <!-- Sidebar -->
+                <aside class="lg:w-1/3">
+                    <!-- Recent Posts -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                        <h3 class="text-xl font-bold mb-6 text-gray-800">مقالات مرتبط</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-reverse space-x-4 pb-4 border-b border-gray-100">
+                                <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm text-gray-800 mb-1">بهترین روش‌های بهینه‌سازی سایت</h4>
+                                    <p class="text-xs text-gray-500 mb-1">مریم کریمی</p>
+                                    <p class="text-xs text-gray-400">۱۴۰۳/۰۸/۱۲</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-reverse space-x-4 pb-4 border-b border-gray-100">
+                                <div class="w-16 h-16 bg-gradient-to-r from-pink-400 to-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm text-gray-800 mb-1">آموزش جاوااسکریپت پیشرفته</h4>
+                                    <p class="text-xs text-gray-500 mb-1">حسن محمدی</p>
+                                    <p class="text-xs text-gray-400">۱۴۰۳/۰۸/۱۰</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-reverse space-x-4">
+                                <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm text-gray-800 mb-1">معرفی فریمورک‌های جدید CSS</h4>
+                                    <p class="text-xs text-gray-500 mb-1">فاطمه رضایی</p>
+                                    <p class="text-xs text-gray-400">۱۴۰۳/۰۸/۰۸</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Author Info -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">درباره نویسنده</h3>
+                        <div class="flex items-center mb-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl ml-4">
+                                ع
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">علی احمدی</h4>
+                                <p class="text-sm text-gray-600">طراح و توسعه‌دهنده وب</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            علی احمدی با بیش از ۵ سال تجربه در زمینه طراحی و توسعه وب، متخصص در تکنولوژی‌های مدرن و بهترین شیوه‌های صنعت است.
+                        </p>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">برچسب‌ها</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">طراحی وب</span>
+                            <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">CSS</span>
+                            <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">HTML</span>
+                            <span class="bg-pink-100 text-pink-800 text-xs px-3 py-1 rounded-full">جاوااسکریپت</span>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">UI/UX</span>
+                            <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full">واکنش‌گرا</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-reverse space-x-3 mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold">وبلاگ مدرن</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">طراحی وب</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">برنامه‌نویسی</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">UI/UX</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">هوش مصنوعی</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">لینک‌های مفید</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">درباره ما</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">تماس با ما</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">حریم خصوصی</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">شرایط استفاده</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">شبکه‌های اجتماعی</h4>
+                    <div class="flex space-x-reverse space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+                <p>&amp;copy; ۱۴۰۳ وبلاگ مدرن. تمامی حقوق محفوظ است.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Blog posts data
+        const blogPosts = {
+            1: {
+                title: "راهنمای کامل طراحی وب مدرن",
+                author: "علی احمدی",
+                date: "۱۴۰۳/۰۸/۱۵",
+                category: "طراحی وب",
+                image: "from-blue-400 to-purple-500",
+                content: `
+                    <p class="mb-6 text-lg">طراحی وب مدرن یکی از مهم‌ترین مهارت‌هایی است که هر توسعه‌دهنده وب باید در دنیای امروز داشته باشد. در این مقاله جامع، ما به بررسی تمامی جنبه‌های طراحی وب مدرن خواهیم پرداخت.</p>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">اصول طراحی مدرن</h2>
+                    <p class="mb-6">طراحی مدرن بر اساس چندین اصل کلیدی بنا شده است که شامل سادگی، کاربردی بودن، و زیبایی می‌شود. این اصول به طراحان کمک می‌کنند تا تجربه‌ای بهتر برای کاربران خود ایجاد کنند.</p>
+
+                    <div class="my-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl h-64 flex items-center justify-center">
+                        <svg width="150" height="100" viewBox="0 0 150 100" class="text-white">
+                            <rect x="25" y="20" width="100" height="60" rx="8" fill="currentColor" opacity="0.3"/>
+                            <rect x="30" y="25" width="90" height="50" rx="4" fill="currentColor"/>
+                            <circle cx="45" cy="40" r="8" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="60" y="35" width="50" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="60" y="45" width="35" height="4" rx="2" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="35" y="55" width="70" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                            <rect x="35" y="62" width="50" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">تکنیک‌های پیشرفته</h2>
+                    <p class="mb-6">استفاده از تکنیک‌های پیشرفته مانند CSS Grid، Flexbox، و انیمیشن‌های CSS می‌تواند تجربه کاربری را به طور قابل توجهی بهبود بخشد. این تکنیک‌ها به شما امکان ایجاد طرح‌های پیچیده و جذاب را می‌دهند.</p>
+
+                    <blockquote class="border-r-4 border-purple-500 bg-purple-50 p-6 my-8 italic text-gray-700">
+                        "طراحی خوب نامرئی است. زمانی که کاربران بدون فکر کردن می‌توانند از محصول شما استفاده کنند، شما کار خود را درست انجام داده‌اید."
+                    </blockquote>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">بهینه‌سازی برای موبایل</h2>
+                    <p class="mb-6">در دنیای امروز، بیش از نیمی از ترافیک وب از طریق دستگاه‌های موبایل صورت می‌گیرد. بنابراین، طراحی واکنش‌گرا (Responsive Design) یکی از ضروری‌ترین جنبه‌های طراحی وب مدرن محسوب می‌شود.</p>
+
+                    <ul class="list-disc list-inside mb-6 space-y-2">
+                        <li>استفاده از Grid و Flexbox برای طرح‌بندی انعطاف‌پذیر</li>
+                        <li>بهینه‌سازی تصاویر برای سرعت بارگذاری بهتر</li>
+                        <li>طراحی با رویکرد Mobile-First</li>
+                        <li>استفاده از فونت‌های وب بهینه</li>
+                    </ul>
+
+                    <p class="mb-6 text-lg">در نهایت، طراحی وب مدرن ترکیبی از هنر و علم است که نیاز به درک عمیق از نیازهای کاربران و تکنولوژی‌های روز دارد. با پیروی از اصول و تکنیک‌های ذکر شده در این مقاله، می‌توانید وب‌سایت‌هایی ایجاد کنید که هم زیبا و هم کاربردی باشند.</p>
+                `
+            },
+            2: {
+                title: "بهترین روش‌های بهینه‌سازی سایت",
+                author: "مریم کریمی",
+                date: "۱۴۰۳/۰۸/۱۲",
+                category: "بهینه‌سازی",
+                image: "from-green-400 to-blue-500",
+                content: `
+                    <p class="mb-6 text-lg">بهینه‌سازی وب‌سایت یکی از مهم‌ترین عوامل موفقیت در دنیای دیجیتال امروز است. سرعت بارگذاری صفحات تأثیر مستقیمی بر تجربه کاربری و رتبه‌بندی در موتورهای جستجو دارد.</p>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">بهینه‌سازی تصاویر</h2>
+                    <p class="mb-6">تصاویر معمولاً بیشترین حجم صفحات وب را تشکیل می‌دهند. استفاده از فرمت‌های مناسب مانند WebP و فشرده‌سازی مناسب می‌تواند سرعت بارگذاری را تا ۷۰٪ بهبود بخشد.</p>
+
+                    <div class="my-10 bg-gradient-to-r from-green-400 to-teal-500 rounded-2xl h-64 flex items-center justify-center">
+                        <svg width="150" height="100" viewBox="0 0 150 100" class="text-white">
+                            <circle cx="75" cy="50" r="30" fill="currentColor" opacity="0.3"/>
+                            <circle cx="75" cy="50" r="25" fill="none" stroke="currentColor" stroke-width="4"/>
+                            <path d="M65 50 L72 57 L85 44" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="45" cy="25" r="4" fill="currentColor" opacity="0.6"/>
+                            <circle cx="105" cy="30" r="5" fill="currentColor" opacity="0.6"/>
+                            <circle cx="40" cy="75" r="3" fill="currentColor" opacity="0.6"/>
+                            <circle cx="110" cy="70" r="4" fill="currentColor" opacity="0.6"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">کش کردن محتوا</h2>
+                    <p class="mb-6">پیاده‌سازی استراتژی کش مناسب می‌تواند زمان بارگذاری صفحات را برای بازدیدکنندگان مکرر به طور چشمگیری کاهش دهد.</p>
+
+                    <p class="mb-6 text-lg">با اعمال این تکنیک‌ها، می‌توانید وب‌سایتی سریع و بهینه ایجاد کنید که کاربران از استفاده از آن لذت ببرند.</p>
+                `
+            },
+            3: {
+                title: "آموزش جاوااسکریپت پیشرفته",
+                author: "حسن محمدی",
+                date: "۱۴۰۳/۰۸/۱۰",
+                category: "جاوااسکریپت",
+                image: "from-pink-400 to-red-500",
+                content: `
+                    <p class="mb-6 text-lg">جاوااسکریپت قلب تپنده وب مدرن است. در این مقاله به بررسی مفاهیم پیشرفته این زبان برنامه‌نویسی قدرتمند خواهیم پرداخت.</p>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">Async/Await و Promise ها</h2>
+                    <p class="mb-6">مدیریت عملیات ناهمزمان یکی از مهم‌ترین مهارت‌هایی است که هر برنامه‌نویس جاوااسکریپت باید بداند. Async/Await راه حل مدرن و خوانا برای این مسئله است.</p>
+
+                    <div class="my-10 bg-gradient-to-r from-red-400 to-pink-500 rounded-2xl h-64 flex items-center justify-center">
+                        <svg width="150" height="100" viewBox="0 0 150 100" class="text-white">
+                            <rect x="30" y="20" width="90" height="60" rx="8" fill="currentColor" opacity="0.3"/>
+                            <rect x="35" y="25" width="80" height="50" rx="4" fill="currentColor"/>
+                            <text x="45" y="40" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.8)">async function() {</text>
+                            <text x="50" y="52" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.8)">await getData();</text>
+                            <text x="45" y="64" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.8)">}</text>
+                            <circle cx="20" cy="30" r="3" fill="currentColor" opacity="0.6"/>
+                            <circle cx="130" cy="35" r="4" fill="currentColor" opacity="0.6"/>
+                            <circle cx="15" cy="70" r="2" fill="currentColor" opacity="0.6"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">ES6+ و ویژگی‌های جدید</h2>
+                    <p class="mb-6">جاوااسکریپت مدرن ویژگی‌های قدرتمندی مانند Destructuring، Spread Operator، و Arrow Functions ارائه می‌دهد که کد شما را تمیزتر و خواناتر می‌کند.</p>
+
+                    <p class="mb-6 text-lg">تسلط بر این مفاهیم شما را به برنامه‌نویس بهتری تبدیل خواهد کرد.</p>
+                `
+            },
+            4: {
+                title: "معرفی فریمورک‌های جدید CSS",
+                author: "فاطمه رضایی",
+                date: "۱۴۰۳/۰۸/۰۸",
+                category: "CSS",
+                image: "from-yellow-400 to-orange-500",
+                content: `
+                    <p class="mb-6 text-lg">دنیای CSS در حال تحول مداوم است و فریمورک‌های جدیدی مرتب معرفی می‌شوند که کار طراحان را آسان‌تر می‌کنند.</p>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">Tailwind CSS</h2>
+                    <p class="mb-6">Tailwind CSS رویکردی متفاوت به طراحی دارد و به جای کامپوننت‌های از پیش ساخته، کلاس‌های کاربردی ارائه می‌دهد.</p>
+
+                    <div class="my-10 bg-gradient-to-r from-orange-400 to-yellow-500 rounded-2xl h-64 flex items-center justify-center">
+                        <svg width="150" height="100" viewBox="0 0 150 100" class="text-white">
+                            <rect x="40" y="25" width="70" height="50" rx="6" fill="currentColor" opacity="0.3"/>
+                            <rect x="45" y="30" width="60" height="40" rx="3" fill="currentColor"/>
+                            <rect x="50" y="35" width="20" height="10" rx="2" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="75" y="35" width="25" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="75" y="42" width="20" height="4" rx="1" fill="rgba(255,255,255,0.4)"/>
+                            <rect x="50" y="52" width="50" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                            <rect x="50" y="58" width="35" height="3" rx="1" fill="rgba(255,255,255,0.3)"/>
+                            <circle cx="25" cy="35" r="4" fill="currentColor" opacity="0.6"/>
+                            <circle cx="125" cy="40" r="3" fill="currentColor" opacity="0.6"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">CSS-in-JS</h2>
+                    <p class="mb-6">این رویکرد امکان نوشتن CSS درون جاوااسکریپت را فراهم می‌کند و مزایای زیادی برای پروژه‌های بزرگ دارد.</p>
+
+                    <p class="mb-6 text-lg">انتخاب فریمورک مناسب بستگی به نیازهای پروژه و تیم شما دارد.</p>
+                `
+            },
+            5: {
+                title: "طراحی تجربه کاربری مؤثر",
+                author: "امیر حسینی",
+                date: "۱۴۰۳/۰۸/۰۵",
+                category: "UX/UI",
+                image: "from-indigo-400 to-purple-500",
+                content: `
+                    <p class="mb-6 text-lg">طراحی تجربه کاربری (UX) یکی از مهم‌ترین عوامل موفقیت محصولات دیجیتال است. UX خوب می‌تواند تفاوت بین موفقیت و شکست یک محصول باشد.</p>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">شناخت کاربران</h2>
+                    <p class="mb-6">اولین قدم در طراحی UX مؤثر، شناخت عمیق کاربران هدف است. این شامل تحقیق، مصاحبه، و تحلیل رفتار کاربران می‌شود.</p>
+
+                    <div class="my-10 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-2xl h-64 flex items-center justify-center">
+                        <svg width="150" height="100" viewBox="0 0 150 100" class="text-white">
+                            <circle cx="75" cy="50" r="25" fill="currentColor" opacity="0.3"/>
+                            <circle cx="75" cy="50" r="20" fill="currentColor"/>
+                            <circle cx="75" cy="45" r="8" fill="rgba(255,255,255,0.4)"/>
+                            <path d="M65 60 Q75 65 85 60" stroke="rgba(255,255,255,0.4)" stroke-width="3" fill="none"/>
+                            <circle cx="50" cy="30" r="5" fill="currentColor" opacity="0.6"/>
+                            <circle cx="100" cy="35" r="4" fill="currentColor" opacity="0.6"/>
+                            <circle cx="45" cy="70" r="3" fill="currentColor" opacity="0.6"/>
+                            <circle cx="105" cy="65" r="4" fill="currentColor" opacity="0.6"/>
+                            <path d="M55 20 L60 30 L50 30 Z" fill="currentColor" opacity="0.5"/>
+                            <path d="M95 75 L100 85 L90 85 Z" fill="currentColor" opacity="0.5"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">اصول طراحی</h2>
+                    <p class="mb-6">اصولی مانند سادگی، قابلیت استفاده، و دسترسی‌پذیری باید در تمامی مراحل طراحی در نظر گرفته شوند.</p>
+
+                    <p class="mb-6 text-lg">UX خوب نتیجه تحقیق، طراحی، و تست مداوم است.</p>
+                `
+            },
+            6: {
+                title: "آینده هوش مصنوعی در وب",
+                author: "سارا موسوی",
+                date: "۱۴۰۳/۰۸/۰۳",
+                category: "هوش مصنوعی",
+                image: "from-teal-400 to-blue-500",
+                content: `
+                    <p class="mb-6 text-lg">هوش مصنوعی در حال تغییر چهره وب است. از چت‌بات‌های هوشمند تا سیستم‌های توصیه‌گر پیشرفته، AI همه جا حضور دارد.</p>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">AI در توسعه وب</h2>
+                    <p class="mb-6">ابزارهای AI می‌توانند کد نویسی را سرعت بخشند، باگ‌ها را شناسایی کنند، و حتی طراحی‌های بهتری پیشنهاد دهند.</p>
+
+                    <div class="my-10 bg-gradient-to-r from-blue-400 to-teal-500 rounded-2xl h-64 flex items-center justify-center">
+                        <svg width="150" height="100" viewBox="0 0 150 100" class="text-white">
+                            <circle cx="75" cy="50" r="22" fill="currentColor" opacity="0.3"/>
+                            <circle cx="75" cy="50" r="18" fill="currentColor"/>
+                            <circle cx="70" cy="45" r="3" fill="rgba(255,255,255,0.8)"/>
+                            <circle cx="80" cy="45" r="3" fill="rgba(255,255,255,0.8)"/>
+                            <path d="M70 55 Q75 58 80 55" stroke="rgba(255,255,255,0.8)" stroke-width="2" fill="none"/>
+                            <rect x="60" y="30" width="10" height="4" rx="1" fill="currentColor" opacity="0.6"/>
+                            <rect x="80" y="30" width="10" height="4" rx="1" fill="currentColor" opacity="0.6"/>
+                            <circle cx="45" cy="25" r="4" fill="currentColor" opacity="0.5"/>
+                            <circle cx="105" cy="30" r="3" fill="currentColor" opacity="0.5"/>
+                            <circle cx="40" cy="75" r="3" fill="currentColor" opacity="0.5"/>
+                            <circle cx="110" cy="70" r="4" fill="currentColor" opacity="0.5"/>
+                            <path d="M35 40 Q40 35 45 40" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/>
+                            <path d="M105 60 Q110 55 115 60" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-10 mb-6 text-gray-800">چالش‌ها و فرصت‌ها</h2>
+                    <p class="mb-6">در حالی که AI فرصت‌های بی‌نظیری ارائه می‌دهد، چالش‌هایی مانند حریم خصوصی و اخلاق نیز مطرح می‌شود.</p>
+
+                    <p class="mb-6 text-lg">آینده وب با AI روشن و پر از امکانات جدید است.</p>
+                `
+            }
+        };
+
+        function showBlogPost(postId) {
+            const post = blogPosts[postId];
+            if (!post) return;
+
+            // Update post content
+            document.getElementById('post-title').textContent = post.title;
+            document.getElementById('post-author').textContent = post.author;
+            document.getElementById('post-date').textContent = post.date;
+            document.getElementById('post-category').textContent = post.category;
+            document.getElementById('post-content').innerHTML = post.content;
+            
+            // Update post image
+            const postImage = document.getElementById('post-image');
+            postImage.className = `h-80 bg-gradient-to-r ${post.image} flex items-center justify-center`;
+
+            // Hide homepage and show blog post
+            document.getElementById('homepage').classList.add('hidden');
+            document.getElementById('blogpost').classList.remove('hidden');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function showHomepage() {
+            document.getElementById('blogpost').classList.add('hidden');
+            document.getElementById('homepage').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

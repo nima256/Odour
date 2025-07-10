@@ -25,6 +25,9 @@ const orderSchema = new Schema({
       ref: "Product",
     },
   ],
+  delivery: {
+    type: String,
+  },
   status: {
     type: String,
     enum: [

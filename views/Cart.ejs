@@ -355,56 +355,64 @@
           <h1 class="text-2xl font-bold text-gray-800 mb-6 text-right">
             اطلاعات ارسال
           </h1>
+          <form action="/api/order" method="post" id="order-form">
+            <div class="space-y-4 mb-6">
+              <div class="flex flex-col">
+                <label class="text-gray-600 mb-1 text-right"
+                  >نام و نام خانوادگی</label
+                >
+                <input
+                  type="text"
+                  id="full-name"
+                  class="border border-gray-300 rounded-md px-3 py-2 text-right"
+                  disabled
+                  placeholder="<%= user.fullName %>"
+                />
+              </div>
 
-          <div class="space-y-4 mb-6">
-            <div class="flex flex-col">
-              <label class="text-gray-600 mb-1 text-right"
-                >نام و نام خانوادگی</label
-              >
-              <input
-                type="text"
-                id="full-name"
-                class="border border-gray-300 rounded-md px-3 py-2 text-right"
-              />
-            </div>
+              <div class="flex flex-col">
+                <label class="text-gray-600 mb-1 text-right">کد پستی</label>
+                <input
+                  type="text"
+                  name="postcode"
+                  id="postal-code"
+                  class="border border-gray-300 rounded-md px-3 py-2 text-right"
+                />
+              </div>
+              <div class="flex flex-col">
+                <label class="text-gray-600 mb-1 text-right">آدرس</label>
+                <textarea
+                  id="address"
+                  name="address"
+                  rows="3"
+                  class="border border-gray-300 rounded-md px-3 py-2 text-right"
+                ></textarea>
+              </div>
 
-            <div class="flex flex-col">
-              <label class="text-gray-600 mb-1 text-right">کد پستی</label>
-              <input
-                type="text"
-                id="postal-code"
-                class="border border-gray-300 rounded-md px-3 py-2 text-right"
-              />
-            </div>
-            <div class="flex flex-col">
-              <label class="text-gray-600 mb-1 text-right">آدرس</label>
-              <textarea
-                id="address"
-                rows="3"
-                class="border border-gray-300 rounded-md px-3 py-2 text-right"
-              ></textarea>
-            </div>
+              <div class="flex flex-col">
+                <label class="text-gray-600 mb-1 text-right">شماره تماس</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  class="border border-gray-300 rounded-md px-3 py-2 text-right"
+                  disabled
+                  placeholder="<%= user.mobile %>"
+                />
+              </div>
 
-            <div class="flex flex-col">
-              <label class="text-gray-600 mb-1 text-right">شماره تماس</label>
-              <input
-                type="tel"
-                id="phone"
-                class="border border-gray-300 rounded-md px-3 py-2 text-right"
-              />
+              <div class="flex flex-col">
+                <label class="text-gray-600 mb-1 text-right">روش ارسال</label>
+                <select
+                  id="shipping-method"
+                  class="border border-gray-300 rounded-md px-3 py-2 text-right"
+                  name="delivery"
+                >
+                  <option value="post">پست (15,000 تومان)</option>
+                  <option value="tipax">تیپاکس (25,000 تومان)</option>
+                </select>
+              </div>
             </div>
-
-            <div class="flex flex-col">
-              <label class="text-gray-600 mb-1 text-right">روش ارسال</label>
-              <select
-                id="shipping-method"
-                class="border border-gray-300 rounded-md px-3 py-2 text-right"
-              >
-                <option value="post">پست (15,000 تومان)</option>
-                <option value="tipax">تیپاکس (25,000 تومان)</option>
-              </select>
-            </div>
-          </div>
+          </form>
         </div>
 
         <div class="flex justify-between">
@@ -776,13 +784,7 @@
 
       // Calculate subtotal
       function calculateSubtotal() {
-        return cartItemsFromServer.reduce(
-          (total, product) =>
-            {
-              total + product.price * product.quantity,
-              0
-            }
-        );
+          return cartItemsFromServer.reduce((total, product) => total + (product.price * product.quantity), 0);
       }
 
       // Calculate total
@@ -793,6 +795,10 @@
       // Calculate final total (including shipping)
       function calculateFinalTotal() {
         return calculateTotal() + shippingCosts[selectedShippingMethod];
+      }
+
+      function toPersianDigits(str) {
+          return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
       }
 
       // Render cart items
@@ -825,7 +831,7 @@
                 <div class="flex items-center self-end md:self-auto">
                     <div class="flex items-center border border-gray-300 rounded-md overflow-hidden ml-4">
                         <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity + 1})">+</button>
-                        <span class="px-4 py-1">${product.quantity}</span>
+                        <span class="px-4 py-1">${toPersianDigits(product.quantity)}</span>
                         <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity - 1})" ${product.quantity <= 1 ? "disabled" : ""}>-</button>
                     </div>
                     <div class="font-bold text-gray-800">${product.offerPrice ? formatPrice(forOfferPrice) : formatPrice(forPrice)}</div>
@@ -840,17 +846,34 @@
 
       // Update product quantity
       function updateQuantity(productId, newQuantity) {
+
         if (newQuantity < 1) return;
 
-        const productIndex = cartItemsFromServer.findIndex(
-          (p) => String(p._id) === String(productId)
-        );
-
-        if (productIndex !== -1) {
-          cartItemsFromServer[productIndex].quantity = newQuantity;
-          renderCartItems();
-        }
-      }
+        fetch("/api/cart/update", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              productId,
+              quantity: newQuantity
+            }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                // Only run this if registration was successful
+                location.reload();
+              } else {
+                // Show error message
+                alert(data.message); // You can use a toast or modal instead
+              }
+            })
+            .catch((err) => {
+              console.error("Error:", err);
+              alert("مشکلی در ارتباط با سرور به وجود آمده است");
+            });
+               }
 
 
       // Update totals display
@@ -988,13 +1011,35 @@
             const postalCode = document.getElementById("postal-code").value;
             const address = document.getElementById("address").value;
             const phone = document.getElementById("phone").value;
+            const orderForm = document.getElementById("order-form");
+            const formDataOrder = new FormData(orderForm);
 
-            if (!fullName || !postalCode || !address || !phone) {
+
+            if (!postalCode || !address) {
               alert("لطفاً تمام فیلدها را پر کنید:");
               return;
             }
 
-            showPage("summary-page");
+              fetch("/api/order", {
+                method: "POST",
+                body: formDataOrder,
+              })
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data.success) {
+                    // Only run this if registration was successful
+                    showPage("summary-page");
+                  } else {
+                    // Show error message
+                    alert(data.message); // You can use a toast or modal instead
+                  }
+                })
+                .catch((err) => {
+                  console.error("Error:", err);
+                  alert(
+                    "مشکلی در ارتباط با سرور به وجود آمده است"
+                  );
+                });
           });
 
         document
@@ -1002,10 +1047,12 @@
           .addEventListener("click", () => showPage("shipping-page"));
         document
           .getElementById("complete-purchase")
-          .addEventListener("click", () => showPage("confirmation-page"));
+          .addEventListener("click", () => {showPage("confirmation-page"))
         document
           .getElementById("back-to-shop")
-          .addEventListener("click", () => showPage("cart-page"));
+          .addEventListener("click", () => {
+            showPage("cart-page")
+          });
 
         document
           .getElementById("shipping-method")

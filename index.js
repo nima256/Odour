@@ -55,10 +55,12 @@ app.use(
 const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
 const cartRoutes = require("./routes/cart");
+const orderRoutes = require("./routes/order");
 
 app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/order", orderRoutes);
 
 app.locals.toPersianDigitsForSizes = function (input) {
   if (input === undefined || input === null) return "";
@@ -103,6 +105,9 @@ app.get("/shop", async (req, res) => {
   const products = await Product.find({});
   const categories = await Category.find({});
   const brands = await Brand.find({});
+  const user = await User.findById(req.session.userId);
+
+  const cartCount = user?.cart?.length || 0;
 
   // count products for each category
   const categoriesWithCounts = await Promise.all(
@@ -115,7 +120,13 @@ app.get("/shop", async (req, res) => {
     })
   );
 
-  res.render("Shop", { products, categories: categoriesWithCounts, brands });
+  res.render("Shop", {
+    products,
+    categories: categoriesWithCounts,
+    brands,
+    cartCount,
+    user,
+  });
 });
 
 app.get("/productDetails/:slug", async (req, res) => {
@@ -130,12 +141,10 @@ app.get("/cart", async (req, res) => {
     "cart.productId"
   );
 
-  // اگه کاربر لاگین نبود یا سبدش خالی بود
   if (!user || !user.cart) {
     return res.redirect("/");
   }
 
-  // ساختن آرایه‌ی تمیز و قابل استفاده در EJS
   const cartItems = user.cart.map((item) => {
     const prod = item.productId;
     return {
@@ -144,12 +153,13 @@ app.get("/cart", async (req, res) => {
       slug: prod.slug,
       price: prod.price,
       offerPrice: prod.offerPrice,
-      image: prod.images?.[0] || "", // اولین عکس
-      quantity: item.quantity, // ذخیره‌ی quantity به عنوان qty
+      weight: prod.weight,
+      image: prod.images?.[0] || "",
+      quantity: item.quantity,
     };
   });
 
-  res.render("Cart", { cartItems });
+  res.render("Cart", { cartItems, user });
 });
 
 app.get("/weblog", async (req, res) => {
