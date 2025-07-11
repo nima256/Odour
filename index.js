@@ -179,7 +179,18 @@ app.get("/weblogDetails/:slug", async (req, res) => {
 });
 
 app.get("/userProfile", isLoggedIn, async (req, res) => {
-  res.render("UserProfile");
+  const user = await User.findById(req.session.userId).populate("orders");
+
+  const currentOrders = user.orders.filter(o => o.status === "current");
+  const completedOrders = user.orders.filter(o => o.status === "completed");
+  const canceledOrders = user.orders.filter(o => o.status === "canceled");
+
+
+  res.render("UserProfile", {
+    user, currentOrders,
+    completedOrders,
+    canceledOrders
+  });
 });
 
 // admin
