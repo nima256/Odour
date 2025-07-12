@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const DiscountCode = require("../models/DiscountCode");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 
 // For access to req.body
@@ -56,6 +57,39 @@ router.put("/update", isLoggedIn, async (req, res) => {
   item.quantity = quantity;
   await user.save();
   res.json({ success: true, cart: user.cart });
+});
+
+router.post("/apply-discount", async (req, res) => {
+  const codeInput = req.body.discountCode.trim();
+  const discount = await DiscountCode.findOne({ code: codeInput });
+
+  // بررسی‌های امنیتی و اعتبارسنجی
+  if (
+    !discount ||
+    !discount.isActive ||
+    (discount.expireDate && discount.expireDate < new Date()) ||
+    (discount.usageLimit && discount.usedCount >= discount.usageLimit)
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "کد تخفیف نامعتبر است" });
+  }
+
+  // ذخیره‌سازی در سشن
+  req.session.discount = {
+    type: discount.type,
+    amount: discount.amount,
+    code: discount.code,
+  };
+
+  res.json({
+    success: true,
+    message: "کد تخفیف با موفقیت اعمال شد",
+    discountAmount:
+      discount.type === "percent"
+        ? Math.floor((subtotal * discount.amount) / 100)
+        : discount.amount,
+  });
 });
 
 module.exports = router;

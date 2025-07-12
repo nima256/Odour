@@ -30,7 +30,7 @@ const productSchema = mongoose.Schema(
     },
     offerPrice: {
       type: Number,
-      default: 0,
+      default: null,
     },
     catName: {
       type: String,

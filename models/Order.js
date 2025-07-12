@@ -28,15 +28,24 @@ const orderSchema = new Schema({
   delivery: {
     type: String,
   },
+  originalPrice: { type: Number },
+  totalPrice: { type: Number, required: true },
+  discount: {
+    type: {
+      type: String, // "percent" or "fixed"
+    },
+    amount: Number,
+    code: String,
+  },
   status: {
     type: String,
     enum: [
       "در انتظار پرداخت",
       "در حال پردازش",
+      "بسته بندی شده",
       "در حال ارسال",
       "تحویل داده شد",
       "لغو شده",
-      "مرجوعی",
     ],
     default: "در انتظار پرداخت",
   },

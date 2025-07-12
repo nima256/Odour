@@ -167,7 +167,29 @@ app.get("/cart", isLoggedIn, async (req, res) => {
     };
   });
 
-  res.render("Cart", { cartItems, user, OrderNum: req.session.OrderNum });
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + (item.offerPrice || item.price) * item.quantity,
+    0
+  );
+
+  let discountAmount = 0;
+
+  if (req.session.discount) {
+    const { type, amount } = req.session.discount;
+    discountAmount = type === "percent" ? (subtotal * amount) / 100 : amount;
+  }
+
+  const finalTotal = subtotal - discountAmount;
+
+  res.render("Cart", {
+    cartItems,
+    user,
+    OrderNum: req.session.OrderNum,
+    subtotal,
+    discountAmount,
+    finalTotal,
+    discountCode: req.session.discount?.code || null,
+  });
 });
 
 app.get("/weblog", async (req, res) => {
@@ -181,15 +203,21 @@ app.get("/weblogDetails/:slug", async (req, res) => {
 app.get("/userProfile", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.session.userId).populate("orders");
 
-  const currentOrders = user.orders.filter(o => o.status === "current");
-  const completedOrders = user.orders.filter(o => o.status === "completed");
-  const canceledOrders = user.orders.filter(o => o.status === "canceled");
+  console.log(user);
 
+  const currentOrders = user.orders.filter((o) =>
+    ["در حال پردازش", "در حال ارسال", "بسته بندی شده"].includes(o.status)
+  );
+  const completedOrders = user.orders.filter(
+    (o) => o.status === "تحویل داده شد"
+  );
+  const canceledOrders = user.orders.filter((o) => o.status === "لغو شده");
 
   res.render("UserProfile", {
-    user, currentOrders,
+    user,
+    currentOrders,
     completedOrders,
-    canceledOrders
+    canceledOrders,
   });
 });
 

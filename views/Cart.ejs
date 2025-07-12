@@ -282,7 +282,19 @@
   <div class="bg-gradient-to-br from-blue-50 to-indigo-50">
     <div class="container mx-auto px-4 py-8 max-w-4xl">
       <!-- Cart Page -->
+      <% if (cartItems.length === 0) {%>
       <div id="cart-page" class="page active-page mt-5">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h1
+            class="text-2xl font-bold text-gray-800 mb-6 text-right"
+            style="text-align: center"
+          >
+            سبد خرید شما خالی است
+          </h1>
+        </div>
+      </div>
+      <% } else {%>
+      <div id="cart-page" class="page active-page mt-5 mb-5">
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-6 text-right">
             سبد خرید
@@ -348,7 +360,7 @@
           </button>
         </div>
       </div>
-
+      <% } %>
       <!-- Shipping Page -->
       <div id="shipping-page" class="page">
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
@@ -662,32 +674,6 @@
       </div>
     </footer>
     <script>
-      // Product images as SVG (stored as functions to keep code clean)
-      const productImages = {
-        phone: () => `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700">
-                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                <line x1="12" y1="18" x2="12" y2="18"></line>
-                <path d="M8 2v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"></path>
-            </svg>
-        `,
-        headphones: () => `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700">
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-            </svg>
-        `,
-        powerbank: () => `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700">
-                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                <line x1="6" y1="10" x2="6" y2="14"></line>
-                <line x1="10" y1="10" x2="10" y2="14"></line>
-                <line x1="14" y1="10" x2="14" y2="14"></line>
-                <line x1="18" y1="10" x2="18" y2="14"></line>
-            </svg>
-        `,
-      };
-
       const cartItemsFromServer = <%- JSON.stringify(cartItems) %>;
 
 
@@ -702,7 +688,7 @@
       };
 
       // State variables
-      let appliedDiscount = 0;
+      let appliedDiscount = <%= discountAmount || 0 %>
       let selectedShippingMethod = "post";
 
       // Format price in Toman
@@ -712,7 +698,10 @@
 
       // Calculate subtotal
       function calculateSubtotal() {
-          return cartItemsFromServer.reduce((total, product) => total + (product.price * product.quantity), 0);
+        return cartItemsFromServer.reduce((total, product) => {
+          const price = product.offerPrice ?? product.price;
+          return total + (price * product.quantity);
+        }, 0);
       }
 
       // Calculate total
@@ -751,9 +740,16 @@
                           product.name
                         }</h3>
 
-                    <p class="text-gray-600 text-right">
-                      ${product.offerPrice ? formatPrice(product.offerPrice) : formatPrice(product.price)}
-                    </p>
+                        ${
+                        product.offerPrice
+                            ? `
+                              <div class="text-gray-600 line-through text-sm text-right">${formatPrice(product.price)}</div>
+                              <div class="price-gradient font-bold text-xl text-right">${formatPrice(product.offerPrice)}</div>
+                            `
+                            : `
+                              <p class="text-gray-600 text-right">${formatPrice(product.price)}</p>
+                            `
+                        }
                     </div>
                 </div>
                 <div class="flex items-center self-end md:self-auto">
@@ -762,7 +758,7 @@
                         <span class="px-4 py-1">${toPersianDigits(product.quantity)}</span>
                         <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity - 1})" ${product.quantity <= 1 ? "disabled" : ""}>-</button>
                     </div>
-                    <div class="font-bold text-gray-800">${product.offerPrice ? formatPrice(forOfferPrice) : formatPrice(forPrice)}</div>
+                    <div id="product-total-${product._id}" class="font-bold text-gray-800">${product.offerPrice ? formatPrice(forOfferPrice) : formatPrice(forPrice)}</div>
                 </div>
             `;
           cartItemsContainer.appendChild(itemElement);
@@ -791,7 +787,18 @@
             .then((data) => {
               if (data.success) {
                 // Only run this if registration was successful
-                location.reload();
+                // location.reload();
+                  const item = cartItemsFromServer.find(item => item._id === productId);
+                  if (item) {
+                    item.quantity = newQuantity;
+                  }
+                  const totalEl = document.getElementById(`product-total-${productId}`);
+                  if (totalEl && item) {
+                    const price = item.offerPrice || item.price;
+                    totalEl.textContent = formatPrice(price * newQuantity);
+                  }
+                  updateTotals();
+                  renderCartItems();
               } else {
                 // Show error message
                 alert(data.message); // You can use a toast or modal instead
@@ -808,6 +815,9 @@
       function updateTotals() {
         const subtotal = calculateSubtotal();
         const total = calculateTotal();
+
+        console.log("Subtotal:", subtotal);
+        console.log("Total after discount:", total);
 
         document.getElementById("subtotal").textContent = formatPrice(subtotal);
         document.getElementById("total").textContent = formatPrice(total);
@@ -826,13 +836,32 @@
         const codeInput = document.getElementById("discount-code");
         const code = codeInput.value.trim();
 
-        if (code === validDiscountCode) {
-          appliedDiscount = discountAmount;
-          alert("کد تخفیف با موفقیت اعمال شد.");
-        } else {
-          appliedDiscount = 0;
-          alert("کد تخفیف نامعتبر است.");
-        }
+          fetch("/api/cart/apply-discount", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                discountCode: code
+            }),
+          })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              // Only run this if registration was successful
+              appliedDiscount = data.discountAmount;
+              alert(data.message);
+              updateTotals();
+            } else {
+              // Show error message
+              appliedDiscount = 0;
+              alert(data.message);
+            }
+          })
+          .catch((err) => {
+            console.error("Error:", err);
+            alert("مشکلی در ارتباط با سرور به وجود آمده است");
+          });
 
         updateTotals();
       }
