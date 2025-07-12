@@ -28,6 +28,12 @@ const orderSchema = new Schema({
   ],
   delivery: {
     type: String,
+    enum: [
+      "تیپاکس",
+      "چاپار",
+      "ایران-پیام",
+    ],
+    default: "تیپاکس",
   },
   originalPrice: { type: Number },
   totalPrice: { type: Number, required: true },
