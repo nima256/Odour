@@ -29,7 +29,7 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
         .json({ success: false, message: "سبد خرید شما خالی است" });
     }
 
-    // محاسبه subtotal
+    // Calculate subtotal
     let subtotal = 0;
     const cartItems = user.cart.map((item) => {
       const prod = item.productId;
@@ -47,7 +47,7 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
       };
     });
 
-    // اعمال تخفیف در صورت وجود
+    // Discount calculation
     let discountAmount = 0;
     let finalPrice = subtotal;
     let appliedDiscount = null;
@@ -71,11 +71,13 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
       ) {
         req.session.discount = null;
       } else {
+        // Calculate discount based on type
         if (discount.type === "percent") {
           discountAmount = Math.floor((subtotal * discount.amount) / 100);
 
+          // Apply maximum discount cap if exists
           if (
-            typeof discount.maxDiscountAmount === "number" &&
+            discount.maxDiscountAmount &&
             discountAmount > discount.maxDiscountAmount
           ) {
             discountAmount = discount.maxDiscountAmount;
@@ -85,19 +87,25 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
         }
 
         finalPrice = subtotal - discountAmount;
+
+        // Prepare discount object for storage
         appliedDiscount = {
           type: discount.type,
           amount: discount.amount,
+          calculatedAmount: discountAmount, // Store the actual discount amount applied
           code: discount.code,
+          originalValue:
+            discount.type === "percent"
+              ? `${discount.amount}%`
+              : `${discount.amount} تومان`,
         };
 
-        // شمارنده استفاده از کد تخفیف
+        // Update discount code usage
         await DiscountCode.updateOne(
           { code: discount.code },
           { $inc: { usedCount: 1 } }
         );
 
-        // پاک کردن سشن تخفیف بعد از استفاده
         req.session.discount = null;
       }
     }
@@ -117,13 +125,14 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
       originalPrice: subtotal,
       totalPrice: finalPrice,
       discount: appliedDiscount,
+      discountAmount: discountAmount, // Explicitly store the discount amount
       status: "در انتظار پرداخت",
     });
 
     await newOrder.save();
-
     delete req.session.OrderNum;
 
+    // Clear user's cart and add order
     user.cart = [];
     user.orders.push(newOrder._id);
     await user.save();
@@ -132,6 +141,9 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
       success: true,
       message: "سفارش با موفقیت ثبت شد",
       orderId: newOrder._id,
+      discountApplied: discountAmount > 0,
+      discountAmount: discountAmount,
+      finalPrice: finalPrice,
     });
   } catch (error) {
     console.error("Error creating order:", error);

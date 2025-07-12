@@ -360,6 +360,9 @@
                     id: order.OrderNum,
                     date: order.createTarikh,
                     totalPrice: order.totalPrice,
+                    originalPrice: order.originalPrice,
+                    discountAmount: order.discountAmount,
+                    discount: order.discount, 
                     address: order.address,
                     products: order.products.map(p => ({
                       name: p.product.name,
@@ -397,11 +400,23 @@
                       <p class="text-lg font-bold text-green-600">
                         <%= toPersianDigits(order.totalPrice) %> تومان
                       </p>
-                      <span
-                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                      >
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                        <% if (order.status === 'لغو شده') { %>
+                            bg-red-100 text-red-800
+                        <% } else if (order.status === 'در انتظار پرداخت') { %>
+                            bg-yellow-100 text-yellow-800
+                        <% } else if (order.status === 'در حال پردازش') { %>
+                            bg-blue-100 text-blue-800
+                        <% } else if (order.status === 'بسته بندی شده') { %>
+                            bg-purple-100 text-purple-800
+                        <% } else if (order.status === 'در حال ارسال') { %>
+                            bg-indigo-100 text-indigo-800
+                        <% } else if (order.status === 'تحویل داده شد') { %>
+                            bg-green-100 text-green-800
+                        <% } %>
+                    ">
                         <%= order.status %>
-                      </span>
+                    </span>
                     </div>
                   </div>
                   <div
@@ -432,6 +447,9 @@
                           id: order.OrderNum,
                           date: order.createTarikh,
                           totalPrice: order.totalPrice,
+                          originalPrice: order.originalPrice,
+                          discountAmount: order.discountAmount,
+                          discount: order.discount, 
                           address: order.address,
                           products: order.products.map(p => ({
                             name: p.product.name,
@@ -468,11 +486,23 @@
                             <p class="text-lg font-bold text-green-600">
                               <%= toPersianDigits(order.totalPrice) %> تومان
                             </p>
-                            <span
-                              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                            >
+                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                              <% if (order.status === 'لغو شده') { %>
+                                  bg-red-100 text-red-800
+                              <% } else if (order.status === 'در انتظار پرداخت') { %>
+                                  bg-yellow-100 text-yellow-800
+                              <% } else if (order.status === 'در حال پردازش') { %>
+                                  bg-blue-100 text-blue-800
+                              <% } else if (order.status === 'بسته بندی شده') { %>
+                                  bg-purple-100 text-purple-800
+                              <% } else if (order.status === 'در حال ارسال') { %>
+                                  bg-indigo-100 text-indigo-800
+                              <% } else if (order.status === 'تحویل داده شد') { %>
+                                  bg-green-100 text-green-800
+                              <% } %>
+                          ">
                               <%= order.status %>
-                            </span>
+                          </span>
                           </div>
                         </div>
                         <div
@@ -493,7 +523,7 @@
 
                 <!-- Canceled Orders -->
                 <% if (canceledOrders.length > 0) { %>
-                <div id="canceled-tab" class="tab-content hidden">
+                <div id="canceled-tab" class="tab-content">
                   <% canceledOrders.forEach(order => { %>
                     <div class="space-y-4">
                       <div
@@ -503,6 +533,9 @@
                           id: order.OrderNum,
                           date: order.createTarikh,
                           totalPrice: order.totalPrice,
+                          originalPrice: order.originalPrice,
+                          discountAmount: order.discountAmount,
+                          discount: order.discount, 
                           address: order.address,
                           products: order.products.map(p => ({
                             name: p.product.name,
@@ -539,11 +572,23 @@
                             <p class="text-lg font-bold text-green-600">
                               <%= toPersianDigits(order.totalPrice) %> تومان
                             </p>
-                            <span
-                              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                            >
+                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                              <% if (order.status === 'لغو شده') { %>
+                                  bg-red-100 text-red-800
+                              <% } else if (order.status === 'در انتظار پرداخت') { %>
+                                  bg-yellow-100 text-yellow-800
+                              <% } else if (order.status === 'در حال پردازش') { %>
+                                  bg-blue-100 text-blue-800
+                              <% } else if (order.status === 'بسته بندی شده') { %>
+                                  bg-purple-100 text-purple-800
+                              <% } else if (order.status === 'در حال ارسال') { %>
+                                  bg-indigo-100 text-indigo-800
+                              <% } else if (order.status === 'تحویل داده شد') { %>
+                                  bg-green-100 text-green-800
+                              <% } %>
+                          ">
                               <%= order.status %>
-                            </span>
+                          </span>
                           </div>
                         </div>
                         <div
@@ -666,6 +711,10 @@
               <div class="flex justify-between">
                 <span class="text-gray-600">جمع کالاها:</span>
                 <span id="modal-total-price" class="font-medium"></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">تخفیف:</span>
+                <span id="modal-discount-price" class="font-medium"></span>
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">هزینه ارسال:</span>
@@ -806,6 +855,7 @@
         const withCommas = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
       }
+
       // Tab functionality
       document.querySelectorAll(".tab-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -863,43 +913,50 @@
                       <p id="modal-product-count" class="text-sm text-gray-600">${toPersianDigits(product.quantity)}</p>
                     </div>
                     <div class="text-left">
-                      <p
-                        id="modal-product-price"
-                        class="font-semibold text-gray-800"
-                      >
-                      ${product.offerPrice ? toPersianDigits(product.offerPrice) : toPersianDigits(product.price)}
-                      </p>
+                      ${
+                      product.offerPrice
+                          ? `
+                            <p id="modal-product-price" class="font-semibold text-gray-800 line-through">${toPersianDigits(product.price)}</p>
+                            <p id="modal-product-price" class="font-semibold text-gray-800 font-bold text-xl">${toPersianDigits(product.offerPrice)}</p>
+                          `
+                          : `
+                            <p class="text-gray-600 text-right">${toPersianDigits(product.price)}</p>
+                          `
+                      }
                     </div>
                   </div>
                 </div>
               `;
             });
 
+            // Update order information
             document.getElementById("modal-order-id").textContent = `#${orderData.id}`;
             document.getElementById("modal-order-date").textContent = orderData.date;
             document.getElementById("modal-order-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
-            document.getElementById("modal-total-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
-            document.getElementById("modal-final-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
             document.getElementById("addressForInfo").textContent = orderData.address;
 
+            // Update discount information
+            const discountElement = document.getElementById("modal-discount-price");
+            if (orderData.discountAmount > 0) {
+                discountElement.textContent = `-${toPersianDigits(orderData.discountAmount)} تومان`;
+                if (orderData.discount?.originalValue) {
+                    discountElement.textContent += ` (${orderData.discount.originalValue})`;
+                }
+                discountElement.classList.add("text-red-600");
+            } else {
+                discountElement.textContent = "بدون تخفیف";
+                discountElement.classList.remove("text-red-600");
+            }
+
+            // Update price summary
+            document.getElementById("modal-total-price").textContent = `${toPersianDigits(orderData.originalPrice)} تومان`;
+            document.getElementById("modal-final-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
+
+            // Show modal
             document.getElementById('order-modal').classList.remove('hidden');
             document.getElementById('order-modal').classList.add('flex');
 
-
-
         }
-        // function showOrderDetails(orderId, productName, price, date, count) {
-        //     document.getElementById('modal-order-id').textContent = '#' + orderId;
-        //     document.getElementById('modal-order-date').textContent = date;
-        //     document.getElementById('modal-order-price').textContent = price + ' تومان';
-        //     document.getElementById('modal-product-count').textContent = 'تعداد: ' + count + ' کالا';
-        //     document.getElementById('modal-product-price').textContent = price + ' تومان';
-        //     document.getElementById('modal-total-price').textContent = price + ' تومان';
-        //     document.getElementById('modal-final-price').textContent = price + ' تومان';
-            
-        //     document.getElementById('order-modal').classList.remove('hidden');
-        //     document.getElementById('order-modal').classList.add('flex');
-        // }
 
       function closeOrderModal() {
         document.getElementById("order-modal").classList.add("hidden");

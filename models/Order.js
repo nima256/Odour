@@ -32,12 +32,13 @@ const orderSchema = new Schema({
   originalPrice: { type: Number },
   totalPrice: { type: Number, required: true },
   discount: {
-    type: {
-      type: String, // "percent" or "fixed"
-    },
+    type: { type: String, enum: ["percent", "amount"] },
     amount: Number,
+    calculatedAmount: Number,
     code: String,
+    originalValue: String,
   },
+  discountAmount: { type: Number, default: 0 },
   status: {
     type: String,
     enum: [
