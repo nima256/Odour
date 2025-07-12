@@ -23,20 +23,18 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
         .json({ success: false, message: "تمام فیلدهای لازم پر نشده است" });
     }
 
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "کاربر یافت نشد" });
-    }
-
-    if (!user.cart.length) {
+    if (!user || !user.cart.length) {
       return res
         .status(400)
         .json({ success: false, message: "سبد خرید شما خالی است" });
     }
 
+    // محاسبه subtotal
+    let subtotal = 0;
     const cartItems = user.cart.map((item) => {
       const prod = item.productId;
+      const price = prod.offerPrice || prod.price;
+      subtotal += price * item.quantity;
       return {
         _id: prod._id,
         name: prod.name,
@@ -46,20 +44,13 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
         weight: prod.weight,
         image: prod.images?.[0] || "",
         quantity: item.quantity,
-        discount: req.session.discount
-          ? {
-              type: req.session.discount.type,
-              amount: req.session.discount.amount,
-              code: req.session.discount.code,
-            }
-          : null,
       };
     });
 
+    // اعمال تخفیف در صورت وجود
     let discountAmount = 0;
-    let finalPrice = 0;
+    let finalPrice = subtotal;
     let appliedDiscount = null;
-    let subtotal = 0;
 
     if (req.session.discount?.code) {
       const discount = await DiscountCode.findOne({
@@ -71,56 +62,57 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
       const isUsageLimitReached =
         discount?.usageLimit && discount.usedCount >= discount.usageLimit;
 
-      if (!discount || !discount.isActive || isExpired || isUsageLimitReached) {
-        // اگر کد تخفیف معتبر نبود، سشن پاک شود و بدون تخفیف ثبت شود
+      if (
+        !discount ||
+        !discount.isActive ||
+        isExpired ||
+        isUsageLimitReached ||
+        (discount.minOrderAmount && subtotal < discount.minOrderAmount)
+      ) {
         req.session.discount = null;
-        finalPrice = subtotal;
       } else {
-        // تخفیف معتبر است، محاسبه شود
-        discountAmount =
-          discount.type === "percent"
-            ? (subtotal * discount.amount) / 100
-            : discount.amount;
+        if (discount.type === "percent") {
+          discountAmount = Math.floor((subtotal * discount.amount) / 100);
+
+          if (
+            typeof discount.maxDiscountAmount === "number" &&
+            discountAmount > discount.maxDiscountAmount
+          ) {
+            discountAmount = discount.maxDiscountAmount;
+          }
+        } else {
+          discountAmount = discount.amount;
+        }
 
         finalPrice = subtotal - discountAmount;
-
         appliedDiscount = {
           type: discount.type,
           amount: discount.amount,
           code: discount.code,
         };
 
-        // افزایش تعداد استفاده
+        // شمارنده استفاده از کد تخفیف
         await DiscountCode.updateOne(
           { code: discount.code },
           { $inc: { usedCount: 1 } }
         );
 
-        // پاک کردن سشن بعد از استفاده
+        // پاک کردن سشن تخفیف بعد از استفاده
         req.session.discount = null;
       }
-    } else {
-      finalPrice = subtotal;
     }
 
-    cartItems.forEach((item) => {
-      const price = item.offerPrice || item.price;
-      subtotal += price * item.quantity;
-    });
-
-    if (req.session.discount) {
-      const { type, amount } = req.session.discount;
-      discountAmount = type === "percent" ? (subtotal * amount) / 100 : amount;
-    }
-
-    const productIds = user.cart.map((item) => item.productId._id);
+    const productsWithQuantity = user.cart.map((item) => ({
+      product: item.productId._id,
+      quantity: item.quantity,
+    }));
 
     const newOrder = new Order({
       OrderNum: req.session.OrderNum,
       postcode,
       address,
       user: userId,
-      products: productIds,
+      products: productsWithQuantity,
       delivery: delivery || "",
       originalPrice: subtotal,
       totalPrice: finalPrice,
@@ -130,17 +122,10 @@ router.post("/", upload.none(), isLoggedIn, async (req, res) => {
 
     await newOrder.save();
 
+    delete req.session.OrderNum;
+
     user.cart = [];
     user.orders.push(newOrder._id);
-
-    if (req.session.discount?.code) {
-      await DiscountCode.findOneAndUpdate(
-        { code: req.session.discount.code },
-        { $inc: { usedCount: 1 } }
-      );
-      req.session.discount = null;
-    }
-
     await user.save();
 
     res.json({

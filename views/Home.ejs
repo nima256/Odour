@@ -461,7 +461,7 @@
                 placeholder="09xxxxxxxxx" required />
             </div>
             <div>
-              <label class="block text-gray-700 mb-2" for="register-email">ایمیل (اختیاری)</label>
+              <label class="block text-gray-700 mb-2" for="register-email">ایمیل</label>
               <input type="email" name="email" id="register-email" class="w-full px-4 py-3 rounded-lg border"
                 placeholder="email@example.com" />
             </div>
@@ -1107,6 +1107,46 @@
                 registerForm.addEventListener("submit", function (e) {
                   e.preventDefault();
 
+                  const fullName = document.getElementById("register-name").value
+                  const mobile = document.getElementById("register-phone").value.trim();
+                  const email = document.getElementById("register-email").value.trim();
+                  const password = document.getElementById("register-password").value;
+                  const confirmPassword = document.getElementById("register-confirm-password").value;
+
+                  
+                  const iranMobileRegex = /^09\d{9}$/;
+                  const emailRegex = /^\S+@\S+\.\S+$/;
+
+
+                      if (fullName.length < 3) {
+                      alert("نام کامل باید حداقل ۳ کاراکتر باشد");
+                      return;
+                    }
+
+                    // ✅ Mobile number format
+                    if (!iranMobileRegex.test(mobile)) {
+                      alert("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)");
+                      return;
+                    }
+
+                    // ✅ Email (if entered)
+                    if (email && !emailRegex.test(email)) {
+                      alert("ایمیل وارد شده معتبر نیست");
+                      return;
+                    }
+
+                    // ✅ Password rules
+                    if (password.length < 8) {
+                      alert("رمز عبور باید حداقل ۸ کاراکتر باشد");
+                      return;
+                    }
+
+                    if (password !== confirmPassword) {
+                      alert("رمز عبور و تکرار آن یکسان نیستند");
+                      return;
+    }
+
+
                   const formDataRegister = new FormData(registerForm);
                   const phone = document.getElementById("register-phone").value;
                   registerPhoneDisplay.textContent = phone;
@@ -1135,7 +1175,6 @@
                           "submit",
                           function (e) {
                             e.preventDefault();
-                            // alert("ثبت نام با موفقیت انجام شد!");
                             const otpValue = getOtpValue("#register-step-2");
                             const reversedOtpValue = otpValue
                               .split("")

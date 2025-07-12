@@ -60,36 +60,76 @@ router.put("/update", isLoggedIn, async (req, res) => {
 });
 
 router.post("/apply-discount", async (req, res) => {
-  const codeInput = req.body.discountCode.trim();
-  const discount = await DiscountCode.findOne({ code: codeInput });
+  try {
+    const codeInput = req.body.discountCode?.trim();
+    const subtotal = req.body.subtotal; // 👈 ساب‌توتال از کلاینت دریافت می‌کنیم
 
-  // بررسی‌های امنیتی و اعتبارسنجی
-  if (
-    !discount ||
-    !discount.isActive ||
-    (discount.expireDate && discount.expireDate < new Date()) ||
-    (discount.usageLimit && discount.usedCount >= discount.usageLimit)
-  ) {
-    return res
-      .status(400)
-      .json({ success: false, message: "کد تخفیف نامعتبر است" });
+    if (!codeInput || typeof subtotal !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "اطلاعات کافی برای بررسی کد تخفیف ارسال نشده است",
+      });
+    }
+
+    const discount = await DiscountCode.findOne({ code: codeInput });
+
+    const now = new Date();
+    const isExpired = discount?.expireDate && discount.expireDate < now;
+    const isUsageLimitReached =
+      discount?.usageLimit && discount.usedCount >= discount.usageLimit;
+
+    if (
+      !discount ||
+      !discount.isActive ||
+      isExpired ||
+      isUsageLimitReached ||
+      (discount.minOrderAmount && subtotal < discount.minOrderAmount)
+    ) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "کد تخفیف نامعتبر یا غیرقابل استفاده است",
+        });
+    }
+
+    // محاسبه تخفیف واقعی
+    let discountAmount = 0;
+
+    if (discount.type === "percent") {
+      discountAmount = Math.floor((subtotal * discount.amount) / 100);
+
+      if (
+        typeof discount.maxDiscountAmount === "number" &&
+        discountAmount > discount.maxDiscountAmount
+      ) {
+        discountAmount = discount.maxDiscountAmount;
+      }
+    } else {
+      discountAmount = discount.amount;
+    }
+
+    // ذخیره سشن برای سفارش نهایی
+    req.session.discount = {
+      type: discount.type,
+      amount: discount.amount,
+      code: discount.code,
+    };
+
+    res.json({
+      success: true,
+      message: "کد تخفیف با موفقیت اعمال شد",
+      discountType: discount.type,
+      discountAmount: discountAmount, // 👈 مقدار نهایی تخفیف
+      code: discount.code,
+    });
+  } catch (error) {
+    console.error("Error applying discount:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطایی در پردازش کد تخفیف رخ داده است",
+    });
   }
-
-  // ذخیره‌سازی در سشن
-  req.session.discount = {
-    type: discount.type,
-    amount: discount.amount,
-    code: discount.code,
-  };
-
-  res.json({
-    success: true,
-    message: "کد تخفیف با موفقیت اعمال شد",
-    discountAmount:
-      discount.type === "percent"
-        ? Math.floor((subtotal * discount.amount) / 100)
-        : discount.amount,
-  });
 });
 
 module.exports = router;

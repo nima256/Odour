@@ -269,273 +269,300 @@
 
     <!-- Main Content -->
     <main class="max-w-6xl mx-auto px-4 py-8">
-      <!-- Profile Section -->
-      <div
-        class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8"
-      >
-        <div
-          class="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8 lg:space-x-reverse"
-        >
-          <!-- Avatar -->
-          <div
-            class="w-32 h-32 rounded-3xl overflow-hidden shadow-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center"
-          >
-            <svg
-              class="w-16 h-16 text-white"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                clip-rule="evenodd"
-              ></path>
-            </svg>
-          </div>
+        <!-- Profile Section -->
+        <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
+            <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8 lg:space-x-reverse">
+                <!-- Avatar -->
+                <div class="w-32 h-32 rounded-3xl overflow-hidden shadow-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                    <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
 
-          <!-- User Info -->
-          <div class="flex-1 w-full">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="text-sm font-medium text-gray-700 mb-2 block"
-                  >نام و نام خانوادگی</label
-                >
-                <input
-                  type="text"
-                  value="<%= user.fullName %>"
-                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
-                  readonly
-                />
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-700 mb-2 block"
-                  >شماره تلفن</label
-                >
-                <input
-                  type="text"
-                  value="<%= toPersianDigitsForSizes(user.mobile) %>"
-                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
-                  readonly
-                />
-              </div>
-              <div>
-                <label class="text-sm font-medium text-gray-700 mb-2 block"
-                  >ایمیل</label
-                >
-                <input
-                  type="email"
-                  value="<%= user.email %>"
-                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
-                  readonly
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Orders Section -->
-      <div
-        class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
-      >
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-          <h2 class="text-2xl font-bold text-white">سفارشات من</h2>
-        </div>
-
-        <!-- Tabs -->
-        <div class="flex border-b border-gray-200 bg-gray-50">
-          <% if (currentOrders.length > 0) { %>
-            <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-blue-600" data-tab="current">
-              جاری (<%= currentOrders.length %>)
-            </button>
-          <% } %>
-          <% if (completedOrders.length > 0) { %>
-            <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-green-600" data-tab="completed">
-              تکمیل شده (<%= completedOrders.length %>)
-            </button>
-          <% } %>
-          <% if (canceledOrders.length > 0) { %>
-            <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-red-600" data-tab="canceled">
-              لغو شده (<%= canceledOrders.length %>)
-            </button>
-          <% } %>
-        </div>
-
-        <!-- Tab Content -->
-        <div class="p-6">
-          <!-- Current Orders -->
-          <% if (currentOrders.length > 0) { %>
-            <div id="current-tab" class="tab-content">
-              <% currentOrders.forEach(order => { %>
-              <div
-                class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer"
-                onclick="showOrderDetails('ORD-2024-C001', 'گوشی هوشمند سامسونگ', '۳,۲۰۰,۰۰۰', '۱۴۰۳/۰۸/۰۵', '۴')"
-              >
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center space-x-3 space-x-reverse">
-                    <div
-                      class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center"
+                <!-- User Info -->
+              <div class="flex-1 w-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="text-sm font-medium text-gray-700 mb-2 block"
+                      >نام و نام خانوادگی</label
                     >
-                      <svg
-                        class="w-6 h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clip-rule="evenodd"
-                        ></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 class="font-semibold text-gray-800">
-                        سفارش #<%= order.OrderNum %>
-                      </h3>
-                      <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
-                    </div>
+                    <input
+                      type="text"
+                      value="<%= user.fullName %>"
+                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
+                      readonly
+                    />
                   </div>
-                  <div class="text-left">
-                    <p class="text-lg font-bold text-green-600">
-                      ۳,۲۰۰,۰۰۰ تومان
-                    </p>
-                    <span
-                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                  <div>
+                    <label class="text-sm font-medium text-gray-700 mb-2 block"
+                      >شماره تلفن</label
                     >
-                      تحویل شده
-                    </span>
+                    <input
+                      type="text"
+                      value="<%= toPersianDigitsForSizes(user.mobile) %>"
+                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
+                      readonly
+                    />
+                  </div>
+                  <div>
+                    <label class="text-sm font-medium text-gray-700 mb-2 block"
+                      >ایمیل</label
+                    >
+                    <input
+                      type="email"
+                      value="<%= user.email %>"
+                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
+                      readonly
+                    />
                   </div>
                 </div>
+              </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
+                <h2 class="text-2xl font-bold text-white">سفارشات من</h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 bg-gray-50">
+              <% if (currentOrders.length > 0) { %>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-blue-600" data-tab="current">
+                  جاری (<%= currentOrders.length %>)
+                </button>
+              <% } %>
+              <% if (completedOrders.length > 0) { %>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-green-600" data-tab="completed">
+                  تکمیل شده (<%= completedOrders.length %>)
+                </button>
+              <% } %>
+              <% if (canceledOrders.length > 0) { %>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-red-600" data-tab="canceled">
+                  لغو شده (<%= canceledOrders.length %>)
+                </button>
+              <% } %>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Current Orders -->
+              <% if (currentOrders.length > 0) { %>
+              <div id="current-tab" class="tab-content">
+                <% currentOrders.forEach(order => { %>
+                <div class="space-y-4">
                 <div
-                  class="flex items-center justify-between text-sm text-gray-600"
+                  class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer"
+                  onclick="showOrderDetails(this)"
+                  data-order='<%= JSON.stringify({
+                    id: order.OrderNum,
+                    date: order.createTarikh,
+                    totalPrice: order.totalPrice,
+                    address: order.address,
+                    products: order.products.map(p => ({
+                      name: p.product.name,
+                      price: p.product.price,
+                      offerPrice: p.product.offerPrice,
+                      quantity: p.quantity
+                    }))
+                  }) %>'
                 >
-                  <span>گوشی هوشمند سامسونگ - ۴ کالا</span>
-                  <span class="text-green-600 hover:text-green-800 font-medium"
-                    >مشاهده جزئیات ←</span
-                  >
-                </div>
-              </div>
-              <% }) %>
-            </div>
-          <% } %>
-
-          <!-- Completed Orders -->
-          <div id="completed-tab" class="tab-content">
-            <div class="space-y-4">
-              <!-- Order 1 -->
-              <div
-                class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer"
-                onclick="showOrderDetails('ORD-2024-C001', 'گوشی هوشمند سامسونگ', '۳,۲۰۰,۰۰۰', '۱۴۰۳/۰۸/۰۵', '۴')"
-              >
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center space-x-3 space-x-reverse">
-                    <div
-                      class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center"
-                    >
-                      <svg
-                        class="w-6 h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                      <div
+                        class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center"
                       >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clip-rule="evenodd"
-                        ></path>
-                      </svg>
+                        <svg
+                          class="w-6 h-6 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 class="font-semibold text-gray-800">
+                          سفارش #<%= order.OrderNum %>
+                        </h3>
+                        <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 class="font-semibold text-gray-800">
-                        سفارش #ORD-2024-C001
-                      </h3>
-                      <p class="text-sm text-gray-600">۱۴۰۳/۰۸/۰۵</p>
-                    </div>
-                  </div>
-                  <div class="text-left">
-                    <p class="text-lg font-bold text-green-600">
-                      ۳,۲۰۰,۰۰۰ تومان
-                    </p>
-                    <span
-                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                    >
-                      تحویل شده
-                    </span>
-                  </div>
-                </div>
-                <div
-                  class="flex items-center justify-between text-sm text-gray-600"
-                >
-                  <span>گوشی هوشمند سامسونگ - ۴ کالا</span>
-                  <span class="text-green-600 hover:text-green-800 font-medium"
-                    >مشاهده جزئیات ←</span
-                  >
-                </div>
-              </div>
-
-              <!-- Order 2 -->
-              <div
-                class="order-card bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-6 cursor-pointer"
-                onclick="showOrderDetails('ORD-2024-C002', 'لپ‌تاپ لنوو', '۱,۸۵۰,۰۰۰', '۱۴۰۳/۰۷/۲۸', '۲')"
-              >
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center space-x-3 space-x-reverse">
-                    <div
-                      class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center"
-                    >
-                      <svg
-                        class="w-6 h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
+                    <div class="text-left">
+                      <p class="text-lg font-bold text-green-600">
+                        <%= toPersianDigits(order.totalPrice) %> تومان
+                      </p>
+                      <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
                       >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clip-rule="evenodd"
-                        ></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 class="font-semibold text-gray-800">
-                        سفارش #ORD-2024-C002
-                      </h3>
-                      <p class="text-sm text-gray-600">۱۴۰۳/۰۷/۲۸</p>
+                        <%= order.status %>
+                      </span>
                     </div>
                   </div>
-                  <div class="text-left">
-                    <p class="text-lg font-bold text-blue-600">
-                      ۱,۸۵۰,۰۰۰ تومان
-                    </p>
-                    <span
-                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                    >
-                      تحویل شده
-                    </span>
-                  </div>
-                </div>
-                <div
-                  class="flex items-center justify-between text-sm text-gray-600"
-                >
-                  <span>لپ‌تاپ لنوو - ۲ کالا</span>
-                  <span class="text-blue-600 hover:text-blue-800 font-medium"
-                    >مشاهده جزئیات ←</span
+                  <div
+                    class="flex items-center justify-between text-sm text-gray-600"
                   >
+                    <% order.products.forEach(item => { %>
+                      <span><%= item.product.name %> - <%= toPersianDigitsForSizes(item.quantity) %> عدد</span>
+                    <% }) %>
+                    <span class="text-green-600 hover:text-green-800 font-medium"
+                      >مشاهده جزئیات ←</span
+                    >
+                  </div>
                 </div>
+                </div>
+                <% }) %>
               </div>
-            </div>
-          </div>
+            <% } %>
 
-          <!-- Canceled Orders -->
-          <div id="canceled-tab" class="tab-content hidden">
-            <div class="text-center py-12">
-              <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                ۱ سفارش لغو شده
-              </h3>
-              <p class="text-gray-600">سفارش لغو شده به دلایل مختلف</p>
+                <!-- Completed Orders -->
+                <% if (completedOrders.length > 0) { %>
+                <div id="completed-tab" class="tab-content">
+                    <% completedOrders.forEach(order => { %>
+                    <div class="space-y-4">
+                      <div
+                        class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer"
+                        onclick="showOrderDetails(this)"
+                        data-order='<%= JSON.stringify({
+                          id: order.OrderNum,
+                          date: order.createTarikh,
+                          totalPrice: order.totalPrice,
+                          address: order.address,
+                          products: order.products.map(p => ({
+                            name: p.product.name,
+                            price: p.product.price,
+                            quantity: p.quantity
+                          }))
+                        }) %>'
+                      >
+                        <div class="flex items-center justify-between mb-4">
+                          <div class="flex items-center space-x-3 space-x-reverse">
+                            <div
+                              class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center"
+                            >
+                              <svg
+                                class="w-6 h-6 text-white"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clip-rule="evenodd"
+                                ></path>
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 class="font-semibold text-gray-800">
+                                سفارش #<%= order.OrderNum %>
+                              </h3>
+                              <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
+                            </div>
+                          </div>
+                          <div class="text-left">
+                            <p class="text-lg font-bold text-green-600">
+                              <%= toPersianDigits(order.totalPrice) %> تومان
+                            </p>
+                            <span
+                              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                            >
+                              <%= order.status %>
+                            </span>
+                          </div>
+                        </div>
+                        <div
+                          class="flex items-center justify-between text-sm text-gray-600"
+                        >
+                          <% order.products.forEach(item => { %>
+                              <span><%= item.product.name %> - <%= toPersianDigitsForSizes(item.quantity) %> عدد</span>
+                          <% }) %>
+                          <span class="text-green-600 hover:text-green-800 font-medium"
+                            >مشاهده جزئیات ←</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <% }) %>
+                </div>
+                <% } %>
+
+                <!-- Canceled Orders -->
+                <% if (canceledOrders.length > 0) { %>
+                <div id="canceled-tab" class="tab-content hidden">
+                  <% canceledOrders.forEach(order => { %>
+                    <div class="space-y-4">
+                      <div
+                        class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer"
+                        onclick="showOrderDetails(this)"
+                        data-order='<%= JSON.stringify({
+                          id: order.OrderNum,
+                          date: order.createTarikh,
+                          totalPrice: order.totalPrice,
+                          address: order.address,
+                          products: order.products.map(p => ({
+                            name: p.product.name,
+                            price: p.product.price,
+                            quantity: p.quantity
+                          }))
+                        }) %>'
+                      >
+                        <div class="flex items-center justify-between mb-4">
+                          <div class="flex items-center space-x-3 space-x-reverse">
+                            <div
+                              class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center"
+                            >
+                              <svg
+                                class="w-6 h-6 text-white"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clip-rule="evenodd"
+                                ></path>
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 class="font-semibold text-gray-800">
+                                سفارش #<%= order.OrderNum %>
+                              </h3>
+                              <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
+                            </div>
+                          </div>
+                          <div class="text-left">
+                            <p class="text-lg font-bold text-green-600">
+                              <%= toPersianDigits(order.totalPrice) %> تومان
+                            </p>
+                            <span
+                              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                            >
+                              <%= order.status %>
+                            </span>
+                          </div>
+                        </div>
+                        <div
+                          class="flex items-center justify-between text-sm text-gray-600"
+                        >
+                          <% order.products.forEach(item => { %>
+                              <span><%= item.product.name %> - <%= toPersianDigitsForSizes(item.quantity) %> عدد</span>
+                          <% }) %>
+                          <span class="text-green-600 hover:text-green-800 font-medium"
+                            >مشاهده جزئیات ←</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+                <% } %>
             </div>
-          </div>
         </div>
-      </div>
     </main>
 
     <!-- Order Details Modal -->
@@ -613,14 +640,13 @@
             <h4 class="font-semibold text-gray-800 mb-3">اطلاعات مشتری</h4>
             <div class="bg-purple-50 rounded-2xl p-4">
               <p class="text-gray-700">
-                <span class="font-medium">نام:</span> سارا احمدی
+                <span class="font-medium">نام:</span> <%= user.fullName %>
               </p>
               <p class="text-gray-700 mt-2">
-                <span class="font-medium">آدرس:</span> تهران، خیابان ولیعصر،
-                پلاک ۱۲۳
+                <span class="font-medium" id="addressForInfo">آدرس:</span>
               </p>
               <p class="text-gray-700 mt-2">
-                <span class="font-medium">تلفن:</span> ۰۹۱۲۳۴۵۶۷۸۹
+                <span class="font-medium">تلفن:</span> <%= user.mobile %>
               </p>
             </div>
           </div>
@@ -628,36 +654,9 @@
           <!-- Products -->
           <div>
             <h4 class="font-semibold text-gray-800 mb-3">محصولات</h4>
-            <div class="bg-green-50 rounded-2xl p-4">
-              <div class="flex items-center space-x-4 space-x-reverse">
-                <div
-                  class="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center"
-                >
-                  <svg
-                    class="w-8 h-8 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
-                    ></path>
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <h5
-                    id="modal-product-name"
-                    class="font-medium text-gray-800"
-                  ></h5>
-                  <p id="modal-product-count" class="text-sm text-gray-600"></p>
-                </div>
-                <div class="text-left">
-                  <p
-                    id="modal-product-price"
-                    class="font-semibold text-gray-800"
-                  ></p>
-                </div>
+              <div id="modal-products-container"> 
+
               </div>
-            </div>
           </div>
 
           <!-- Payment Summary -->
@@ -801,6 +800,12 @@
     </footer>
 
     <script>
+      function toPersianDigits(num) {
+        if (num === null || num === undefined || isNaN(num)) return "";
+        const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+        const withCommas = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
+      }
       // Tab functionality
       document.querySelectorAll(".tab-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -823,24 +828,78 @@
       });
 
       // Order modal functionality
-      function showOrderDetails(orderId, productName, price, date, count) {
-        document.getElementById("modal-order-id").textContent = "#" + orderId;
-        document.getElementById("modal-order-date").textContent = date;
-        document.getElementById("modal-order-price").textContent =
-          price + " تومان";
-        document.getElementById("modal-product-name").textContent = productName;
-        document.getElementById("modal-product-count").textContent =
-          "تعداد: " + count + " کالا";
-        document.getElementById("modal-product-price").textContent =
-          price + " تومان";
-        document.getElementById("modal-total-price").textContent =
-          price + " تومان";
-        document.getElementById("modal-final-price").textContent =
-          price + " تومان";
+        function showOrderDetails(element) {
+            const orderData = JSON.parse(element.getAttribute('data-order'));
+            const productsContainer = document.getElementById("modal-products-container");
 
-        document.getElementById("order-modal").classList.remove("hidden");
-        document.getElementById("order-modal").classList.add("flex");
-      }
+            productsContainer.innerHTML = '';
+
+
+              orderData.products.forEach(product => {
+                console.log(product)
+              productsContainer.innerHTML += `
+                <div class="bg-green-50 rounded-2xl p-4">
+                  <div class="flex items-center space-x-4 space-x-reverse">
+                    <div
+                      class="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center"
+                    >
+                      <svg
+                        class="w-8 h-8 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <h5
+                        id="modal-product-name"
+                        class="font-medium text-gray-800"
+                      >
+                      ${product.name}
+                      </h5>
+                      <p id="modal-product-count" class="text-sm text-gray-600">${toPersianDigits(product.quantity)}</p>
+                    </div>
+                    <div class="text-left">
+                      <p
+                        id="modal-product-price"
+                        class="font-semibold text-gray-800"
+                      >
+                      ${product.offerPrice ? toPersianDigits(product.offerPrice) : toPersianDigits(product.price)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+
+            document.getElementById("modal-order-id").textContent = `#${orderData.id}`;
+            document.getElementById("modal-order-date").textContent = orderData.date;
+            document.getElementById("modal-order-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
+            document.getElementById("modal-total-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
+            document.getElementById("modal-final-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
+            document.getElementById("addressForInfo").textContent = orderData.address;
+
+            document.getElementById('order-modal').classList.remove('hidden');
+            document.getElementById('order-modal').classList.add('flex');
+
+
+
+        }
+        // function showOrderDetails(orderId, productName, price, date, count) {
+        //     document.getElementById('modal-order-id').textContent = '#' + orderId;
+        //     document.getElementById('modal-order-date').textContent = date;
+        //     document.getElementById('modal-order-price').textContent = price + ' تومان';
+        //     document.getElementById('modal-product-count').textContent = 'تعداد: ' + count + ' کالا';
+        //     document.getElementById('modal-product-price').textContent = price + ' تومان';
+        //     document.getElementById('modal-total-price').textContent = price + ' تومان';
+        //     document.getElementById('modal-final-price').textContent = price + ' تومان';
+            
+        //     document.getElementById('order-modal').classList.remove('hidden');
+        //     document.getElementById('order-modal').classList.add('flex');
+        // }
 
       function closeOrderModal() {
         document.getElementById("order-modal").classList.add("hidden");

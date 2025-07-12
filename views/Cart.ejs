@@ -678,8 +678,8 @@
 
 
       // Discount code (for demo)
-      const validDiscountCode = "TAKHFIF20";
-      const discountAmount = 500000;
+      // const validDiscountCode = "TAKHFIF20";
+      // const discountAmount = 500000;
 
       // Shipping costs
       const shippingCosts = {
@@ -687,8 +687,46 @@
         tipax: 25000,
       };
 
+      let appliedDiscount = 0;
+
+
+      // Apply discount code
+      function applyDiscountCode() {
+        const codeInput = document.getElementById("discount-code");
+        const code = codeInput.value.trim();
+
+        const subtotal = calculateSubtotal(); // 👈 تابعی که مجموع قیمت محصولات رو حساب می‌کنه
+
+        fetch("/api/cart/apply-discount", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            discountCode: code,
+            subtotal: subtotal, // 👈 ارسال subtotal به سرور
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              appliedDiscount = data.discountAmount; // 👈 مستقیماً مقدار نهایی تخفیف
+              alert(data.message);
+              updateTotals();
+            } else {
+              appliedDiscount = 0;
+              alert(data.message);
+              updateTotals();
+            }
+          })
+          .catch((err) => {
+            console.error("Error:", err);
+            alert("مشکلی در ارتباط با سرور به وجود آمده است");
+          });
+      }
+
+
       // State variables
-      let appliedDiscount = <%= discountAmount || 0 %>
       let selectedShippingMethod = "post";
 
       // Format price in Toman
@@ -816,9 +854,6 @@
         const subtotal = calculateSubtotal();
         const total = calculateTotal();
 
-        console.log("Subtotal:", subtotal);
-        console.log("Total after discount:", total);
-
         document.getElementById("subtotal").textContent = formatPrice(subtotal);
         document.getElementById("total").textContent = formatPrice(total);
 
@@ -829,41 +864,6 @@
         } else {
           document.getElementById("discount-row").classList.add("hidden");
         }
-      }
-
-      // Apply discount code
-      function applyDiscountCode() {
-        const codeInput = document.getElementById("discount-code");
-        const code = codeInput.value.trim();
-
-          fetch("/api/cart/apply-discount", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                discountCode: code
-            }),
-          })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              // Only run this if registration was successful
-              appliedDiscount = data.discountAmount;
-              alert(data.message);
-              updateTotals();
-            } else {
-              // Show error message
-              appliedDiscount = 0;
-              alert(data.message);
-            }
-          })
-          .catch((err) => {
-            console.error("Error:", err);
-            alert("مشکلی در ارتباط با سرور به وجود آمده است");
-          });
-
-        updateTotals();
       }
 
       // Render summary page
@@ -965,6 +965,16 @@
         document
           .getElementById("go-to-summary")
           .addEventListener("click", () => {
+              showPage("summary-page");
+          });
+
+        document
+          .getElementById("back-to-shipping")
+          .addEventListener("click", () => showPage("shipping-page"));
+        document
+          .getElementById("complete-purchase")
+          .addEventListener("click", () => {
+
             const fullName = document.getElementById("full-name").value;
             const postalCode = document.getElementById("postal-code").value;
             const address = document.getElementById("address").value;
@@ -986,7 +996,7 @@
                 .then((data) => {
                   if (data.success) {
                     // Only run this if registration was successful
-                    showPage("summary-page");
+                    showPage("confirmation-page")
                   } else {
                     // Show error message
                     alert(data.message); // You can use a toast or modal instead
@@ -999,13 +1009,6 @@
                   );
                 });
           });
-
-        document
-          .getElementById("back-to-shipping")
-          .addEventListener("click", () => showPage("shipping-page"));
-        document
-          .getElementById("complete-purchase")
-          .addEventListener("click", () => showPage("confirmation-page"));
         document
           .getElementById("back-to-shop")
           .addEventListener("click", () => showPage("cart-page"));

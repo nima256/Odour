@@ -6,6 +6,7 @@ const orderSchema = new Schema({
   OrderNum: {
     type: String,
     required: true,
+    unique: true,
   },
   postcode: {
     type: String,
@@ -21,8 +22,8 @@ const orderSchema = new Schema({
   },
   products: [
     {
-      type: Schema.Types.ObjectId,
-      ref: "Product",
+      product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      quantity: Number,
     },
   ],
   delivery: {

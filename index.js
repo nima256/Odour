@@ -86,8 +86,6 @@ app.get("/", async (req, res) => {
   const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
   const user = await User.findById(req.session.userId);
 
-  req.session.OrderNum = generateOrderNumber();
-
   const cartCount = user?.cart?.length || 0;
 
   const categoriesWithCounts = await Promise.all(
@@ -181,6 +179,10 @@ app.get("/cart", isLoggedIn, async (req, res) => {
 
   const finalTotal = subtotal - discountAmount;
 
+  if (!req.session.OrderNum) {
+    req.session.OrderNum = generateOrderNumber();
+  }
+
   res.render("Cart", {
     cartItems,
     user,
@@ -201,9 +203,13 @@ app.get("/weblogDetails/:slug", async (req, res) => {
 });
 
 app.get("/userProfile", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.session.userId).populate("orders");
-
-  console.log(user);
+  const user = await User.findById(req.session.userId).populate({
+    path: "orders",
+    populate: {
+      path: "products.product",
+      model: "Product",
+    },
+  });
 
   const currentOrders = user.orders.filter((o) =>
     ["در حال پردازش", "در حال ارسال", "بسته بندی شده"].includes(o.status)
