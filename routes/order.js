@@ -6,151 +6,214 @@ const DiscountCode = require("../models/DiscountCode");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 const multer = require("multer");
 const upload = multer();
+const Product = require("../models/Product");
+const { body, validationResult } = require("express-validator");
+const mongoose = require("mongoose");
 
 // For access to req.body
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
-router.post("/", upload.none(), isLoggedIn, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const { postcode, address, delivery } = req.body;
-    const user = await User.findById(userId).populate("cart.productId");
+const validateOrderInput = [
+  body("postcode").trim().notEmpty().withMessage("کد پستی الزامی است"),
+  body("address").trim().notEmpty().withMessage("آدرس الزامی است"),
+  body("delivery").optional().trim(),
+];
 
-    if (!postcode || !address) {
-      return res
-        .status(400)
-        .json({ success: false, message: "تمام فیلدهای لازم پر نشده است" });
-    }
+const errorResponse = (res, status, message, details = {}) => {
+  return res.status(status).json({
+    success: false,
+    message,
+    ...details,
+  });
+};
 
-    if (!user || !user.cart.length) {
-      return res
-        .status(400)
-        .json({ success: false, message: "سبد خرید شما خالی است" });
-    }
+router.post(
+  "/",
+  upload.none(),
+  isLoggedIn,
+  validateOrderInput,
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return errorResponse(res, 400, "خطا در اعتبارسنجی", {
+          errors: errors.array(),
+        });
+      }
 
-    // Calculate subtotal
-    let subtotal = 0;
-    const cartItems = user.cart.map((item) => {
-      const prod = item.productId;
-      const price = prod.offerPrice || prod.price;
-      subtotal += price * item.quantity;
-      return {
-        _id: prod._id,
-        name: prod.name,
-        slug: prod.slug,
-        price: prod.price,
-        offerPrice: prod.offerPrice,
-        weight: prod.weight,
-        image: prod.images?.[0] || "",
-        quantity: item.quantity,
-      };
-    });
+      const userId = req.session.userId;
+      const { postcode, address, delivery } = req.body;
 
-    // Discount calculation
-    let discountAmount = 0;
-    let finalPrice = subtotal;
-    let appliedDiscount = null;
+      const user = await User.findById(userId).populate("cart.productId");
+      if (!user) {
+        return errorResponse(res, 404, "کاربر یافت نشد");
+      }
 
-    if (req.session.discount?.code) {
-      const discount = await DiscountCode.findOne({
-        code: req.session.discount.code,
-      });
+      if (!user.cart || user.cart.length === 0) {
+        return errorResponse(res, 400, "سبد خرید شما خالی است");
+      }
 
-      const now = new Date();
-      const isExpired = discount?.expireDate && discount.expireDate < now;
-      const isUsageLimitReached =
-        discount?.usageLimit && discount.usedCount >= discount.usageLimit;
+      const unavailableProducts = [];
+      let subtotal = 0;
 
-      if (
-        !discount ||
-        !discount.isActive ||
-        isExpired ||
-        isUsageLimitReached ||
-        (discount.minOrderAmount && subtotal < discount.minOrderAmount)
-      ) {
-        req.session.discount = null;
-      } else {
-        // Calculate discount based on type
-        if (discount.type === "percent") {
-          discountAmount = Math.floor((subtotal * discount.amount) / 100);
-
-          // Apply maximum discount cap if exists
-          if (
-            discount.maxDiscountAmount &&
-            discountAmount > discount.maxDiscountAmount
-          ) {
-            discountAmount = discount.maxDiscountAmount;
+      const cartItems = await Promise.all(
+        user.cart.map(async (item) => {
+          const product = await Product.findById(item.productId._id);
+          if (!product || product.stock < item.quantity) {
+            unavailableProducts.push({
+              productId: item.productId._id,
+              name: item.productId.name,
+              requested: item.quantity,
+              available: product?.stock || 0,
+            });
+            return null;
           }
-        } else {
-          discountAmount = discount.amount;
+
+          const price = product.offerPrice || product.price;
+          subtotal += price * item.quantity;
+
+          return {
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            offerPrice: product.offerPrice,
+            quantity: item.quantity,
+            weight: product.weight,
+            image: product.images?.[0] || "",
+          };
+        })
+      );
+
+      if (unavailableProducts.length > 0) {
+        return errorResponse(res, 400, "برخی محصولات موجود نیستند", {
+          unavailableProducts,
+        });
+      }
+
+      let discountAmount = 0;
+      let appliedDiscount = null;
+      let finalPrice = subtotal;
+
+      if (req.session.discount?.code) {
+        const discount = await DiscountCode.findOne({
+          code: req.session.discount.code,
+        });
+
+        const now = new Date();
+        const isValidDiscount =
+          discount &&
+          discount.isActive &&
+          (!discount.expireDate || discount.expireDate >= now) &&
+          (!discount.usageLimit || discount.usedCount < discount.usageLimit) &&
+          (!discount.minOrderAmount || subtotal >= discount.minOrderAmount);
+
+        if (isValidDiscount) {
+          discountAmount =
+            discount.type === "percent"
+              ? Math.min(
+                  Math.floor((subtotal * discount.amount) / 100),
+                  discount.maxDiscountAmount || Infinity
+                )
+              : discount.amount;
+
+          finalPrice = subtotal - discountAmount;
+
+          appliedDiscount = {
+            type: discount.type,
+            amount: discount.amount,
+            calculatedAmount: discountAmount,
+            code: discount.code,
+            originalValue:
+              discount.type === "percent"
+                ? `${discount.amount}%`
+                : `${discount.amount} تومان`,
+          };
+
+          // Update discount usage
+          await DiscountCode.updateOne(
+            { _id: discount._id },
+            { $inc: { usedCount: 1 } }
+          );
         }
 
-        finalPrice = subtotal - discountAmount;
-
-        // Prepare discount object for storage
-        appliedDiscount = {
-          type: discount.type,
-          amount: discount.amount,
-          calculatedAmount: discountAmount, // Store the actual discount amount applied
-          code: discount.code,
-          originalValue:
-            discount.type === "percent"
-              ? `${discount.amount}%`
-              : `${discount.amount} تومان`,
-        };
-
-        // Update discount code usage
-        await DiscountCode.updateOne(
-          { code: discount.code },
-          { $inc: { usedCount: 1 } }
-        );
-
+        // Clear session discount regardless of validity
         req.session.discount = null;
       }
+
+      const order = new Order({
+        OrderNum: req.session.OrderNum || `ORD-${Date.now()}`,
+        postcode,
+        address,
+        user: userId,
+        products: user.cart.map((item) => ({
+          product: item.productId._id,
+          quantity: item.quantity,
+        })),
+        delivery: delivery || "",
+        originalPrice: subtotal,
+        totalPrice: finalPrice,
+        discount: appliedDiscount,
+        discountAmount,
+        status: "در انتظار پرداخت",
+      });
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+
+      try {
+        await order.save({ session });
+
+        await Promise.all(
+          user.cart.map((item) =>
+            Product.updateOne(
+              { _id: item.productId._id },
+              { $inc: { stock: -item.quantity } },
+              { session }
+            )
+          )
+        );
+
+        user.cart = [];
+        user.orders.push(order._id);
+        await user.save({ session });
+
+        await session.commitTransaction();
+
+        if (req.session.OrderNum) {
+          delete req.session.OrderNum;
+        }
+
+        return res.json({
+          success: true,
+          message: "سفارش با موفقیت ثبت شد",
+          orderId: order._id,
+          orderNumber: order.OrderNum,
+          total: finalPrice,
+          discount: discountAmount,
+          products: cartItems.filter((item) => item !== null),
+        });
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        session.endSession();
+      }
+    } catch (error) {
+      console.error("Order creation error:", error);
+
+      // Handle specific errors
+      if (error.name === "ValidationError") {
+        return errorResponse(res, 400, "خطا در اعتبارسنجی داده‌های سفارش");
+      }
+
+      if (error.code === 11000) {
+        return errorResponse(res, 409, "شماره سفارش تکراری است");
+      }
+
+      return errorResponse(res, 500, "خطای سرور در ثبت سفارش");
     }
-
-    const productsWithQuantity = user.cart.map((item) => ({
-      product: item.productId._id,
-      quantity: item.quantity,
-    }));
-
-    const newOrder = new Order({
-      OrderNum: req.session.OrderNum,
-      postcode,
-      address,
-      user: userId,
-      products: productsWithQuantity,
-      delivery: delivery || "",
-      originalPrice: subtotal,
-      totalPrice: finalPrice,
-      discount: appliedDiscount,
-      discountAmount: discountAmount, // Explicitly store the discount amount
-      status: "در انتظار پرداخت",
-    });
-
-    await newOrder.save();
-    delete req.session.OrderNum;
-
-    // Clear user's cart and add order
-    user.cart = [];
-    user.orders.push(newOrder._id);
-    await user.save();
-
-    res.json({
-      success: true,
-      message: "سفارش با موفقیت ثبت شد",
-      orderId: newOrder._id,
-      discountApplied: discountAmount > 0,
-      discountAmount: discountAmount,
-      finalPrice: finalPrice,
-    });
-  } catch (error) {
-    console.error("Error creating order:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "خطایی در ثبت سفارش رخ داد" });
   }
-});
+);
 
 module.exports = router;

@@ -3,6 +3,8 @@ const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
 const session = require("express-session");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
 
 require("dotenv").config();
 
@@ -22,20 +24,29 @@ const Brand = require("./models/Brand");
 const Weblog = require("./models/Weblog");
 const User = require("./models/User");
 
-// For Production
+// For production
 // app.use(
 //   session({
-//     secret: process.env.SESSION_SECRET,
+//     secret: process.env.SESSION_SECRET || 'fallback-secret-but-warn',
 //     resave: false,
 //     saveUninitialized: false,
 //     cookie: {
 //       httpOnly: true,
-//       secure: true,
-//       sameSite: "lax",
-//       maxAge: 1000 * 60 * 60 * 2,
+//       secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+//       sameSite: 'strict',
+//       maxAge: 1000 * 60 * 60 * 2, // 2 hours
 //     },
+//     store: MongoStore.create({ // For production - stores sessions in DB
+//       mongoUrl: process.env.DB_URL,
+//       ttl: 14 * 24 * 60 * 60 // 14 days
+//     })
 //   })
 // );
+
+// // Warn if using default session secret
+// if (!process.env.SESSION_SECRET) {
+//   console.warn('WARNING: Using default session secret - set SESSION_SECRET in production!');
+// }
 
 // Basic Setup
 app.use(
@@ -51,6 +62,52 @@ app.use(
   })
 );
 
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "https://cdn.tailwindcss.com",
+          "'unsafe-inline'", // Allow inline scripts (if needed)
+        ],
+        styleSrc: [
+          "'self'",
+          "https://cdn.tailwindcss.com",
+          "https://cdnjs.cloudflare.com", // Font Awesome CSS
+          "https://fonts.googleapis.com", // Google Fonts
+          "'unsafe-inline'", // Allow inline styles
+        ],
+        fontSrc: [
+          "'self'",
+          "data:",
+          "https://cdnjs.cloudflare.com", // Font Awesome fonts
+          "https://fonts.gstatic.com", // Google Fonts
+        ],
+        imgSrc: ["'self'", "data:", "https:"], // Allow all images
+        connectSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "https://cdn.tailwindcss.com",
+          "'unsafe-inline'", // Allows inline scripts
+        ],
+        scriptSrcAttr: [
+          "'self'",
+          "'unsafe-inline'", // Allows inline event handlers
+          "'unsafe-hashes'", // Needed for some cases
+        ],
+      },
+    },
+  })
+);
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later",
+});
+
 // Routes
 const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
@@ -58,6 +115,7 @@ const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/order");
 const { isLoggedIn } = require("./middlewares/isLoggedIn");
 
+app.use("/api/", apiLimiter);
 app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
 app.use("/api/cart", cartRoutes);
@@ -107,92 +165,137 @@ app.get("/", async (req, res) => {
   });
 });
 
-app.get("/shop", async (req, res) => {
-  const products = await Product.find({});
-  const categories = await Category.find({});
-  const brands = await Brand.find({});
-  const user = await User.findById(req.session.userId);
+const asyncHandler = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
 
-  const cartCount = user?.cart?.length || 0;
+app.get(
+  "/shop",
+  asyncHandler(async (req, res) => {
+    const products = await Product.find({});
+    const categories = await Category.find({});
+    const brands = await Brand.find({});
+    const user = await User.findById(req.session.userId);
 
-  // count products for each category
-  const categoriesWithCounts = await Promise.all(
-    categories.map(async (cat) => {
-      const count = await Product.countDocuments({ category: cat._id });
-      return {
-        ...cat._doc, // spread the original category fields
-        productCount: count, // add a new property
-      };
-    })
-  );
+    if (!products || !categories || !brands) {
+      const error = new Error("خطا در بارگزاری فروشگاه");
+      error.statusCode = 500;
+      throw error;
+    }
 
-  res.render("Shop", {
-    products,
-    categories: categoriesWithCounts,
-    brands,
-    cartCount,
-    user,
-  });
-});
+    const cartCount = user?.cart?.length || 0;
+
+    // count products for each category
+    const categoriesWithCounts = await Promise.all(
+      categories.map(async (cat) => {
+        const count = await Product.countDocuments({ category: cat._id });
+        return {
+          ...cat._doc, // spread the original category fields
+          productCount: count, // add a new property
+        };
+      })
+    );
+
+    res.render("Shop", {
+      products,
+      categories: categoriesWithCounts,
+      brands,
+      cartCount,
+      user,
+    });
+  })
+);
 
 app.get("/productDetails/:slug", async (req, res) => {
-  const slug = req?.params?.slug;
-  const product = await Product.findOne({ slug });
+  try {
+    const slug = req?.params?.slug;
+    if (!slug) {
+      const error = new Error("محصول انتخاب نشده است");
+      error.statusCode = 400;
+      throw error;
+    }
 
-  res.render("ProductDetails", { product });
+    const product = await Product.findOne({ slug });
+    if (!product) {
+      const error = new Error("محصول یافت نشد");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.render("ProductDetails", { product });
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get("/cart", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.session.userId)
-    .populate("cart.productId")
-    .populate("orders");
+app.get(
+  "/cart",
+  isLoggedIn,
+  asyncHandler(async (req, res) => {
+    if (!req.session.userId) {
+      const error = new Error("لطفا به حساب خود وارد شوید");
+      error.statusCode = 401;
+      throw error;
+    }
 
-  if (!user || !user.cart) {
-    return res.redirect("/");
-  }
+    const user = await User.findById(req.session.userId)
+      .populate("cart.productId")
+      .populate("orders");
 
-  const cartItems = user.cart.map((item) => {
-    const prod = item.productId;
-    return {
-      _id: prod._id,
-      name: prod.name,
-      slug: prod.slug,
-      price: prod.price,
-      offerPrice: prod.offerPrice,
-      weight: prod.weight,
-      image: prod.images?.[0] || "",
-      quantity: item.quantity,
-    };
-  });
+    if (!user) {
+      const error = new Error("کاربر پیدا نشد");
+      error.statusCode = 404;
+      throw error;
+    }
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + (item.offerPrice || item.price) * item.quantity,
-    0
-  );
+    const cartItems = user.cart
+      .map((item) => {
+        if (!item.productId) {
+          console.warn(`کالای شما پیدا نشد`);
+          return null;
+        }
+        const prod = item.productId;
+        return {
+          _id: prod._id,
+          name: prod.name,
+          slug: prod.slug,
+          price: prod.price,
+          offerPrice: prod.offerPrice,
+          weight: prod.weight,
+          image: prod.images?.[0] || "",
+          quantity: item.quantity,
+        };
+      })
+      .filter((item) => item !== null);
 
-  let discountAmount = 0;
+    const subtotal = cartItems.reduce(
+      (sum, item) => sum + (item.offerPrice || item.price) * item.quantity,
+      0
+    );
 
-  if (req.session.discount) {
-    const { type, amount } = req.session.discount;
-    discountAmount = type === "percent" ? (subtotal * amount) / 100 : amount;
-  }
+    let discountAmount = 0;
 
-  const finalTotal = subtotal - discountAmount;
+    if (req.session.discount) {
+      const { type, amount } = req.session.discount;
+      discountAmount = type === "percent" ? (subtotal * amount) / 100 : amount;
+    }
 
-  if (!req.session.OrderNum) {
-    req.session.OrderNum = generateOrderNumber();
-  }
+    const finalTotal = subtotal - discountAmount;
 
-  res.render("Cart", {
-    cartItems,
-    user,
-    OrderNum: req.session.OrderNum,
-    subtotal,
-    discountAmount,
-    finalTotal,
-    discountCode: req.session.discount?.code || null,
-  });
-});
+    if (!req.session.OrderNum) {
+      req.session.OrderNum = generateOrderNumber();
+    }
+
+    res.render("Cart", {
+      cartItems,
+      user,
+      OrderNum: req.session.OrderNum,
+      subtotal,
+      discountAmount,
+      finalTotal,
+      discountCode: req.session.discount?.code || null,
+    });
+  })
+);
 
 app.get("/weblog", async (req, res) => {
   res.render("Weblog");
@@ -232,17 +335,49 @@ app.get("/admin", async (req, res) => {
   res.render("AdminPanel");
 });
 
+app.use(async (req, res, next) => {
+  res.status(404).render("404", {
+    message: "صفحه پیدا نشد",
+    user: req.session.userId ? await User.findById(req.session.userId) : null,
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+
+  // Determine status code
+  const statusCode = err.statusCode || 500;
+
+  // Don't leak stack traces in production
+  const message =
+    process.env.NODE_ENV === "production"
+      ? "مشکلی در سایت پیش آمده است لطفا بعدا تلاش کنید!"
+      : err.message;
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
+  });
+});
+
 // DB
-mongoose
-  .connect(process.env.DB_URL)
-  .then(() => {
+const connectWithRetry = async () => {
+  try {
+    await mongoose.connect(process.env.DB_URL, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+    });
     console.log("Connected To DB");
 
-    // Start server after DB is connected
     app.listen(process.env.PORT, () => {
-      console.log(`Server Is Running On http://localhost:${process.env.PORT}`);
+      console.log(`Server running on http://localhost:${process.env.PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("Failed to connect to DB:", err);
-  });
+  } catch (err) {
+    console.error("Failed to connect to MongoDB - retrying in 5 sec", err);
+    setTimeout(connectWithRetry, 5000);
+  }
+};
+
+connectWithRetry();
