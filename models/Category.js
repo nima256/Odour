@@ -5,6 +5,11 @@ const validator = require("validator");
 
 const categorySchema = mongoose.Schema(
   {
+    categoryType: {
+      type: String,
+      enum: ["product", "weblog"],
+      required: true,
+    },
     name: {
       type: String,
       required: [true, "نام دسته‌بندی الزامی است"],
@@ -14,14 +19,15 @@ const categorySchema = mongoose.Schema(
     },
     slug: {
       type: String,
-      required: [true, "Slug الزامی است"],
-      unique: true,
       immutable: true,
+      unique: true,
+      sparse: true,
       validate: {
         validator: function (v) {
-          return /^[a-z0-9-]+$/.test(v);
+          // Allows Persian letters (ا-ی), numbers (۰-۹), and hyphens (-)
+          return /^[\u0600-\u06FF0-9-]+$/.test(v);
         },
-        message: "Slug باید فقط شامل حروف کوچک، اعداد و خط تیره باشد",
+        message: "اسلاگ باید فقط شامل حروف فارسی، اعداد و خط تیره (-) باشد",
       },
     },
     images: [
@@ -81,18 +87,6 @@ const categorySchema = mongoose.Schema(
     },
     imgSvgForHome: {
       type: String,
-      validate: {
-        validator: function (v) {
-          return (
-            !v ||
-            validator.isURL(v, {
-              protocols: ["http", "https"],
-              require_protocol: true,
-            })
-          );
-        },
-        message: "آدرس SVG نامعتبر است",
-      },
     },
     description: {
       type: String,
@@ -122,14 +116,27 @@ const categorySchema = mongoose.Schema(
   }
 );
 
-categorySchema.pre("validate", function (next) {
+categorySchema.pre("save", async function (next) {
   if (!this.slug && this.name) {
-    this.slug = slugify(this.name, {
-      lower: true,
-      strict: true,
-      locale: "fa",
-      remove: /[*+~.()'"!:@]/g,
-    });
+    let baseSlug = this.name
+      .trim()
+      .normalize("NFKD")
+      .replace(/\s+/g, "-")
+      .replace(/ـ/g, "-")
+      .replace(/[^\u0600-\u06FF0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    // Ensure uniqueness
+    let uniqueSlug = baseSlug;
+    let counter = 1;
+    while (true) {
+      const exists = await this.constructor.findOne({ slug: uniqueSlug });
+      if (!exists || exists._id.equals(this._id)) break;
+      uniqueSlug = `${baseSlug}-${counter++}`;
+    }
+
+    this.slug = uniqueSlug || `دسته-${Date.now()}`;
   }
   next();
 });
@@ -165,7 +172,6 @@ categorySchema.virtual("productCount", {
 });
 
 categorySchema.index({ name: "text", description: "text" });
-categorySchema.index({ slug: 1 });
 categorySchema.index({ parentId: 1 });
 categorySchema.index({ isActive: 1 });
 

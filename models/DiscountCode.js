@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const { getPersianDate } = require("../helper/getPersianDate");
 
 const discountCodeSchema = new mongoose.Schema(
   {
@@ -106,7 +107,14 @@ const discountCodeSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
+    },
+    createTarikh: {
+      type: String,
+      default: () => getPersianDate(),
+    },
+    updateTarikh: {
+      type: String,
     },
   },
   {
@@ -133,7 +141,11 @@ discountCodeSchema.pre("validate", function (next) {
   next();
 });
 
-discountCodeSchema.index({ code: 1 });
+discountCodeSchema.pre("save", function (next) {
+  this.updateTarikh = getPersianDate();
+  next();
+});
+
 discountCodeSchema.index({ isActive: 1 });
 discountCodeSchema.index({ expireDate: 1 });
 discountCodeSchema.index({ createdBy: 1 });

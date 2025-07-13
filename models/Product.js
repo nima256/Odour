@@ -14,14 +14,15 @@ const productSchema = mongoose.Schema(
     },
     slug: {
       type: String,
-      required: [true, "Slug الزامی است"],
-      unique: true,
       immutable: true,
+      unique: true,
+      sparse: true,
       validate: {
         validator: function (v) {
-          return /^[a-z0-9-]+$/.test(v);
+          // Allows Persian letters (ا-ی), numbers (۰-۹), and hyphens (-)
+          return /^[\u0600-\u06FF0-9-]+$/.test(v);
         },
-        message: "Slug باید فقط شامل حروف کوچک، اعداد و خط تیره باشد",
+        message: "اسلاگ باید فقط شامل حروف فارسی، اعداد و خط تیره (-) باشد",
       },
     },
     lilDescription: {
@@ -82,12 +83,14 @@ const productSchema = mongoose.Schema(
       type: String,
       default: "",
     },
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "دسته‌بندی الزامی است"],
-      index: true,
-    },
+    category: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        required: [true, "دسته‌بندی الزامی است"],
+        index: true,
+      },
+    ],
     brand: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Brand",
@@ -179,11 +182,6 @@ const productSchema = mongoose.Schema(
         trim: true,
       },
     ],
-    sku: {
-      type: String,
-      unique: true,
-      trim: true,
-    },
     createTarikh: {
       type: String,
       default: () => getPersianDate(),
@@ -210,13 +208,27 @@ const productSchema = mongoose.Schema(
   }
 );
 
-productSchema.pre("validate", function (next) {
+productSchema.pre("validate", async function (next) {
   if (!this.slug && this.name) {
-    this.slug = slugify(this.name, {
-      lower: true,
-      strict: true,
-      locale: "fa",
-    });
+    let baseSlug = this.name
+      .trim()
+      .normalize("NFKD")
+      .replace(/\s+/g, "-")
+      .replace(/ـ/g, "-")
+      .replace(/[^\u0600-\u06FF0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    // Ensure uniqueness
+    let uniqueSlug = baseSlug;
+    let counter = 1;
+    while (true) {
+      const exists = await this.constructor.findOne({ slug: uniqueSlug });
+      if (!exists || exists._id.equals(this._id)) break;
+      uniqueSlug = `${baseSlug}-${counter++}`;
+    }
+
+    this.slug = uniqueSlug || `دسته-${Date.now()}`;
   }
 
   // Auto-calculate discount percentage
@@ -252,15 +264,18 @@ productSchema.virtual("brandDetails", {
   justOne: true,
 });
 
-productSchema.index({ name: 'text', description: 'text', lilDescription: 'text' });
+productSchema.index({
+  name: "text",
+  description: "text",
+  lilDescription: "text",
+});
 productSchema.index({ price: 1 });
 productSchema.index({ offerPrice: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ isPopular: 1 });
 productSchema.index({ isNewProduct: 1 });
 productSchema.index({ rating: -1 });
-productSchema.index({ 'colors.hex': 1 });
-
+productSchema.index({ "colors.hex": 1 });
 
 productSchema.set("toJSON", {
   virtual: true,

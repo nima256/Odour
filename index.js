@@ -139,7 +139,7 @@ function generateOrderNumber() {
 }
 
 app.get("/", async (req, res) => {
-  const categories = await Category.find({});
+  const categories = await Category.find({ categoryType: "product" });
   const products = await Product.find({ isPopular: true });
   const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
   const user = await User.findById(req.session.userId);
@@ -298,11 +298,33 @@ app.get(
 );
 
 app.get("/weblog", async (req, res) => {
-  res.render("Weblog");
+  const weblogs = await Weblog.find({})
+    .populate("categories")
+    .populate("author");
+  if (!weblogs) {
+    const error = new Error("خطا در بارگزاری وبلاگ");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  res.render("Weblog", { weblogs });
 });
 
-app.get("/weblogDetails/:slug", async (req, res) => {
-  res.render("WeblogDetails");
+app.get("/api/weblogs/:id/related", async (req, res) => {
+  try {
+    const weblog = await Weblog.findById(req.params.id);
+    const related = await Weblog.find({
+      _id: { $ne: weblog._id },
+      categories: { $in: weblog.categories },
+    })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .populate("author", "name");
+
+    res.json(related);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/userProfile", isLoggedIn, async (req, res) => {

@@ -155,8 +155,6 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 
-userSchema.index({ mobile: 1 }, { unique: true });
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 userSchema.index({ "addresses.city": 1 });
 userSchema.index({ "addresses.province": 1 });

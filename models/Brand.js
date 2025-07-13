@@ -13,14 +13,14 @@ const brandSchema = mongoose.Schema(
     },
     slug: {
       type: String,
-      required: [true, "Slug الزامی است"],
       unique: true,
-      immutable: true, // Prevent modification after creation
+      immutable: true,
       validate: {
         validator: function (v) {
-          return /^[a-z0-9-]+$/.test(v);
+          // Allows Persian letters (ا-ی), numbers (۰-۹), and hyphens (-)
+          return /^[\u0600-\u06FF0-9-]+$/.test(v);
         },
-        message: "Slug باید فقط شامل حروف کوچک، اعداد و خط تیره باشد",
+        message: "اسلاگ باید فقط شامل حروف فارسی، اعداد و خط تیره (-) باشد",
       },
     },
     emoji: {
@@ -72,12 +72,14 @@ const brandSchema = mongoose.Schema(
   }
 );
 
-brandSchema.pre("validate", function (next) {
+brandSchema.pre("save", function (next) {
   if (!this.slug && this.name) {
     this.slug = slugify(this.name, {
-      lower: true,
-      strict: true,
+      replacement: "-",
+      remove: /[*+~.()'"!:@]/g,
+      lower: false,
       locale: "fa",
+      trim: true,
     });
   }
   next();

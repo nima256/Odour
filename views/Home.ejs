@@ -865,7 +865,7 @@
                         <div class="flex items-center text-gray-500 text-sm mb-3">
                           <i class="far fa-calendar-alt ml-2"></i>
                           <span>
-                            <%= weblog.createTarikh.split(" ").slice(2).join(" ")
+                            <%= toPersianDigitsForSizes(weblog.createTarikh).split(" ").slice(2).join(" ")
                         %></span
                       >
                       <span class=" mx-2">•
@@ -874,10 +874,10 @@
                           <span>نویسنده: <%= weblog.author %></span>
                         </div>
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                          <%= weblog.name %>
+                          <%= weblog.title %>
                         </h3>
                         <p class="text-gray-600 mb-4">
-                          <%= weblog.desciption %>
+                          <%= weblog.description %>
                         </p>
                         <a href="/weblogDetails/<%= weblog.slug %>"
                           class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors">

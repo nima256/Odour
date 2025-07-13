@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { getPersianDate } = require("../helper/getPersianDate");
+const validator = require("validator");
+const Category = require("./Category");
 
 const weblogSchema = mongoose.Schema(
   {
@@ -12,14 +14,15 @@ const weblogSchema = mongoose.Schema(
     },
     slug: {
       type: String,
-      required: [true, "Slug الزامی است"],
-      unique: true,
       immutable: true,
+      unique: true,
+      sparse: true,
       validate: {
         validator: function (v) {
-          return /^[a-z0-9-]+$/.test(v);
+          // Allows Persian letters (ا-ی), numbers (۰-۹), and hyphens (-)
+          return /^[\u0600-\u06FF0-9-]+$/.test(v);
         },
-        message: "Slug باید فقط شامل حروف کوچک، اعداد و خط تیره باشد",
+        message: "اسلاگ باید فقط شامل حروف فارسی، اعداد و خط تیره (-) باشد",
       },
     },
     description: {
@@ -50,17 +53,18 @@ const weblogSchema = mongoose.Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "نویسنده الزامی است"],
+      // required: [true, "نویسنده الزامی است"],
     },
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
         validate: {
-          validator: function (v) {
-            return v.length > 0;
+          validator: async function (ids) {
+            const categories = await Category.find({ _id: { $in: ids } });
+            return categories.every((cat) => cat.categoryType === "weblog");
           },
-          message: "حداقل یک دسته‌بندی باید انتخاب شود",
+          message: "دسته بندی ها باید از نوع وبلاگ باشند",
         },
       },
     ],
@@ -68,7 +72,6 @@ const weblogSchema = mongoose.Schema(
       {
         type: String,
         trim: true,
-        lowercase: true,
       },
     ],
     readingTime: {
@@ -100,7 +103,6 @@ const weblogSchema = mongoose.Schema(
       default: 0,
       min: [0, "تعداد بازدید نمی‌تواند منفی باشد"],
     },
-
     createTarikh: {
       type: String,
       default: () => getPersianDate(),
@@ -123,14 +125,27 @@ const weblogSchema = mongoose.Schema(
   }
 );
 
-weblogSchema.pre("validate", function (next) {
+weblogSchema.pre("validate", async function (next) {
   if (!this.slug && this.title) {
-    this.slug = slugify(this.title, {
-      lower: true,
-      strict: true,
-      locale: "fa",
-      remove: /[*+~.()'"!:@]/g,
-    });
+    let baseSlug = this.title
+      .trim()
+      .normalize("NFKD")
+      .replace(/\s+/g, "-")
+      .replace(/ـ/g, "-")
+      .replace(/[^\u0600-\u06FF0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    // Ensure uniqueness
+    let uniqueSlug = baseSlug;
+    let counter = 1;
+    while (true) {
+      const exists = await this.constructor.findOne({ slug: uniqueSlug });
+      if (!exists || exists._id.equals(this._id)) break;
+      uniqueSlug = `${baseSlug}-${counter++}`;
+    }
+
+    this.slug = uniqueSlug || `دسته-${Date.now()}`;
   }
 
   // Auto-generate meta fields if empty
@@ -173,7 +188,6 @@ weblogSchema.virtual("categoryDetails", {
 });
 
 weblogSchema.index({ title: "text", content: "text", description: "text" });
-weblogSchema.index({ slug: 1 });
 weblogSchema.index({ author: 1 });
 weblogSchema.index({ isFeatured: 1 });
 weblogSchema.index({ isPublished: 1 });
