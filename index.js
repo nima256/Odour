@@ -298,16 +298,14 @@ app.get(
 );
 
 app.get("/weblog", async (req, res) => {
-  const weblogs = await Weblog.find({})
-    .populate("categories")
-    .populate("author");
-  if (!weblogs) {
-    const error = new Error("خطا در بارگزاری وبلاگ");
-    error.statusCode = 500;
-    throw error;
+  try {
+    const weblogs = await Weblog.find({})
+      .populate("categories")
+      .populate("author");
+    res.render("Weblog", { weblogs }); // Render empty initially
+  } catch (err) {
+    res.status(500).render("error", { message: "خطا در بارگزاری وبلاگ" });
   }
-
-  res.render("Weblog", { weblogs });
 });
 
 app.get("/api/weblogs/:id/related", async (req, res) => {
