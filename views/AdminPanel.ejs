@@ -260,7 +260,7 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div class="mb-2 md:mb-0">
                             <p class="text-xs md:text-sm text-gray-600 mb-1">کاربران</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800">1,234</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(users.length) %></p>
                             <p class="text-xs text-green-500 flex items-center mt-1">
                                 <i class="fas fa-arrow-up mr-1"></i>
                                 12%
@@ -276,7 +276,7 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div class="mb-2 md:mb-0">
                             <p class="text-xs md:text-sm text-gray-600 mb-1">محصولات</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800">89</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(products.length) %></p>
                             <p class="text-xs text-green-500 flex items-center mt-1">
                                 <i class="fas fa-arrow-up mr-1"></i>
                                 5%
@@ -291,8 +291,8 @@
                 <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div class="mb-2 md:mb-0">
-                            <p class="text-xs md:text-sm text-gray-600 mb-1">نظرات</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800">456</p>
+                            <p class="text-xs md:text-sm text-gray-600 mb-1">دسته بندی ها</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(categories.length) %></p>
                             <p class="text-xs text-green-500 flex items-center mt-1">
                                 <i class="fas fa-arrow-up mr-1"></i>
                                 8%
@@ -308,7 +308,7 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div class="mb-2 md:mb-0">
                             <p class="text-xs md:text-sm text-gray-600 mb-1">سفارشات</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800">321</p>
+                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(orders.length) %></p>
                             <p class="text-xs text-green-500 flex items-center mt-1">
                                 <i class="fas fa-arrow-up mr-1"></i>
                                 15%
@@ -492,64 +492,165 @@
             <div class="p-4 md:p-6">
                 <form id="editForm" class="space-y-4 md:space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <!-- نام محصول -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">نام محصول</label>
-                            <input type="text" id="editName" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label for="editName" class="block text-sm font-semibold text-gray-700 mb-2">نام محصول</label>
+                            <input name="name" type="text" id="editName" required
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
+
+                        <!-- توضیح کوتاه -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">تصویر محصول</label>
-                            <input type="file" id="editImage" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <label for="editLilDescription" class="block text-sm font-semibold text-gray-700 mb-2">توضیح کوتاه</label>
+                            <input name="lilDescription" type="text" id="editLilDescription"
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">موجودی</label>
-                            <input type="number" id="editStock" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">دسته‌بندی</label>
-                            <select id="editCategory" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <!-- Options will be populated dynamically -->
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">برند</label>
-                            <select id="editBrand" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <!-- Options will be populated dynamically -->
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">برچسب‌ها</label>
-                            <input type="text" id="editTags" placeholder="با کاما جدا کنید" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+
+                        <!-- تصاویر محصول -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">تصاویر محصول</label>
+                            <input name="images" type="file" id="editImages" multiple accept="image/*"
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div id="imagePreviews" class="flex flex-wrap gap-2 mt-2"></div>
                         </div>
                     </div>
-                    
+
+                    <!-- توضیحات کامل -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">توضیحات</label>
-                        <textarea id="editDescription" rows="4" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        <label for="editDescription" class="block text-sm font-semibold text-gray-700 mb-2">توضیحات کامل</label>
+                        <textarea name="description" id="editDescription" rows="4" required
+                            class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
                     </div>
-                    
-                    <div class="border-t border-gray-200 pt-4 md:pt-6">
-                        <div class="flex items-center space-x-reverse space-x-3 mb-4">
-                            <input type="checkbox" id="discountCheckbox" onchange="toggleDiscount()" class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <label for="discountCheckbox" class="text-sm font-semibold text-gray-700">اعمال تخفیف</label>
+
+                    <!-- بخش دوم - قیمت و موجودی -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <!-- قیمت اصلی -->
+                        <div>
+                            <label for="editPrice" class="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (تومان)</label>
+                            <input name="price" type="number" id="editPrice" min="0" required
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
-                        
-                        <div id="priceFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+
+                        <!-- قیمت ویژه -->
+                        <div>
+                            <div class="flex items-center mb-2">
+                                <input type="checkbox" id="hasDiscount" class="mr-2" onchange="toggleDiscountField()">
+                                <label for="hasDiscount" class="text-sm font-semibold text-gray-700">قیمت ویژه</label>
+                            </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (تومان)</label>
-                                <input type="number" id="editOriginalPrice" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
-                            <div id="discountPriceField" class="hidden">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">قیمت با تخفیف (تومان)</label>
-                                <input type="number" id="editDiscountPrice" class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input name="offerPrice" type="number" id="editOfferPrice" 
+                                    class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    disabled>
                             </div>
                         </div>
+
+                        <!-- موجودی -->
+                        <div>
+                            <label for="editCountInStock" class="block text-sm font-semibold text-gray-700 mb-2">موجودی</label>
+                            <input name="countInStock" type="number" id="editCountInStock" min="0" required
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- وزن -->
+                        <div>
+                            <label for="editWeight" class="block text-sm font-semibold text-gray-700 mb-2">وزن (گرم)</label>
+                            <input name="weight" type="number" id="editWeight" min="0"
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
                     </div>
-                    
+
+                    <!-- بخش سوم - دسته‌بندی و برند -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <!-- دسته‌بندی‌ها -->
+                        <div>
+                            <label for="editCategory" class="block text-sm font-semibold text-gray-700 mb-2">دسته‌بندی‌ها</label>
+                            <select name="category" id="editCategory" multiple
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+
+                        <!-- برند -->
+                        <div>
+                            <label for="editBrand" class="block text-sm font-semibold text-gray-700 mb-2">برند</label>
+                            <select name="brand" id="editBrand" required
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">انتخاب برند</option>
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- بخش چهارم - ویژگی‌های اضافی -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <!-- رنگ‌ها -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">رنگ‌ها</label>
+                            <div id="colorFields" class="space-y-2">
+                                <!-- Dynamic color fields will be added here -->
+                            </div>
+                            <button type="button" onclick="addColorField()" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                + افزودن رنگ
+                            </button>
+                        </div>
+
+                        <!-- سایزها -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">سایزها</label>
+                            <div id="sizeFields" class="space-y-2">
+                                <!-- Dynamic size fields will be added here -->
+                            </div>
+                            <button type="button" onclick="addSizeField()" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                + افزودن سایز
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- بخش پنجم - مشخصات فنی -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">مشخصات فنی</label>
+                        <div id="specFields" class="space-y-2">
+                            <!-- Dynamic specification fields will be added here -->
+                        </div>
+                        <button type="button" onclick="addSpecField()" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                            + افزودن مشخصه
+                        </button>
+                    </div>
+
+                    <!-- بخش ششم - برچسب‌ها -->
+                    <div>
+                        <label for="editTags" class="block text-sm font-semibold text-gray-700 mb-2">برچسب‌ها</label>
+                        <input name="tags" type="text" id="editTags" placeholder="با کاما جدا کنید (مثال: زیبایی,آرایشی,پوست)"
+                            class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <!-- بخش هفتم - گزینه‌های نمایش -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                        <!-- محصول ویژه -->
+                        <div class="flex items-center">
+                            <input name="isFeatured" type="checkbox" id="editIsFeatured" class="mr-2">
+                            <label for="editIsFeatured" class="text-sm font-semibold text-gray-700">محصول ویژه</label>
+                        </div>
+
+                        <!-- محصول جدید -->
+                        <div class="flex items-center">
+                            <input name="isNewProduct" type="checkbox" id="editIsNewProduct" class="mr-2">
+                            <label for="editIsNewProduct" class="text-sm font-semibold text-gray-700">محصول جدید</label>
+                        </div>
+
+                        <!-- محصول پرطرفدار -->
+                        <div class="flex items-center">
+                            <input name="isPopular" type="checkbox" id="editIsPopular" class="mr-2">
+                            <label for="editIsPopular" class="text-sm font-semibold text-gray-700">محصول پرطرفدار</label>
+                        </div>
+                    </div>
+
+                    <!-- دکمه‌های فرم -->
                     <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-reverse sm:space-x-4 pt-4 md:pt-6 border-t border-gray-200">
                         <button type="button" onclick="closeModal('editModal')" class="px-4 md:px-6 py-2 md:py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
                             انصراف
                         </button>
-                        <button type="submit" class="px-4 md:px-6 py-2 md:py-3 gradient-bg text-white rounded-lg hover:opacity-90 transition-all">
+                        <button type="submit" class="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
                             ذخیره تغییرات
                         </button>
                     </div>
@@ -577,7 +678,7 @@
 
     <script>
         // Data Storage
-        let products = [
+        let productshardcoded = [
             {
                 id: '001',
                 name: 'رژ لب مات شانل',
@@ -610,10 +711,10 @@
             }
         ];
 
-        let categories = ['آرایش لب', 'مراقبت پوست', 'آرایش چشم', 'عطر و ادکلن'];
-        let brands = ['شانل', 'لورآل', 'میبلین', 'دیور'];
+        let categorieshardcoded = ['آرایش لب', 'مراقبت پوست', 'آرایش چشم', 'عطر و ادکلن'];
+        let brandshardcoded = ['شانل', 'لورآل', 'میبلین', 'دیور'];
 
-        let orders = [
+        let ordershardcoded = [
             {
                 id: '#1001',
                 customerName: 'مریم احمدی',
@@ -647,8 +748,6 @@
                 ]
             }
         ];
-
-        let currentEditingProductIndex = -1;
 
         // Initialize chart
         let salesChart;
@@ -762,34 +861,52 @@
                 loadOrders();
             }
         }
+        function toPersianDigits(num) {
+            if (num === null || num === undefined || isNaN(num)) return "";
+            const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+            const withCommas = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
+        }
+
+        const products = <%- JSON.stringify(products) %>
+
 
         // Product Functions
         function loadProducts() {
             const tbody = document.getElementById('productsTableBody');
             tbody.innerHTML = '';
+
             
             products.forEach((product, index) => {
+                const categoryBadges = product.category && product.category.length > 0 
+                ? product.category.map(cat => 
+                    `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">
+                        ${cat.name}
+                    </span>`
+                ).join('')
+                : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
+                
                 const row = document.createElement('tr');
                 row.className = 'product-row transition-all duration-300';
                 row.innerHTML = `
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">${product.id}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">${index + 1}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' fill='%23e5e7eb' rx='8'/%3E%3Ctext x='25' y='32' text-anchor='middle' fill='%236b7280' font-size='16'%3E💄%3C/text%3E%3C/svg%3E" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
+                        <img src="${product.images[0]}" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
                     </td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${product.name}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${product.category}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${product.brand}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${product.stock}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${product.price.toLocaleString()} تومان</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell"><div class="flex flex-wrap">${categoryBadges}</div></td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${product.brand.name}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${product.countInStock}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${product.offerPrice ? toPersianDigits(product.offerPrice) : toPersianDigits(product.price)} تومان</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
                         <div class="flex space-x-reverse space-x-1 md:space-x-2">
-                            <button onclick="viewProduct(${index})" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
+                            <button onclick="viewProduct('${product._id}')" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
                                 <i class="fas fa-eye text-sm"></i>
                             </button>
-                            <button onclick="editProduct(${index})" class="action-btn p-1 md:p-2 text-yellow-600 hover:bg-yellow-50 rounded-full transition-all">
+                            <button onclick="editProduct('${product._id}')" class="action-btn p-1 md:p-2 text-yellow-600 hover:bg-yellow-50 rounded-full transition-all">
                                 <i class="fas fa-pencil text-sm"></i>
                             </button>
-                            <button onclick="deleteProduct(${index})" class="action-btn p-1 md:p-2 text-red-600 hover:bg-red-50 rounded-full transition-all">
+                            <button onclick="deleteProduct('${product._id}')" class="action-btn p-1 md:p-2 text-red-600 hover:bg-red-50 rounded-full transition-all">
                                 <i class="fas fa-trash text-sm"></i>
                             </button>
                         </div>
@@ -799,32 +916,47 @@
             });
         }
 
-        function viewProduct(index) {
-            const product = products[index];
+        function viewProduct(id) {
+            const product = products.find(p => p._id === id);
+            const categoryBadges = product.category && product.category.length > 0 
+            ? product.category.map(cat => 
+                `<span class="text-gray-600 block">
+                    ${cat.name}
+                </span>`
+            ).join('')
+            : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
+            
+            const tagsBadges = product.tags && product.tags.length > 0 
+            ? product.tags.map(tag => 
+                `<p class="text-gray-600 mt-2">
+                    ${tag}
+                </p>`
+            ).join('')
+            : '<span class="text-gray-500 text-xs">بدون برچسب</span>';
+
             const detailsHtml = `
                 <div class="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-reverse md:space-x-4 mb-6">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23e5e7eb' rx='15'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='%236b7280' font-size='30'%3E💄%3C/text%3E%3C/svg%3E" alt="Product" class="w-20 h-20 md:w-24 md:h-24 rounded-xl mx-auto md:mx-0">
+                    <img src="${product.images[0]}" alt="Product" class="w-20 h-20 md:w-24 md:h-24 rounded-xl mx-auto md:mx-0">
                     <div class="text-center md:text-right">
                         <h4 class="text-xl md:text-2xl font-bold text-gray-800">${product.name}</h4>
-                        <p class="text-gray-600">شناسه: ${product.id}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">دسته‌بندی:</span>
-                        <span class="text-gray-600 block">${product.category}</span>
+                        ${categoryBadges}
                     </div>
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">برند:</span>
-                        <span class="text-gray-600 block">${product.brand}</span>
+                        <span class="text-gray-600 block">${product.brand.name}</span>
                     </div>
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">موجودی:</span>
-                        <span class="text-gray-600 block">${product.stock} عدد</span>
+                        <span class="text-gray-600 block">${product.countInStock} عدد</span>
                     </div>
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">قیمت:</span>
-                        <span class="text-green-600 font-semibold block">${product.price.toLocaleString()} تومان</span>
+                        <span class="text-green-600 font-semibold block">${product.offerPrice ? toPersianDigits(product.offerPrice) : toPersianDigits(product.price)} تومان</span>
                     </div>
                 </div>
                 <div class="glass-card p-4 rounded-xl mb-4">
@@ -833,7 +965,7 @@
                 </div>
                 <div class="glass-card p-4 rounded-xl">
                     <span class="font-semibold text-gray-700">برچسب‌ها:</span>
-                    <p class="text-gray-600 mt-2">${product.tags}</p>
+                    ${tagsBadges}
                 </div>
             `;
             
@@ -841,42 +973,190 @@
             document.getElementById('productModal').classList.remove('hidden');
         }
 
-        function editProduct(index) {
-            currentEditingProductIndex = index;
-            const product = products[index];
-            
-            // Populate category and brand options
+        const categories = <%- JSON.stringify(categories) %>
+
+        let brands = <%- JSON.stringify(brands) %>
+
+        let currentProductId = null;
+        let currentProduct = {};
+        async function editProduct(id) {
+            currentProductId = id;
+            const product = products.find(p => p._id === id);
+
+            // Populate form fields
+            document.getElementById('editName').value = product.name || '';
+            document.getElementById('editLilDescription').value = product.lilDescription || '';
+            document.getElementById('editDescription').value = product.description || '';
+            document.getElementById('editPrice').value = product.price || 0;
+            document.getElementById('editCountInStock').value = product.countInStock || 0;
+            document.getElementById('editWeight').value = product.weight || '';
+            document.getElementById('editTags').value = product.tags ? product.tags.join(', ') : '';
+
+            if (product.offerPrice) {
+                document.getElementById('hasDiscount').checked = true;
+                document.getElementById('editOfferPrice').disabled = false;
+                document.getElementById('editOfferPrice').value = product.offerPrice;
+                document.getElementById('editOfferPrice').dataset.lastValue = product.offerPrice; // ذخیره مقدار
+            } else {
+                document.getElementById('hasDiscount').checked = false;
+                document.getElementById('editOfferPrice').disabled = true;
+                document.getElementById('editOfferPrice').value = '';
+            }
+
             const categorySelect = document.getElementById('editCategory');
-            const brandSelect = document.getElementById('editBrand');
-            
             categorySelect.innerHTML = '';
-            brandSelect.innerHTML = '';
-            
-            categories.forEach(cat => {
+            categories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                if (cat === product.category) option.selected = true;
+                option.value = category._id;
+                option.textContent = category.name;
+                if (product.category.some(cat => cat._id.toString() === category._id.toString())) {
+                    option.selected = true;
+                }
                 categorySelect.appendChild(option);
             });
-            
+
+            const brandSelect = document.getElementById('editBrand');
+            brandSelect.innerHTML = '<option value="">انتخاب برند</option>';
             brands.forEach(brand => {
                 const option = document.createElement('option');
-                option.value = brand;
-                option.textContent = brand;
-                if (brand === product.brand) option.selected = true;
+                option.value = brand._id;
+                option.textContent = brand.name;
+                if (product.brand && product.brand._id.toString() === brand._id.toString()) {
+                    option.selected = true;
+                }
                 brandSelect.appendChild(option);
             });
-            
-            // Populate form fields
-            document.getElementById('editName').value = product.name;
-            document.getElementById('editStock').value = product.stock;
-            document.getElementById('editDescription').value = product.description;
-            document.getElementById('editTags').value = product.tags;
-            document.getElementById('editOriginalPrice').value = product.price;
-            
+
+
+            const colorFields = document.getElementById('colorFields');
+            colorFields.innerHTML = '';
+            if (product.colors && product.colors.length > 0) {
+                product.colors.forEach((color, index) => {
+                    addColorField(color.name, color.rgb);
+                });
+            } else {
+                addColorField();
+            }
+
+
+            const sizeFields = document.getElementById('sizeFields');
+            sizeFields.innerHTML = '';
+            if (product.sizes && product.sizes.length > 0) {
+                product.sizes.forEach((size, index) => {
+                    addSizeField(size.size, size.usage);
+                });
+            } else {
+                addSizeField();
+            }
+
+
+            const specFields = document.getElementById('specFields');
+            specFields.innerHTML = '';
+            if (product.specifications && product.specifications.length > 0) {
+                product.specifications.forEach((spec, index) => {
+                    addSpecField(spec.key, spec.value);
+                });
+            } else {
+                addSpecField();
+            }
+
+
+
+            document.getElementById('editIsFeatured').checked = product.isFeatured || false;
+            document.getElementById('editIsNewProduct').checked = product.isNewProduct || false;
+            document.getElementById('editIsPopular').checked = product.isPopular || false;
+
+
+            const imagePreviews = document.getElementById('imagePreviews');
+            imagePreviews.innerHTML = '';
+            if (product.images && product.images.length > 0) {
+                product.images.forEach(image => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative';
+                    imgContainer.innerHTML = `
+                        <img src="${image}" class="w-20 h-20 object-cover rounded-lg">
+                        <button type="button" onclick="removeImage('${image}')" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">×</button>
+                    `;
+                    imagePreviews.appendChild(imgContainer);
+                });
+            }
+
             document.getElementById('editModal').classList.remove('hidden');
         }
+
+        function toggleDiscountField() {
+            const offerPriceField = document.getElementById('editOfferPrice');
+            const hasDiscount = document.getElementById('hasDiscount').checked;
+            
+            if (hasDiscount) {
+                // اگر تیک زده شد، مقدار قبلی را برگردان
+                offerPriceField.disabled = false;
+                offerPriceField.value = offerPriceField.dataset.lastValue || '';
+            } else {
+                // اگر تیک برداشته شد، مقدار فعلی را ذخیره و فیلد را خالی کن
+                offerPriceField.dataset.lastValue = offerPriceField.value;
+                offerPriceField.value = '';
+                offerPriceField.disabled = true;
+            }
+        }
+
+
+        function addColorField(name = '', rgb = '#ffffff') {
+            const colorFields = document.getElementById('colorFields');
+            const colorId = Date.now();
+            
+            const colorField = document.createElement('div');
+            colorField.className = 'flex items-center gap-2';
+            colorField.innerHTML = `
+                <input type="text" name="colors[${colorId}][name]" placeholder="نام رنگ" value="${name}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                <input type="color" name="colors[${colorId}][rgb]" value="${rgb}"
+                    class="w-10 h-10 border border-gray-300 rounded-lg">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
+            `;
+            colorFields.appendChild(colorField);
+        }
+
+
+        function addSizeField(size = '', usage = '') {
+            const sizeFields = document.getElementById('sizeFields');
+            const sizeId = Date.now();
+            
+            const sizeField = document.createElement('div');
+            sizeField.className = 'flex items-center gap-2';
+            sizeField.innerHTML = `
+                <input type="text" name="sizes[${sizeId}][size]" placeholder="سایز" value="${size}"
+                    class="flex-1 px-3 py-2 sborder border-gray-300 rounded-lg">
+                <input type="text" name="sizes[${sizeId}][usage]" placeholder="کاربرد" value="${usage}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
+            `;
+            sizeFields.appendChild(sizeField);
+        }
+
+
+        function addSpecField(key = '', value = '') {
+            const specFields = document.getElementById('specFields');
+            const specId = Date.now();
+            
+            const specField = document.createElement('div');
+            specField.className = 'flex items-center gap-2';
+            specField.innerHTML = `
+                <input type="text" name="specifications[${specId}][key]" placeholder="مشخصه" value="${key}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                <input type="text" name="specifications[${specId}][value]" placeholder="مقدار" value="${value}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
+            `;
+            specFields.appendChild(specField);
+        }
+
+        function removeImage(imageUrl) {
+            // این تابع باید تصویر را از لیست تصاویر محصول حذف کند
+            // در اینجا می‌توانید یک درخواست به سرور ارسال کنید یا فقط از پیش‌نمایش حذف کنید
+            alert('این تابع باید پیاده‌سازی شود');
+        }
+
 
         function deleteProduct(index) {
             if (confirm('آیا از حذف این محصول اطمینان دارید؟')) {
@@ -1105,25 +1385,111 @@
         }
 
         // Form Handlers
-        document.getElementById('editForm').addEventListener('submit', function(e) {
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (confirm('آیا از ذخیره تغییرات اطمینان دارید؟')) {
-                if (currentEditingProductIndex >= 0) {
-                    const product = products[currentEditingProductIndex];
-                    product.name = document.getElementById('editName').value;
-                    product.stock = parseInt(document.getElementById('editStock').value);
-                    product.category = document.getElementById('editCategory').value;
-                    product.brand = document.getElementById('editBrand').value;
-                    product.description = document.getElementById('editDescription').value;
-                    product.tags = document.getElementById('editTags').value;
-                    product.price = parseInt(document.getElementById('editOriginalPrice').value);
-                    
-                    loadProducts();
+
+            try {
+                const formData = new FormData(this);
+                
+                // تبدیل داده‌های آرایه‌ای به JSON
+                const data = {
+                    name: formData.get('name'),
+                    lilDescription: formData.get('lilDescription'),
+                    description: formData.get('description'),
+                    price: parseFloat(formData.get('price')),
+                    offerPrice: formData.get('hasDiscount') ? parseFloat(formData.get('offerPrice')) : null, // ارسال صریح null
+                    countInStock: parseInt(formData.get('countInStock')),
+                    weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
+                    tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : [],
+                    category: Array.from(formData.getAll('category')),
+                    brand: formData.get('brand'),
+                    isFeatured: formData.get('isFeatured') === 'on',
+                    isNewProduct: formData.get('isNewProduct') === 'on',
+                    isPopular: formData.get('isPopular') === 'on',
+                    colors: [],
+                    sizes: [],
+                    specifications: []
+                };
+                
+                // جمع‌آوری رنگ‌ها
+                const colorNames = formData.getAll('colors[][name]');
+                const colorRgbs = formData.getAll('colors[][rgb]');
+                colorNames.forEach((name, index) => {
+                    if (name && colorRgbs[index]) {
+                        data.colors.push({
+                            name: name.trim(),
+                            rgb: colorRgbs[index]
+                        });
+                    }
+                });
+                
+                // جمع‌آوری سایزها
+                const sizeSizes = formData.getAll('sizes[][size]');
+                const sizeUsages = formData.getAll('sizes[][usage]');
+                sizeSizes.forEach((size, index) => {
+                    if (size && sizeUsages[index]) {
+                        data.sizes.push({
+                            size: size.trim(),
+                            usage: sizeUsages[index].trim()
+                        });
+                    }
+                });
+                
+                // جمع‌آوری مشخصات فنی
+                const specKeys = formData.getAll('specifications[][key]');
+                const specValues = formData.getAll('specifications[][value]');
+                specKeys.forEach((key, index) => {
+                    if (key && specValues[index]) {
+                        data.specifications.push({
+                            key: key.trim(),
+                            value: specValues[index].trim()
+                        });
+                    }
+                });
+
+                const hasDiscount = document.getElementById('hasDiscount').checked;
+                const offerPriceField = document.getElementById('editOfferPrice');
+                
+                if (hasDiscount) {
+                    // اگر تیک زده شده، مقدار فعلی را ارسال کن
+                    data.offerPrice = parseFloat(offerPriceField.value) || null;
+                } else if (currentProduct.offerPrice) {
+                    // اگر تیک نخورده اما محصول قبلاً قیمت ویژه داشته، همان را ارسال کن
+                    data.offerPrice = currentProduct.offerPrice;
+                } else {
+                    // در غیر این صورت قیمت ویژه null باشد
+                    data.offerPrice = null;
+                }            
+
+                // ارسال درخواست به سرور
+                const response = await fetch(`/admin/products/${currentProductId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('محصول با موفقیت ویرایش شد');
                     closeModal('editModal');
-                    alert('تغییرات با موفقیت ذخیره شد');
+                    // بارگذاری مجدد لیست محصولات یا به‌روزرسانی UI
+                } else {
+                    throw new Error(result.message || 'خطا در ویرایش محصول');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('خطا در ویرایش محصول: ' + error.message);
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {            
+            // اضافه کردن حداقل یک فیلد برای هر بخش داینامیک
+            addColorField();
+            addSizeField();
+            addSpecField();
         });
 
         // Event Listeners

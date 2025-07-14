@@ -56,12 +56,6 @@ const productSchema = mongoose.Schema(
     },
     offerPrice: {
       type: Number,
-      validate: {
-        validator: function (v) {
-          return !v || v < this.price;
-        },
-        message: "قیمت ویژه باید کمتر از قیمت اصلی باشد",
-      },
     },
     catName: {
       type: String,
@@ -229,13 +223,6 @@ productSchema.pre("validate", async function (next) {
     }
 
     this.slug = uniqueSlug || `دسته-${Date.now()}`;
-  }
-
-  // Auto-calculate discount percentage
-  if (this.offerPrice && !this.discount) {
-    this.discount = Math.round(
-      ((this.price - this.offerPrice) / this.price) * 100
-    );
   }
 
   next();

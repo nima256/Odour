@@ -113,6 +113,7 @@ const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/order");
+const adminRoutes = require("./routes/admin");
 const { isLoggedIn } = require("./middlewares/isLoggedIn");
 
 app.use("/api/", apiLimiter);
@@ -120,6 +121,7 @@ app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/order", orderRoutes);
+app.use("/admin", adminRoutes);
 
 app.locals.toPersianDigitsForSizes = function (input) {
   if (input === undefined || input === null) return "";
@@ -171,7 +173,7 @@ const asyncHandler = (fn) => (req, res, next) =>
 app.get(
   "/shop",
   asyncHandler(async (req, res) => {
-    const products = await Product.find({});
+    const products = await Product.find({ categoryType: "product" });
     const categories = await Category.find({});
     const brands = await Brand.find({});
     const user = await User.findById(req.session.userId);
@@ -348,11 +350,6 @@ app.get("/userProfile", isLoggedIn, async (req, res) => {
     completedOrders,
     canceledOrders,
   });
-});
-
-// admin
-app.get("/admin", async (req, res) => {
-  res.render("AdminPanel");
 });
 
 app.use(async (req, res, next) => {
