@@ -102,14 +102,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
-  this.password = await bcrypt.hash(this.password, 12);
-  this.passwordChangedAt = Date.now() - 1000; // Ensure token created after
-  next();
-});
-
 userSchema.pre("save", function (next) {
   this.updateTarikh = getPersianDate();
   next();

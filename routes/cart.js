@@ -4,7 +4,7 @@ const User = require("../models/User");
 const DiscountCode = require("../models/DiscountCode");
 const Product = require("../models/Product");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
-const { body, param } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
 // For access to req.body
@@ -42,6 +42,7 @@ router.post(
   async (req, res) => {
     try {
       const errors = validationResult(req);
+
       if (!errors.isEmpty()) {
         return errorResponse(res, 400, "خطا در اعتبارسنجی", {
           errors: errors.array(),
@@ -259,7 +260,7 @@ router.post(
         calculatedAmount: discountAmount,
       };
 
-      return res.json({
+      res.json({
         success: true,
         message: "کد تخفیف اعمال شد",
         discount: {
@@ -268,8 +269,11 @@ router.post(
             discount.type === "percent"
               ? `${discount.amount}%`
               : `${discount.amount} تومان`,
-          amount: discountAmount,
+          amount: discount.amount,
+          calculatedAmount: discountAmount, // این مقدار محاسبه شده
           code: discount.code,
+          minOrderAmount: discount.minOrderAmount,
+          maxDiscountAmount: discount.maxDiscountAmount,
         },
         finalTotal: subtotal - discountAmount,
       });

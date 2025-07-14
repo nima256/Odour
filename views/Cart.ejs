@@ -330,7 +330,7 @@
               <div class="text-gray-600">جمع کل</div>
             </div>
 
-            <div
+            <!-- <div
               id="discount-row"
               class="flex justify-between items-center mb-2 hidden"
             >
@@ -338,6 +338,19 @@
                 0 تومان
               </div>
               <div class="text-gray-600">تخفیف</div>
+            </div> -->
+
+            <div
+              id="discount-row"
+              class="hidden flex justify-between items-center mb-2 py-2"
+            >
+              <div class="text-gray-600">
+                تخفیف (<span id="discount-code-display"></span>)
+              </div>
+              <div
+                id="discount-amount"
+                class="text-green-600 font-medium"
+              ></div>
             </div>
 
             <div
@@ -477,24 +490,33 @@
 
               <div
                 id="summary-discount-row"
-                class="flex justify-between items-center mb-2 hidden"
+                class="hidden flex justify-between py-2"
               >
-                <div class="text-green-600" id="summary-discount">0 تومان</div>
-                <div class="text-gray-600">تخفیف</div>
-              </div>
-
-              <div class="flex justify-between items-center mb-2">
-                <div class="text-gray-800" id="summary-shipping">0 تومان</div>
-                <div class="text-gray-600">هزینه ارسال</div>
+                <div class="text-gray-600">
+                  تخفیف (<span id="summary-discount-code"></span>)
+                  <div class="text-xs text-gray-500 mt-1">
+                    نوع تخفیف: <span id="summary-discount-type"></span>
+                  </div>
+                </div>
+                <div
+                  id="summary-discount"
+                  class="text-green-600 font-medium"
+                ></div>
               </div>
 
               <div
-                class="flex justify-between items-center pt-2 border-t border-gray-200"
+                id="summary-min-order-row"
+                class="hidden flex justify-between py-2 text-xs text-gray-500"
               >
-                <div class="font-bold text-xl text-blue-700" id="summary-total">
-                  0 تومان
-                </div>
-                <div class="text-gray-600">مبلغ قابل پرداخت</div>
+                <div class="text-gray-500 mt-1" style="font-size: 15px;">حداقل مبلغ سفارش برای تخفیف:</div>
+                <div  style="font-size: 15px;" id="summary-min-order"></div>
+              </div>
+
+              <div
+                class="flex justify-between py-4 border-t border-gray-200 font-bold"
+              >
+                <div class="text-gray-500 mt-1"">جمع کل:</div>
+                <div id="summary-total"></div>
               </div>
             </div>
           </div>
@@ -677,58 +699,100 @@
     <script>
       const cartItemsFromServer = <%- JSON.stringify(cartItems) %>;
 
-
-      // Discount code (for demo)
-      // const validDiscountCode = "TAKHFIF20";
-      // const discountAmount = 500000;
-
-      // Shipping costs
-      const shippingCosts = {
-        post: 15000,
-        tipax: 25000,
-      };
-
       let appliedDiscount = 0;
+      let currentDiscountCode = null;
+      let discountRules = null;
 
 
       // Apply discount code
-      function applyDiscountCode() {
+      async function applyDiscountCode() {
         const codeInput = document.getElementById("discount-code");
         const code = codeInput.value.trim();
 
-        const subtotal = calculateSubtotal(); // 👈 تابعی که مجموع قیمت محصولات رو حساب می‌کنه
+        if (!code) {
+          alert("لطفا کد تخفیف را وارد کنید");
+          return;
+        }
 
-        fetch("/api/cart/apply-discount", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            discountCode: code,
-            subtotal: subtotal, // 👈 ارسال subtotal به سرور
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              appliedDiscount = data.discountAmount; // 👈 مستقیماً مقدار نهایی تخفیف
-              alert(data.message);
-              updateTotals();
-            } else {
-              appliedDiscount = 0;
-              alert(data.message);
-              updateTotals();
-            }
-          })
-          .catch((err) => {
-            console.error("Error:", err);
-            alert("مشکلی در ارتباط با سرور به وجود آمده است");
+        if (currentDiscountCode === code && isDiscountStillValid()) {
+          alert("این کد تخفیف قبلاً اعمال شده است");
+          return;
+        }
+
+        const subtotal = calculateSubtotal();
+
+        try {
+          const response = await fetch("/api/cart/apply-discount", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              discountCode: code,
+              subtotal: subtotal,
+            }),
           });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // تغییرات اینجا - دریافت مقدار محاسبه شده از سرور
+            appliedDiscount = data.discount.calculatedAmount; // استفاده از calculatedAmount به جای amount
+            currentDiscountCode = code;
+            discountRules = {
+              minOrderAmount: data.discount.minOrderAmount || 0,
+              type: data.discount.type,
+              originalValue: data.discount.originalValue,
+              amount: data.discount.amount,
+              maxDiscountAmount: data.discount.maxDiscountAmount || Infinity,
+              calculatedAmount: data.discount.calculatedAmount // اضافه کردن این خط
+            };
+
+            alert(data.message);
+            updateTotals();
+          } else {
+            resetDiscount();
+            alert(data.message);
+            updateTotals();
+          }
+        } catch (err) {
+          console.error("Error:", err);
+          alert("مشکلی در ارتباط با سرور به وجود آمده است");
+        }
+      }
+
+      function isDiscountStillValid() {
+        if (!discountRules) return false;
+
+        const subtotal = calculateSubtotal();
+
+        // بررسی حداقل مبلغ سفارش
+        if (discountRules.minOrderAmount && subtotal < discountRules.minOrderAmount) {
+          return false;
+        }
+
+        return true;
       }
 
 
-      // State variables
-      let selectedShippingMethod = "post";
+      function calculateDiscountAmount(subtotal) {
+        if (!currentDiscountCode || !isDiscountStillValid()) {
+          return 0;
+        }
+
+        if (discountRules.type === "percent") {
+          // محاسبه مقدار تخفیف بر اساس درصد
+          const percentAmount = Math.floor((subtotal * discountRules.amount) / 100);
+
+          // اگر سقف تخفیف مشخص شده باشد، مقدار کمتر را انتخاب می‌کنیم
+          return discountRules.maxDiscountAmount
+            ? Math.min(percentAmount, discountRules.maxDiscountAmount)
+            : percentAmount;
+        }
+
+        // برای تخفیف مبلغ ثابت
+        return discountRules.amount;
+      }
 
       // Format price in Toman
       function formatPrice(price) {
@@ -750,7 +814,7 @@
 
       // Calculate final total (including shipping)
       function calculateFinalTotal() {
-        return calculateTotal() + shippingCosts[selectedShippingMethod];
+        return calculateTotal();
       }
 
       function toPersianDigits(str) {
@@ -807,12 +871,49 @@
         updateTotals();
       }
 
+        // Update totals display
+        function updateTotals() {
+          const subtotal = calculateSubtotal();
+
+          // محاسبه مجدد تخفیف بر اساس قوانین و مبلغ فعلی
+          appliedDiscount = isDiscountStillValid() ? calculateDiscountAmount(subtotal) : 0;
+
+          // اگر تخفیف نامعتبر شد، پیام نمایش دهید
+          if (currentDiscountCode && !isDiscountStillValid()) {
+            alert(`کد تخفیف ${currentDiscountCode} به دلیل تغییر در سبد خرید دیگر قابل استفاده نیست`);
+            resetDiscount();
+          }
+
+          const total = subtotal - appliedDiscount;
+
+          document.getElementById("subtotal").textContent = formatPrice(subtotal);
+          document.getElementById("total").textContent = formatPrice(total);
+
+          if (appliedDiscount > 0) {
+            document.getElementById("discount-row").classList.remove("hidden");
+            document.getElementById("discount-amount").textContent =
+              "- " + formatPrice(appliedDiscount);
+            document.getElementById("discount-code-display").textContent =
+              currentDiscountCode;
+          } else {
+            document.getElementById("discount-row").classList.add("hidden");
+            currentDiscountCode = null;
+            discountRules = null;
+          }
+        }
+
+        function resetDiscount() {
+          appliedDiscount = 0;
+          currentDiscountCode = null;
+          discountRules = null;
+          document.getElementById("discount-code").value = "";
+        }
+
       // Update product quantity
-      function updateQuantity(productId, newQuantity) {
+        function updateQuantity(productId, newQuantity) {
+          if (newQuantity < 1) return;
 
-        if (newQuantity < 1) return;
-
-        fetch("/api/cart/update", {
+          fetch("/api/cart/update", {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -822,56 +923,47 @@
               quantity: newQuantity
             }),
           })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                // Only run this if registration was successful
-                // location.reload();
-                  const item = cartItemsFromServer.find(item => item._id === productId);
-                  if (item) {
-                    item.quantity = newQuantity;
-                  }
-                  const totalEl = document.getElementById(`product-total-${productId}`);
-                  if (totalEl && item) {
-                    const price = item.offerPrice || item.price;
-                    totalEl.textContent = formatPrice(price * newQuantity);
-                  }
-                  updateTotals();
-                  renderCartItems();
-              } else {
-                // Show error message
-                alert(data.message); // You can use a toast or modal instead
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              const item = cartItemsFromServer.find(item => item._id === productId);
+              if (item) {
+                item.quantity = newQuantity;
               }
-            })
-            .catch((err) => {
-              console.error("Error:", err);
-              alert("مشکلی در ارتباط با سرور به وجود آمده است");
-            });
-               }
-
-
-      // Update totals display
-      function updateTotals() {
-        const subtotal = calculateSubtotal();
-        const total = calculateTotal();
-
-        document.getElementById("subtotal").textContent = formatPrice(subtotal);
-        document.getElementById("total").textContent = formatPrice(total);
-
-        if (appliedDiscount > 0) {
-          document.getElementById("discount-row").classList.remove("hidden");
-          document.getElementById("discount-amount").textContent =
-            "- " + formatPrice(appliedDiscount);
-        } else {
-          document.getElementById("discount-row").classList.add("hidden");
+              const totalEl = document.getElementById(`product-total-${productId}`);
+              if (totalEl && item) {
+                const price = item.offerPrice || item.price;
+                totalEl.textContent = formatPrice(price * newQuantity);
+              }
+              updateTotals();
+              renderCartItems();
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch((err) => {
+            console.error("Error:", err);
+            alert("مشکلی در ارتباط با سرور به وجود آمده است");
+          });
         }
-      }
+
 
       // Render summary page
       function renderSummary() {
         const fullName = document.getElementById("full-name").getAttribute("placeholder");
         const postalCode = document.getElementById("postal-code").value;
         const address = document.getElementById("address").value;
+        let finalShiping;
+        const shipping = document.getElementById("shipping-method").value;
+        if (shipping === "تیپاکس") {
+          finalShiping = "تیپاکس"
+        }
+        else if (shipping === "چاپار") {
+          finalShiping = "چاپار"
+        }
+        else if (shipping === "ایران-پیام") {
+          finalShiping = "ایران-پیام"
+        }
         const phone = document.getElementById("phone").getAttribute("placeholder");
 
         document.getElementById("summary-customer-info").innerHTML = `
@@ -879,9 +971,7 @@
             <p>کد پستی: ${postalCode}</p>
             <p>آدرس: ${address}</p>
             <p>تلفن: ${phone}</p>
-            <p>روش ارسال: ${
-              selectedShippingMethod === "post" ? "پست" : "تیپاکس"
-            }</p>
+            <p>روش ارسال: ${finalShiping}</p>
         `;
 
         const summaryProducts = document.getElementById("summary-products");
@@ -909,28 +999,38 @@
         });
 
         const subtotal = calculateSubtotal();
-        const shippingCost = shippingCosts[selectedShippingMethod];
         const finalTotal = calculateFinalTotal();
 
         document.getElementById("summary-subtotal").textContent =
           formatPrice(subtotal);
-        document.getElementById("summary-shipping").textContent =
-          formatPrice(shippingCost);
         document.getElementById("summary-total").textContent =
           formatPrice(finalTotal);
 
-        if (appliedDiscount > 0) {
-          document
-            .getElementById("summary-discount-row")
-            .classList.remove("hidden");
-          document.getElementById("summary-discount").textContent =
-            "- " + formatPrice(appliedDiscount);
-        } else {
-          document
-            .getElementById("summary-discount-row")
-            .classList.add("hidden");
+          if (appliedDiscount > 0) {
+              document.getElementById("summary-discount-row").classList.remove("hidden");
+              document.getElementById("summary-discount").textContent = "- " + formatPrice(appliedDiscount);
+
+              // نمایش کد تخفیف اعمال شده
+              document.getElementById("summary-discount-code").textContent = currentDiscountCode;
+
+              // نمایش نوع تخفیف (درصدی یا مبلغی)
+              const discountTypeText = discountRules.type === "percent"
+                  ? `${discountRules.amount}%`
+                  : formatPrice(discountRules.amount);
+              document.getElementById("summary-discount-type").textContent = discountTypeText;
+
+              // نمایش حداقل مبلغ سفارش برای تخفیف (در صورت وجود)
+              if (discountRules.minOrderAmount) {
+                  document.getElementById("summary-min-order").textContent = formatPrice(discountRules.minOrderAmount);
+                  document.getElementById("summary-min-order-row").classList.remove("hidden");
+              } else {
+                  document.getElementById("summary-min-order-row").classList.add("hidden");
+              }
+          } else {
+              document.getElementById("summary-discount-row").classList.add("hidden");
+              document.getElementById("summary-min-order-row").classList.add("hidden");
+          }
         }
-      }
 
       // Navigation between pages
       function showPage(pageId) {
@@ -983,11 +1083,46 @@
             const orderForm = document.getElementById("order-form");
             const formDataOrder = new FormData(orderForm);
 
+            function validatePostalCode(postalCode) {
+            const regex = /^\d{10}$/;
+            if (!regex.test(postalCode)) {
+              alert("کد پستی باید دقیقاً ۱۰ رقم باشد");
+              return false;
+            }
+            return true;
+          }
+
+          // اعتبارسنجی آدرس
+          function validateAddress(address) {
+            if (address.length < 10) {
+              alert("آدرس نمی‌تواند کمتر از ۱۰ کاراکتر باشد");
+              return false;
+            }
+            
+            if (address.length > 500) {
+              alert("آدرس نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد");
+              return false;
+            }
+            
+            return true;
+            }
+
 
             if (!postalCode || !address) {
               alert("لطفاً تمام فیلدها را پر کنید:");
               return;
             }
+
+
+            if (!validatePostalCode(postalCode)) {
+              return;
+            }
+
+            // اعتبارسنجی آدرس
+            if (!validateAddress(address)) {
+              return;
+            }
+
 
               fetch("/api/order", {
                 method: "POST",
@@ -1013,13 +1148,6 @@
         document
           .getElementById("back-to-shop")
           .addEventListener("click", () => showPage("cart-page"));
-
-        document
-          .getElementById("shipping-method")
-          .addEventListener("change", (e) => {
-            selectedShippingMethod = e.target.value;
-            updateTotals();
-          });
       });
     </script>
   </div>

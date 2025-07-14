@@ -128,12 +128,12 @@ router.post("/signIn", upload.none(), async (req, res) => {
 
     const { mobile, password } = req.body;
 
-    const user = await User.findOne({ mobile });
+    const user = await User.findOne({ mobile }).select("+password");
     if (!user) {
       return errorResponse(res, 401, "شماره موبایل یا رمز عبور اشتباه است");
     }
-
     const validPassword = await bcrypt.compare(password, user.password);
+    
     if (!validPassword) {
       return errorResponse(res, 401, "شماره موبایل یا رمز عبور اشتباه است");
     }

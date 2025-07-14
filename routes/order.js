@@ -57,7 +57,8 @@ router.post(
       const unavailableProducts = [];
       let subtotal = 0;
 
-      const cartItems = await Promise.all(
+      // ساخت آرایه محصولات با اطلاعات کامل
+      const productsForOrder = await Promise.all(
         user.cart.map(async (item) => {
           const product = await Product.findById(item.productId._id);
           if (!product || product.stock < item.quantity) {
@@ -74,13 +75,10 @@ router.post(
           subtotal += price * item.quantity;
 
           return {
-            _id: product._id,
-            name: product.name,
-            price: product.price,
-            offerPrice: product.offerPrice,
+            product: product._id,
             quantity: item.quantity,
-            weight: product.weight,
-            image: product.images?.[0] || "",
+            priceAtPurchase: price, // اضافه کردن قیمت در زمان خرید
+            nameAtPurchase: product.name, // اضافه کردن نام در زمان خرید
           };
         })
       );
@@ -91,6 +89,7 @@ router.post(
         });
       }
 
+      // محاسبه تخفیف و قیمت نهایی
       let discountAmount = 0;
       let appliedDiscount = null;
       let finalPrice = subtotal;
@@ -130,26 +129,22 @@ router.post(
                 : `${discount.amount} تومان`,
           };
 
-          // Update discount usage
           await DiscountCode.updateOne(
             { _id: discount._id },
             { $inc: { usedCount: 1 } }
           );
         }
 
-        // Clear session discount regardless of validity
         req.session.discount = null;
       }
 
+      // ایجاد سفارش با اطلاعات کامل محصولات
       const order = new Order({
         OrderNum: req.session.OrderNum || `ORD-${Date.now()}`,
         postcode,
         address,
         user: userId,
-        products: user.cart.map((item) => ({
-          product: item.productId._id,
-          quantity: item.quantity,
-        })),
+        products: productsForOrder.filter((p) => p !== null), // استفاده از آرایه کامل محصولات
         delivery: delivery || "",
         originalPrice: subtotal,
         totalPrice: finalPrice,
@@ -158,27 +153,21 @@ router.post(
         status: "در انتظار پرداخت",
       });
 
-      const session = await mongoose.startSession();
-      session.startTransaction();
-
       try {
-        await order.save({ session });
+        await order.save();
 
         await Promise.all(
           user.cart.map((item) =>
             Product.updateOne(
               { _id: item.productId._id },
-              { $inc: { stock: -item.quantity } },
-              { session }
+              { $inc: { stock: -item.quantity } }
             )
           )
         );
 
         user.cart = [];
         user.orders.push(order._id);
-        await user.save({ session });
-
-        await session.commitTransaction();
+        await user.save();
 
         if (req.session.OrderNum) {
           delete req.session.OrderNum;
@@ -191,18 +180,17 @@ router.post(
           orderNumber: order.OrderNum,
           total: finalPrice,
           discount: discountAmount,
-          products: cartItems.filter((item) => item !== null),
         });
       } catch (error) {
-        await session.abortTransaction();
+        console.error("Order processing error:", error);
+        if (order._id) {
+          await Order.deleteOne({ _id: order._id });
+        }
         throw error;
-      } finally {
-        session.endSession();
       }
     } catch (error) {
       console.error("Order creation error:", error);
 
-      // Handle specific errors
       if (error.name === "ValidationError") {
         return errorResponse(res, 400, "خطا در اعتبارسنجی داده‌های سفارش");
       }

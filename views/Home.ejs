@@ -1,1097 +1,747 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>گلو بیوتی | لوازم آرایشی با کیفیت</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        font-family: "Vazirmatn", sans-serif;
-        scroll-behavior: smooth;
-        text-align: right;
-      }
 
-      .logo-container {
-        --logo-size: 2.5rem;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>گلو بیوتی | لوازم آرایشی با کیفیت</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;display=swap"
+    rel="stylesheet" />
+  <style>
+    body {
+      font-family: "Vazirmatn", sans-serif;
+      scroll-behavior: smooth;
+      text-align: right;
+    }
 
-      .logo {
-        width: var(--logo-size);
-        height: var(--logo-size);
-      }
+    .logo-container {
+      --logo-size: 2.5rem;
+    }
 
-      .nav-link {
-        transition: all 0.3s ease;
-        position: relative;
-      }
+    .logo {
+      width: var(--logo-size);
+      height: var(--logo-size);
+    }
 
-      .nav-link::after {
-        content: "";
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: -4px;
-        right: 50%;
-        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-        transition: all 0.3s ease;
-      }
+    .nav-link {
+      transition: all 0.3s ease;
+      position: relative;
+    }
 
-      .nav-link:hover::after {
-        width: 100%;
-        right: 0;
-      }
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      right: 50%;
+      background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+      transition: all 0.3s ease;
+    }
 
-      .icon-btn {
-        transition: all 0.3s ease;
-      }
+    .nav-link:hover::after {
+      width: 100%;
+      right: 0;
+    }
 
-      .icon-btn:hover {
-        transform: translateY(-2px);
-      }
+    .icon-btn {
+      transition: all 0.3s ease;
+    }
 
-      .mobile-menu {
-        transition: all 0.3s ease;
-        transform: translateX(100%);
+    .icon-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .mobile-menu {
+      transition: all 0.3s ease;
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    .mobile-menu.active {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .hero-slider {
+      height: 80vh;
+      min-height: 500px;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+    }
+
+    .discount-card:hover,
+    .category-item:hover,
+    .product-card:hover,
+    .blog-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .cart-count {
+      top: -8px;
+      left: -8px;
+    }
+
+    .newsletter-input:focus {
+      border-color: #f472b6;
+      box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.2);
+    }
+
+    .discount-slider::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .discount-slider::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .discount-slider::-webkit-scrollbar-thumb {
+      background: #f472b6;
+      border-radius: 10px;
+    }
+
+    @keyframes fadeIn {
+      from {
         opacity: 0;
+        transform: translateY(20px);
       }
 
-      .mobile-menu.active {
-        transform: translateX(0);
+      to {
         opacity: 1;
+        transform: translateY(0);
       }
+    }
 
-      .hero-slider {
-        height: 80vh;
-        min-height: 500px;
-      }
+    .fade-in {
+      animation: fadeIn 0.8s ease forwards;
+    }
 
-      .slide {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100%;
-        height: 100%;
+    .delay-100 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-200 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-300 {
+      animation-delay: 0.3s;
+    }
+
+    .delay-400 {
+      animation-delay: 0.4s;
+    }
+
+    .delay-500 {
+      animation-delay: 0.5s;
+    }
+
+    /* استایل‌های پاپ‌آپ احراز هویت */
+    #auth-popup {
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+
+    #auth-popup:not(.hidden) {
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content,
+    .form-step {
+      display: none;
+    }
+
+    .tab-content.active,
+    .form-step.active {
+      display: block;
+    }
+
+    input:focus {
+      outline: none;
+    }
+
+    /* استایل کدهای تایید */
+    .otp-input {
+      width: 3rem;
+      height: 3.5rem;
+      font-size: 1.5rem;
+      text-align: center;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      direction: ltr;
+      /* این خط رو اضافه کنید */
+    }
+
+    /* انیمیشن پاپ‌آپ */
+    @keyframes modalFadeIn {
+      from {
         opacity: 0;
-        transition: opacity 1s ease-in-out;
-        background-size: cover;
-        background-position: center;
+        transform: translateY(20px);
       }
 
-      .slide.active {
+      to {
         opacity: 1;
+        transform: translateY(0);
       }
+    }
 
-      .discount-card:hover,
-      .category-item:hover,
-      .product-card:hover,
-      .blog-card:hover {
-        transform: translateY(-5px);
-      }
+    .modal-content {
+      animation: modalFadeIn 0.3s ease-out;
+    }
 
-      .cart-count {
-        top: -8px;
-        left: -8px;
-      }
+    /* استایل پایه برای آیکون‌ها */
+    .icon {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
 
-      .newsletter-input:focus {
-        border-color: #f472b6;
-        box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.2);
-      }
+    .cart-icon {
+      color: #333;
+    }
 
-      .discount-slider::-webkit-scrollbar {
-        height: 4px;
-      }
+    .cart-icon:hover {
+      color: #007bff;
+    }
 
-      .discount-slider::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-      }
+    .success-icon {
+      color: #28a745;
+    }
 
-      .discount-slider::-webkit-scrollbar-thumb {
-        background: #f472b6;
-        border-radius: 10px;
-      }
+    .hidden {
+      display: none;
+    }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
+    .icon-container {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
+</head>
 
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .fade-in {
-        animation: fadeIn 0.8s ease forwards;
-      }
-
-      .delay-100 {
-        animation-delay: 0.1s;
-      }
-
-      .delay-200 {
-        animation-delay: 0.2s;
-      }
-
-      .delay-300 {
-        animation-delay: 0.3s;
-      }
-
-      .delay-400 {
-        animation-delay: 0.4s;
-      }
-
-      .delay-500 {
-        animation-delay: 0.5s;
-      }
-
-      /* استایل‌های پاپ‌آپ احراز هویت */
-      #auth-popup {
-        transition: opacity 0.3s ease;
-        z-index: 1000;
-      }
-
-      #auth-popup:not(.hidden) {
-        animation: fadeIn 0.3s ease;
-      }
-
-      .tab-content,
-      .form-step {
-        display: none;
-      }
-
-      .tab-content.active,
-      .form-step.active {
-        display: block;
-      }
-
-      input:focus {
-        outline: none;
-      }
-
-      /* استایل کدهای تایید */
-      .otp-input {
-        width: 3rem;
-        height: 3.5rem;
-        font-size: 1.5rem;
-        text-align: center;
-        border: 1px solid #d1d5db;
-        border-radius: 0.5rem;
-        direction: ltr;
-        /* این خط رو اضافه کنید */
-      }
-
-      /* انیمیشن پاپ‌آپ */
-      @keyframes modalFadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .modal-content {
-        animation: modalFadeIn 0.3s ease-out;
-      }
-
-      /* استایل پایه برای آیکون‌ها */
-      .icon {
-        width: 24px;
-        height: 24px;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
-
-      .cart-icon {
-        color: #333;
-      }
-
-      .cart-icon:hover {
-        color: #007bff;
-      }
-
-      .success-icon {
-        color: #28a745;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .icon-container {
-        width: 24px;
-        height: 24px;
-      }
-    </style>
-  </head>
-
-  <body class="bg-gray-50">
-    <!-- Navigation Bar -->
-    <nav
-      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
-    >
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <!-- Logo -->
-        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
-          <div class="h-full overflow-hidden flex items-center">
-            <img
-              src="logo.png"
-              alt="لوگوی گلو بیوتی"
-              class="h-full w-auto object-contain"
-            />
-          </div>
-        </a>
-
-        <!-- Desktop Menu -->
-        <div
-          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
-        >
-          <a
-            href="/"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >خانه</a
-          >
-          <a
-            href="/shop"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >فروشگاه</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >دسته‌بندی‌ها</a
-          >
-          <a
-            href="/weblog"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >وبلاگ</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >درباره ما</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >تماس با ما</a
-          >
+<body class="bg-gray-50">
+  <!-- Navigation Bar -->
+  <nav class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
+        <div class="h-full overflow-hidden flex items-center">
+          <img src="logo.png" alt="لوگوی گلو بیوتی" class="h-full w-auto object-contain" />
         </div>
+      </a>
 
-        <!-- Icons -->
-        <div
-          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
-        >
-          <div class="relative">
-            <button
-              onclick="window.location.href='/cart';"
-              class="relative text-gray-700 hover:text-pink-500 transition-colors"
-            >
-              <i class="fas fa-shopping-bag text-xl"></i>
-              <% if(user) { %>
-              <span
-                id="cartCount"
-                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-              >
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2">
+        <a href="/" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
+        <a href="/shop" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
+        <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
+        <a href="/weblog" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
+        <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
+        <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">تماس با ما</a>
+      </div>
+
+      <!-- Icons -->
+      <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
+        <div class="relative">
+          <button onclick="window.location.href='/cart';"
+            class="relative text-gray-700 hover:text-pink-500 transition-colors">
+            <i class="fas fa-shopping-bag text-xl"></i>
+            <% if(user) { %>
+              <span id="cartCount"
+                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 <%= toPersianDigits(cartCount) %>
               </span>
-              <% } else {%> <% } %>
-            </button>
-          </div>
-          <% if (!user) {%>
-          <button
-            id="user-auth-button"
-            class="text-gray-700 hover:text-pink-500 transition-colors"
-          >
+              <% } else {%>
+                <% } %>
+          </button>
+        </div>
+        <% if (!user) {%>
+          <button id="user-auth-button" class="text-gray-700 hover:text-pink-500 transition-colors">
             <i class="fas fa-user text-xl"></i>
           </button>
           <% } else { %>
-          <a href="/userProfile">
-            <button class="text-gray-700 hover:text-pink-500 transition-colors">
-              <i class="fas fa-user text-xl"></i>
-            </button>
-          </a>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- Mobile Menu -->
-      <div
-        id="mobile-menu"
-        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
-      >
-        <div class="flex flex-col px-4 py-2">
-          <a
-            href="/"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >خانه</a
-          >
-          <a
-            href="/shop"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >فروشگاه</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >دسته‌بندی‌ها</a
-          >
-          <a
-            href="/weblog"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >وبلاگ</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >درباره ما</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >تماس با ما</a
-          >
-        </div>
-      </div>
-    </nav>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const mobileMenuButton = document.getElementById("mobile-menu-button");
-        const mobileMenu = document.getElementById("mobile-menu");
-
-        mobileMenuButton.addEventListener("click", function () {
-          mobileMenu.classList.toggle("hidden");
-        });
-
-        // بستن منو هنگام کلیک خارج از آن
-        document.addEventListener("click", function (event) {
-          if (
-            !mobileMenu.contains(event.target) &&
-            event.target !== mobileMenuButton
-          ) {
-            mobileMenu.classList.add("hidden");
-          }
-        });
-      });
-    </script>
-
-    <!-- Hero Slider -->
-    <div class="hero-slider relative overflow-hidden mt-16">
-      <div
-        class="slide active"
-        style="
-          background-image: linear-gradient(
-              rgba(0, 0, 0, 0.3),
-              rgba(0, 0, 0, 0.3)
-            ),
-            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
-        "
-      >
-        <div class="container mx-auto px-6 h-full flex items-center">
-          <div class="max-w-lg">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-              زیبایی طبیعی خود را کشف کنید
-            </h1>
-            <p class="text-white text-lg mb-8">
-              لوازم آرایشی با کیفیت برای بانوی امروزی. زیبایی طبیعی خود را با
-              مجموعه انحصاری ما تقویت کنید.
-            </p>
-            <button
-              class="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
-            >
-              خرید کنید
-            </button>
-          </div>
-        </div>
-      </div>
-      <div
-        class="slide"
-        style="
-          background-image: linear-gradient(
-              rgba(0, 0, 0, 0.3),
-              rgba(0, 0, 0, 0.3)
-            ),
-            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
-        "
-      >
-        <div class="container mx-auto px-6 h-full flex items-center">
-          <div class="max-w-lg">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-              مجموعه جدید تابستانی
-            </h1>
-            <p class="text-white text-lg mb-8">
-              رنگ‌های شاد و فرمول‌های سبک مناسب برای فصل تابستان.
-            </p>
-            <button
-              class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
-            >
-              مشاهده مجموعه
-            </button>
-          </div>
-        </div>
-      </div>
-      <div
-        class="slide"
-        style="
-          background-image: linear-gradient(
-              rgba(0, 0, 0, 0.3),
-              rgba(0, 0, 0, 0.3)
-            ),
-            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
-        "
-      >
-        <div class="container mx-auto px-6 h-full flex items-center">
-          <div class="max-w-lg">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-              زیبایی سازگار با محیط زیست
-            </h1>
-            <p class="text-white text-lg mb-8">
-              محصولات پایدار و بدون آزمایش روی حیوانات که از پوست شما و سیاره
-              مراقبت می‌کنند.
-            </p>
-            <button
-              class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full font-medium transition-colors"
-            >
-              بیشتر بدانید
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slider Controls -->
-      <div
-        class="absolute bottom-5 right-0 left-0 flex justify-center space-x-2 space-x-reverse"
-      >
-        <button
-          class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot active"
-          data-index="0"
-        ></button>
-        <button
-          class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot"
-          data-index="1"
-        ></button>
-        <button
-          class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot"
-          data-index="2"
-        ></button>
+            <a href="/userProfile">
+              <button class="text-gray-700 hover:text-pink-500 transition-colors">
+                <i class="fas fa-user text-xl"></i>
+              </button>
+            </a>
+            <% } %>
       </div>
     </div>
 
-    <!-- پاپ‌آپ احراز هویت -->
-    <div
-      id="auth-popup"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
-    >
-      <div
-        class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content"
-      >
-        <!-- Tab Navigation -->
-        <div class="flex border-b">
-          <button
-            id="login-tab"
-            class="tab-btn flex-1 py-4 text-center font-medium text-pink-500 border-b-2 border-pink-500"
-          >
-            ورود
-          </button>
-          <button
-            id="register-tab"
-            class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
-          >
-            ثبت نام
-          </button>
-          <button
-            id="forgot-tab"
-            class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
-          >
-            بازیابی رمز
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md">
+      <div class="flex flex-col px-4 py-2">
+        <a href="/" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
+        <a href="/shop" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
+        <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
+        <a href="/weblog" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
+        <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
+        <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">تماس با ما</a>
+      </div>
+    </div>
+  </nav>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      const mobileMenu = document.getElementById("mobile-menu");
+
+      mobileMenuButton.addEventListener("click", function () {
+        mobileMenu.classList.toggle("hidden");
+      });
+
+      // بستن منو هنگام کلیک خارج از آن
+      document.addEventListener("click", function (event) {
+        if (
+          !mobileMenu.contains(event.target) &&
+          event.target !== mobileMenuButton
+        ) {
+          mobileMenu.classList.add("hidden");
+        }
+      });
+    });
+  </script>
+
+  <!-- Hero Slider -->
+  <div class="hero-slider relative overflow-hidden mt-16">
+    <div class="slide active" style="
+          background-image: linear-gradient(
+              rgba(0, 0, 0, 0.3),
+              rgba(0, 0, 0, 0.3)
+            ),
+            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
+        ">
+      <div class="container mx-auto px-6 h-full flex items-center">
+        <div class="max-w-lg">
+          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            زیبایی طبیعی خود را کشف کنید
+          </h1>
+          <p class="text-white text-lg mb-8">
+            لوازم آرایشی با کیفیت برای بانوی امروزی. زیبایی طبیعی خود را با
+            مجموعه انحصاری ما تقویت کنید.
+          </p>
+          <button class="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full font-medium transition-colors">
+            خرید کنید
           </button>
         </div>
+      </div>
+    </div>
+    <div class="slide" style="
+          background-image: linear-gradient(
+              rgba(0, 0, 0, 0.3),
+              rgba(0, 0, 0, 0.3)
+            ),
+            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
+        ">
+      <div class="container mx-auto px-6 h-full flex items-center">
+        <div class="max-w-lg">
+          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            مجموعه جدید تابستانی
+          </h1>
+          <p class="text-white text-lg mb-8">
+            رنگ‌های شاد و فرمول‌های سبک مناسب برای فصل تابستان.
+          </p>
+          <button
+            class="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full font-medium transition-colors">
+            مشاهده مجموعه
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="slide" style="
+          background-image: linear-gradient(
+              rgba(0, 0, 0, 0.3),
+              rgba(0, 0, 0, 0.3)
+            ),
+            url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%22600%22 viewBox=%220 0 1200 600%22%3E%3Crect width=%221200%22 height=%22600%22 fill=%22%23c4b5fd%22/%3E%3Cpath d=%22M0,400 Q300,300 600,450 T1200,400 L1200,600 L0,600 Z%22 fill=%22%23ddd6fe%22/%3E%3C/svg%3E');
+        ">
+      <div class="container mx-auto px-6 h-full flex items-center">
+        <div class="max-w-lg">
+          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            زیبایی سازگار با محیط زیست
+          </h1>
+          <p class="text-white text-lg mb-8">
+            محصولات پایدار و بدون آزمایش روی حیوانات که از پوست شما و سیاره
+            مراقبت می‌کنند.
+          </p>
+          <button class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full font-medium transition-colors">
+            بیشتر بدانید
+          </button>
+        </div>
+      </div>
+    </div>
 
-        <!-- Login Form -->
-        <div id="login-content" class="tab-content active p-6">
+    <!-- Slider Controls -->
+    <div class="absolute bottom-5 right-0 left-0 flex justify-center space-x-2 space-x-reverse">
+      <button class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot active" data-index="0"></button>
+      <button class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot" data-index="1"></button>
+      <button class="w-3 h-3 rounded-full bg-white opacity-50 slider-dot" data-index="2"></button>
+    </div>
+  </div>
+
+  <!-- پاپ‌آپ احراز هویت -->
+  <div id="auth-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content">
+      <!-- Tab Navigation -->
+      <div class="flex border-b">
+        <button id="login-tab"
+          class="tab-btn flex-1 py-4 text-center font-medium text-pink-500 border-b-2 border-pink-500">
+          ورود
+        </button>
+        <button id="register-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500">
+          ثبت نام
+        </button>
+        <button id="forgot-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500">
+          بازیابی رمز
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-content" class="tab-content active p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+          ورود به حساب کاربری
+        </h2>
+        <form action="/api/authentication/signIn" method="post" id="login-form" class="space-y-5">
+          <div>
+            <label class="block text-gray-700 mb-2" for="login-phone">شماره موبایل</label>
+            <input type="tel" name="mobile" id="login-phone" class="w-full px-4 py-3 rounded-lg border"
+              placeholder="09xxxxxxxxx" required />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="login-password">رمز عبور</label>
+            <input type="password" name="password" id="login-password" class="w-full px-4 py-3 rounded-lg border"
+              placeholder="رمز عبور خود را وارد کنید" required />
+          </div>
+          <button type="submit"
+            class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+            ورود
+          </button>
+        </form>
+      </div>
+
+      <!-- Registration Form -->
+      <div id="register-content" class="tab-content p-6">
+        <!-- Step 1: Registration Form -->
+        <div id="register-step-1" class="form-step active">
           <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
-            ورود به حساب کاربری
+            ایجاد حساب کاربری
           </h2>
-          <form
-            action="/api/authentication/signIn"
-            method="post"
-            id="login-form"
-            class="space-y-5"
-          >
+          <form action="/api/authentication/signUp" method="post" id="register-form" class="space-y-4">
             <div>
-              <label class="block text-gray-700 mb-2" for="login-phone"
-                >شماره موبایل</label
-              >
-              <input
-                type="tel"
-                name="mobile"
-                id="login-phone"
-                class="w-full px-4 py-3 rounded-lg border"
-                placeholder="09xxxxxxxxx"
-                required
-              />
+              <label class="block text-gray-700 mb-2" for="register-name">نام و نام خانوادگی</label>
+              <input type="text" name="fullName" id="register-name" class="w-full px-4 py-3 rounded-lg border"
+                placeholder="نام کامل خود را وارد کنید" required />
             </div>
             <div>
-              <label class="block text-gray-700 mb-2" for="login-password"
-                >رمز عبور</label
-              >
-              <input
-                type="password"
-                name="password"
-                id="login-password"
-                class="w-full px-4 py-3 rounded-lg border"
-                placeholder="رمز عبور خود را وارد کنید"
-                required
-              />
+              <label class="block text-gray-700 mb-2" for="register-phone">شماره موبایل</label>
+              <input type="tel" name="mobile" id="register-phone" class="w-full px-4 py-3 rounded-lg border"
+                placeholder="09xxxxxxxxx" required />
             </div>
-            <button
-              type="submit"
-              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
-            >
-              ورود
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-email">ایمیل</label>
+              <input type="email" name="email" id="register-email" class="w-full px-4 py-3 rounded-lg border"
+                placeholder="email@example.com" />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-password">رمز عبور</label>
+              <input type="password" name="password" id="register-password" class="w-full px-4 py-3 rounded-lg border"
+                placeholder="حداقل 8 کاراکتر" required />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-confirm-password">تکرار رمز عبور</label>
+              <input type="password" name="confirmPassword" id="register-confirm-password"
+                class="w-full px-4 py-3 rounded-lg border" placeholder="تکرار رمز عبور" required />
+            </div>
+            <button type="submit"
+              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors mt-2">
+              ثبت نام
             </button>
           </form>
         </div>
 
-        <!-- Registration Form -->
-        <div id="register-content" class="tab-content p-6">
-          <!-- Step 1: Registration Form -->
-          <div id="register-step-1" class="form-step active">
-            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
-              ایجاد حساب کاربری
-            </h2>
-            <form
-              action="/api/authentication/signUp"
-              method="post"
-              id="register-form"
-              class="space-y-4"
-            >
-              <div>
-                <label class="block text-gray-700 mb-2" for="register-name"
-                  >نام و نام خانوادگی</label
-                >
-                <input
-                  type="text"
-                  name="fullName"
-                  id="register-name"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="نام کامل خود را وارد کنید"
-                  required
-                />
+        <!-- Step 2: Verification Code -->
+        <div id="register-step-2" class="form-step">
+          <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+            تایید شماره موبایل
+          </h2>
+          <p class="text-gray-600 text-center mb-5">
+            کد تایید به شماره
+            <span id="register-phone-display" class="font-bold"></span> ارسال
+            شد
+          </p>
+          <form id="register-verification-form" class="space-y-5">
+            <div class="text-center">
+              <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
+              <!-- در بخش ثبت نام -->
+              <div class="flex justify-center gap-2 mb-3">
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
               </div>
-              <div>
-                <label class="block text-gray-700 mb-2" for="register-phone"
-                  >شماره موبایل</label
-                >
-                <input
-                  type="tel"
-                  name="mobile"
-                  id="register-phone"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="09xxxxxxxxx"
-                  required
-                />
+              <div id="register-resend-timer" class="text-sm text-gray-500 mb-3">
+                ارسال مجدد کد تا <span>۰۲:۰۰</span>
               </div>
-              <div>
-                <label class="block text-gray-700 mb-2" for="register-email"
-                  >ایمیل</label
-                >
-                <input
-                  type="email"
-                  name="email"
-                  id="register-email"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="email@example.com"
-                />
-              </div>
-              <div>
-                <label class="block text-gray-700 mb-2" for="register-password"
-                  >رمز عبور</label
-                >
-                <input
-                  type="password"
-                  name="password"
-                  id="register-password"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="حداقل 8 کاراکتر"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  class="block text-gray-700 mb-2"
-                  for="register-confirm-password"
-                  >تکرار رمز عبور</label
-                >
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  id="register-confirm-password"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="تکرار رمز عبور"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors mt-2"
-              >
-                ثبت نام
-              </button>
-            </form>
-          </div>
+            </div>
+            <button type="submit"
+              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+              تایید و ورود
+            </button>
+            <button type="button" id="register-back-btn"
+              class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors">
+              بازگشت
+            </button>
+          </form>
+        </div>
+      </div>
 
-          <!-- Step 2: Verification Code -->
-          <div id="register-step-2" class="form-step">
-            <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
-              تایید شماره موبایل
-            </h2>
-            <p class="text-gray-600 text-center mb-5">
-              کد تایید به شماره
-              <span id="register-phone-display" class="font-bold"></span> ارسال
-              شد
-            </p>
-            <form id="register-verification-form" class="space-y-5">
-              <div class="text-center">
-                <label class="block text-gray-700 mb-4 text-center"
-                  >کد تایید را وارد کنید</label
-                >
-                <!-- در بخش ثبت نام -->
-                <div class="flex justify-center gap-2 mb-3">
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                </div>
-                <div
-                  id="register-resend-timer"
-                  class="text-sm text-gray-500 mb-3"
-                >
-                  ارسال مجدد کد تا <span>۰۲:۰۰</span>
-                </div>
-              </div>
-              <button
-                type="submit"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
-              >
-                تایید و ورود
-              </button>
-              <button
-                type="button"
-                id="register-back-btn"
-                class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
-              >
-                بازگشت
-              </button>
-            </form>
-          </div>
+      <!-- Forgot Password Form -->
+      <div id="forgot-content" class="tab-content p-6">
+        <!-- Step 1: Phone Number -->
+        <div id="forgot-step-1" class="form-step active">
+          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+            بازیابی رمز عبور
+          </h2>
+          <form id="forgot-form" class="space-y-5">
+            <div>
+              <label class="block text-gray-700 mb-2" for="forgot-phone">شماره موبایل</label>
+              <input type="tel" id="forgot-phone" class="w-full px-4 py-3 rounded-lg border" placeholder="09xxxxxxxxx"
+                required />
+            </div>
+            <button type="submit"
+              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+              ارسال کد تایید
+            </button>
+          </form>
         </div>
 
-        <!-- Forgot Password Form -->
-        <div id="forgot-content" class="tab-content p-6">
-          <!-- Step 1: Phone Number -->
-          <div id="forgot-step-1" class="form-step active">
-            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
-              بازیابی رمز عبور
-            </h2>
-            <form id="forgot-form" class="space-y-5">
-              <div>
-                <label class="block text-gray-700 mb-2" for="forgot-phone"
-                  >شماره موبایل</label
-                >
-                <input
-                  type="tel"
-                  id="forgot-phone"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="09xxxxxxxxx"
-                  required
-                />
+        <!-- Step 2: Verification Code -->
+        <div id="forgot-step-2" class="form-step">
+          <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+            تایید کد
+          </h2>
+          <p class="text-gray-600 text-center mb-5">
+            کد تایید به شماره
+            <span id="forgot-phone-display" class="font-bold"></span> ارسال شد
+          </p>
+          <form id="forgot-verification-form" class="space-y-5">
+            <div class="text-center">
+              <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
+              <!-- در بخش ثبت نام -->
+              <div class="flex justify-center gap-2 mb-3">
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input" dir="ltr" required />
               </div>
-              <button
-                type="submit"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
-              >
-                ارسال کد تایید
-              </button>
-            </form>
-          </div>
+              <div id="forgot-resend-timer" class="text-sm text-gray-500 mb-3">
+                ارسال مجدد کد تا <span>۰۲:۰۰</span>
+              </div>
+            </div>
+            <button type="submit"
+              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+              تایید
+            </button>
+            <button type="button" id="forgot-back-btn"
+              class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors">
+              بازگشت
+            </button>
+          </form>
+        </div>
 
-          <!-- Step 2: Verification Code -->
-          <div id="forgot-step-2" class="form-step">
-            <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
-              تایید کد
-            </h2>
-            <p class="text-gray-600 text-center mb-5">
-              کد تایید به شماره
-              <span id="forgot-phone-display" class="font-bold"></span> ارسال شد
-            </p>
-            <form id="forgot-verification-form" class="space-y-5">
-              <div class="text-center">
-                <label class="block text-gray-700 mb-4 text-center"
-                  >کد تایید را وارد کنید</label
-                >
-                <!-- در بخش ثبت نام -->
-                <div class="flex justify-center gap-2 mb-3">
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                  <input
-                    type="text"
-                    maxlength="1"
-                    class="otp-input"
-                    dir="ltr"
-                    required
-                  />
-                </div>
-                <div
-                  id="forgot-resend-timer"
-                  class="text-sm text-gray-500 mb-3"
-                >
-                  ارسال مجدد کد تا <span>۰۲:۰۰</span>
-                </div>
-              </div>
-              <button
-                type="submit"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
-              >
-                تایید
-              </button>
-              <button
-                type="button"
-                id="forgot-back-btn"
-                class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
-              >
-                بازگشت
-              </button>
-            </form>
-          </div>
-
-          <!-- Step 3: New Password -->
-          <div id="forgot-step-3" class="form-step">
-            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
-              تعیین رمز عبور جدید
-            </h2>
-            <form id="new-password-form" class="space-y-5">
-              <div>
-                <label class="block text-gray-700 mb-2" for="new-password"
-                  >رمز عبور جدید</label
-                >
-                <input
-                  type="password"
-                  id="new-password"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="حداقل 6 کاراکتر"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  class="block text-gray-700 mb-2"
-                  for="confirm-new-password"
-                  >تکرار رمز عبور جدید</label
-                >
-                <input
-                  type="password"
-                  id="confirm-new-password"
-                  class="w-full px-4 py-3 rounded-lg border"
-                  placeholder="تکرار رمز عبور جدید"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
-              >
-                ذخیره و ورود
-              </button>
-            </form>
-          </div>
+        <!-- Step 3: New Password -->
+        <div id="forgot-step-3" class="form-step">
+          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+            تعیین رمز عبور جدید
+          </h2>
+          <form id="new-password-form" class="space-y-5">
+            <div>
+              <label class="block text-gray-700 mb-2" for="new-password">رمز عبور جدید</label>
+              <input type="password" id="new-password" class="w-full px-4 py-3 rounded-lg border"
+                placeholder="حداقل 6 کاراکتر" required />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="confirm-new-password">تکرار رمز عبور جدید</label>
+              <input type="password" id="confirm-new-password" class="w-full px-4 py-3 rounded-lg border"
+                placeholder="تکرار رمز عبور جدید" required />
+            </div>
+            <button type="submit"
+              class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+              ذخیره و ورود
+            </button>
+          </form>
         </div>
       </div>
     </div>
-    <!-- Special Discounts Section -->
-    <section class="py-12 px-4 bg-white">
-      <div class="max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
-          پیشنهادات ویژه
-        </h2>
-        <p class="text-gray-600 mb-8 fade-in delay-100">
-          تخفیف‌های محدود روی محصولات با کیفیت
-        </p>
+  </div>
+  <!-- Special Discounts Section -->
+  <section class="py-12 px-4 bg-white">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+        پیشنهادات ویژه
+      </h2>
+      <p class="text-gray-600 mb-8 fade-in delay-100">
+        تخفیف‌های محدود روی محصولات با کیفیت
+      </p>
 
-        <div class="relative">
+      <div class="relative">
+        <div class="discount-slider flex space-x-4 space-x-reverse overflow-x-auto pb-4 fade-in delay-200">
+          <!-- Discount Item 1 -->
           <div
-            class="discount-slider flex space-x-4 space-x-reverse overflow-x-auto pb-4 fade-in delay-200"
-          >
-            <!-- Discount Item 1 -->
-            <div
-              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-pink-100 to-pink-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
-            >
-              <div class="p-4">
-                <span
-                  class="inline-block bg-pink-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
-                  >۲۵٪ تخفیف</span
-                >
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                  ضروریات تابستان
-                </h3>
-                <p class="text-gray-600 mb-4">
-                  با محصولات پرفروش ما برای تابستان آماده شوید
-                </p>
-                <div class="flex items-center justify-between">
-                  <button
-                    class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-                  >
-                    خرید کنید
-                  </button>
-                  <span class="text-gray-800 font-semibold"
-                    >۲ روز باقیمانده</span
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- Discount Item 2 -->
-            <div
-              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-purple-100 to-purple-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
-            >
-              <div class="p-4">
-                <span
-                  class="inline-block bg-purple-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
-                  >۳۰٪ تخفیف</span
-                >
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                  مراقبت پوست لوکس
-                </h3>
-                <p class="text-gray-600 mb-4">
-                  محصولات مراقبت از پوست با کیفیت برای پوستی درخشان
-                </p>
-                <div class="flex items-center justify-between">
-                  <button
-                    class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-                  >
-                    خرید کنید
-                  </button>
-                  <span class="text-gray-800 font-semibold"
-                    >۵ روز باقیمانده</span
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- Discount Item 3 -->
-            <div
-              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-blue-100 to-blue-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
-            >
-              <div class="p-4">
-                <span
-                  class="inline-block bg-blue-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
-                  >۴۰٪ تخفیف</span
-                >
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                  ست‌های آرایشی
-                </h3>
-                <p class="text-gray-600 mb-4">
-                  مجموعه آرایشی خود را با ست‌های منتخب ما کامل کنید
-                </p>
-                <div class="flex items-center justify-between">
-                  <button
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-                  >
-                    خرید کنید
-                  </button>
-                  <span class="text-gray-800 font-semibold"
-                    >۳ روز باقیمانده</span
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- Discount Item 4 -->
-            <div
-              class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-green-100 to-green-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300"
-            >
-              <div class="p-4">
-                <span
-                  class="inline-block bg-green-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3"
-                  >۲۰٪ تخفیف</span
-                >
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                  مجموعه طبیعی
-                </h3>
-                <p class="text-gray-600 mb-4">
-                  محصولات زیبایی ارگانیک و مناسب برای گیاهخواران
-                </p>
-                <div class="flex items-center justify-between">
-                  <button
-                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-                  >
-                    خرید کنید
-                  </button>
-                  <span class="text-gray-800 font-semibold"
-                    >۷ روز باقیمانده</span
-                  >
-                </div>
+            class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-pink-100 to-pink-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300">
+            <div class="p-4">
+              <span class="inline-block bg-pink-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3">۲۵٪
+                تخفیف</span>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                ضروریات تابستان
+              </h3>
+              <p class="text-gray-600 mb-4">
+                با محصولات پرفروش ما برای تابستان آماده شوید
+              </p>
+              <div class="flex items-center justify-between">
+                <button
+                  class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                  خرید کنید
+                </button>
+                <span class="text-gray-800 font-semibold">۲ روز باقیمانده</span>
               </div>
             </div>
           </div>
 
-          <!-- Scroll Arrows -->
-          <button
-            class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
-            id="scroll-right"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-gray-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <button
-            class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
-            id="scroll-left"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-gray-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+          <!-- Discount Item 2 -->
+          <div
+            class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-purple-100 to-purple-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300">
+            <div class="p-4">
+              <span class="inline-block bg-purple-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3">۳۰٪
+                تخفیف</span>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                مراقبت پوست لوکس
+              </h3>
+              <p class="text-gray-600 mb-4">
+                محصولات مراقبت از پوست با کیفیت برای پوستی درخشان
+              </p>
+              <div class="flex items-center justify-between">
+                <button
+                  class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                  خرید کنید
+                </button>
+                <span class="text-gray-800 font-semibold">۵ روز باقیمانده</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Discount Item 3 -->
+          <div
+            class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-blue-100 to-blue-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300">
+            <div class="p-4">
+              <span class="inline-block bg-blue-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3">۴۰٪
+                تخفیف</span>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                ست‌های آرایشی
+              </h3>
+              <p class="text-gray-600 mb-4">
+                مجموعه آرایشی خود را با ست‌های منتخب ما کامل کنید
+              </p>
+              <div class="flex items-center justify-between">
+                <button
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                  خرید کنید
+                </button>
+                <span class="text-gray-800 font-semibold">۳ روز باقیمانده</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Discount Item 4 -->
+          <div
+            class="discount-card flex-shrink-0 w-72 bg-gradient-to-l from-green-100 to-green-200 rounded-lg overflow-hidden shadow-md transition-transform duration-300">
+            <div class="p-4">
+              <span class="inline-block bg-green-500 text-white text-sm font-semibold px-3 py-1 rounded-full mb-3">۲۰٪
+                تخفیف</span>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                مجموعه طبیعی
+              </h3>
+              <p class="text-gray-600 mb-4">
+                محصولات زیبایی ارگانیک و مناسب برای گیاهخواران
+              </p>
+              <div class="flex items-center justify-between">
+                <button
+                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                  خرید کنید
+                </button>
+                <span class="text-gray-800 font-semibold">۷ روز باقیمانده</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Scroll Arrows -->
+        <button
+          class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
+          id="scroll-right">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
+          id="scroll-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Product Categories -->
-    <section class="py-12 px-4 bg-gray-50">
-      <div class="max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
-          خرید بر اساس دسته‌ بندی
-        </h2>
-        <p class="text-gray-600 mb-8 fade-in delay-100">
-          مجموعه گسترده محصولات زیبایی ما را کاوش کنید
-        </p>
+  <!-- Product Categories -->
+  <section class="py-12 px-4 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+        خرید بر اساس دسته‌ بندی
+      </h2>
+      <p class="text-gray-600 mb-8 fade-in delay-100">
+        مجموعه گسترده محصولات زیبایی ما را کاوش کنید
+      </p>
 
-        <div
-          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 fade-in delay-200"
-        >
-          <% for(let category of categories) {%>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 fade-in delay-200">
+        <% for(let category of categories) {%>
           <a href="/shop" onclick="setSelectedCategory('<%= category.name %>')">
             <div
-              class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300"
-            >
-              <div
-                class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-                style="background-color: <%= category.color %>"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  style="color: <%= category.textColor %>"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="<%= category.imgSvgForHome  %>"
-                  />
+              class="category-item bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-transform duration-300">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style="background-color: <%= category.color %>">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" style="color: <%= category.textColor %>">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="<%= category.imgSvgForHome  %>" />
                 </svg>
               </div>
               <h3 class="text-lg font-semibold text-gray-800">
@@ -1103,57 +753,50 @@
             </div>
           </a>
           <% } %>
-        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Best Selling Products -->
-    <section class="py-12 px-4 bg-white">
-      <div class="max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
-          پرفروش‌ ترین‌ ها
-        </h2>
-        <p class="text-gray-600 mb-8 fade-in delay-100">
-          محبوب‌ترین محصولات ما که مشتریان دوست دارند
-        </p>
+  <!-- Best Selling Products -->
+  <section class="py-12 px-4 bg-white">
+    <div class="max-w-7xl mx-auto">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+        پرفروش‌ ترین‌ ها
+      </h2>
+      <p class="text-gray-600 mb-8 fade-in delay-100">
+        محبوب‌ترین محصولات ما که مشتریان دوست دارند
+      </p>
 
-        <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200"
-        >
-          <!-- Product 1 -->
-          <% for (let product of products) {%>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200">
+        <!-- Product 1 -->
+        <% for (let product of products) {%>
           <div
-            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-          >
+            class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300">
             <a href="/productDetails/<%= product.slug %>">
               <div class="relative">
                 <div class="h-64 bg-pink-100 flex items-center justify-center">
-                  <img
-                    src="<%= product.images[0] %>"
-                    alt=""
-                    style="height: 100%; width: 100%"
-                  />
+                  <img src="<%= product.images[0] %>" alt="" style="height: 100%; width: 100%" />
                 </div>
               </div>
             </a>
             <div class="p-4">
               <div class="flex items-center mb-1">
-                <% const fullStars=Math.floor(product.rating); const
-                hasHalfStar=product.rating % 1>= 0.5; const emptyStars = 5 -
-                fullStars - (hasHalfStar ? 1 : 0); %>
+                <% const fullStars=Math.floor(product.rating); const hasHalfStar=product.rating % 1>= 0.5; const
+                  emptyStars = 5 -
+                  fullStars - (hasHalfStar ? 1 : 0); %>
 
-                <div class="flex text-yellow-400">
-                  <% for (let i=0; i < fullStars; i++) { %>
-                  <i class="fas fa-star"></i>
-                  <% } %> <% if (hasHalfStar) { %>
-                  <i class="fas fa-star-half-alt"></i>
-                  <% } %> <% for (let i=0; i < emptyStars; i++) { %>
-                  <i class="far fa-star"></i>
-                  <% } %>
-                </div>
-                <span class="text-gray-500 text-sm mr-1"
-                  >(<%= toPersianDigits(product.reviewsNum) %>)</span
-                >
+                  <div class="flex text-yellow-400">
+                    <% for (let i=0; i < fullStars; i++) { %>
+                      <i class="fas fa-star"></i>
+                      <% } %>
+                        <% if (hasHalfStar) { %>
+                          <i class="fas fa-star-half-alt"></i>
+                          <% } %>
+                            <% for (let i=0; i < emptyStars; i++) { %>
+                              <i class="far fa-star"></i>
+                              <% } %>
+                  </div>
+                  <span class="text-gray-500 text-sm mr-1">(<%= toPersianDigits(product.reviewsNum) %>)</span>
               </div>
               <h3 class="text-lg font-semibold text-gray-800 mb-1">
                 <%= product.name %>
@@ -1163,559 +806,109 @@
               </p>
               <div class="flex items-center justify-between">
                 <% if(product.offerPrice) {%>
-                <div>
-                  <span class="text-pink-500 font-bold">
-                    <%= toPersianDigits(product.offerPrice) %> تومان
-                  </span>
-                  <span class="text-gray-400 line-through text-sm mr-2">
-                    <%= toPersianDigits(product.price) %> تومان
-                  </span>
-                </div>
-                <% } else {%>
-                <div>
-                  <span class="text-pink-500 font-bold">
-                    <%= toPersianDigits(product.price) %> تومان
-                  </span>
-                </div>
-                <% } %>
-                <div class="icon-container">
-                  <!-- آیکون سبد خرید -->
+                  <div>
+                    <span class="text-pink-500 font-bold">
+                      <%= toPersianDigits(product.offerPrice) %> تومان
+                    </span>
+                    <span class="text-gray-400 line-through text-sm mr-2">
+                      <%= toPersianDigits(product.price) %> تومان
+                    </span>
+                  </div>
+                  <% } else {%>
+                    <div>
+                      <span class="text-pink-500 font-bold">
+                        <%= toPersianDigits(product.price) %> تومان
+                      </span>
+                    </div>
+                    <% } %>
+                      <div class="icon-container">
+                        <!-- آیکون سبد خرید -->
 
-                  <svg
-                    id="cartIcon"
-                    onclick="incrementCartCount('<%= product._id %>')"
-                    class="cart-icon icon cursor-pointer"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
-                    ></path>
-                    <circle cx="9" cy="20" r="1"></circle>
-                    <circle cx="20" cy="20" r="1"></circle>
-                  </svg>
+                        <svg id="cartIcon" onclick="incrementCartCount('<%= product._id %>')"
+                          class="cart-icon icon cursor-pointer" viewBox="0 0 24 24">
+                          <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"></path>
+                          <circle cx="9" cy="20" r="1"></circle>
+                          <circle cx="20" cy="20" r="1"></circle>
+                        </svg>
 
-                  <!-- آیکون تیک (مخفی شده) -->
-                  <svg
-                    id="successIcon"
-                    class="success-icon icon hidden"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
+                        <!-- آیکون تیک (مخفی شده) -->
+                        <svg id="successIcon" class="success-icon icon hidden" viewBox="0 0 24 24">
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      </div>
               </div>
             </div>
           </div>
           <% } %>
 
-          <!-- Blog Section -->
-          <section
-            class="py-12 px-4 bg-gray-50 w-[26em] sm:w-[47em] lg:w-[80em] mx-auto"
-          >
-            <div class="max-w-7xl mx-auto">
-              <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
-                وبلاگ زیبایی
-              </h2>
-              <p class="text-gray-600 mb-8 fade-in delay-100">
-                نکات، روندها و الهام بخشی زیبایی
-              </p>
+            <!-- Blog Section -->
+            <section class="py-12 px-4 bg-gray-50 w-[26em] sm:w-[47em] lg:w-[80em] mx-auto">
+              <div class="max-w-7xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
+                  وبلاگ زیبایی
+                </h2>
+                <p class="text-gray-600 mb-8 fade-in delay-100">
+                  نکات، روندها و الهام بخشی زیبایی
+                </p>
 
-              <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200"
-              >
-                <!-- Blog Post 1 -->
-                <% for (let weblog of weblogs) {%>
-                <div
-                  class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300"
-                >
-                  <a
-                    href="/weblog"
-                    onclick="setSelectedWeblog('<%= weblog._id %>')"
-                  >
-                    <div class="h-48 bg-pink-200 relative">
-                      <img
-                        src="<%= weblog.images[0] %>"
-                        alt=""
-                        style="height: 100%; width: 100%"
-                      />
-                    </div>
-                  </a>
-                  <div class="p-5">
-                    <div class="flex items-center text-gray-500 text-sm mb-3">
-                      <i class="far fa-calendar-alt ml-2"></i>
-                      <span>
-                        <%= toPersianDigitsForSizes(weblog.createTarikh).split("
-                        ").slice(2).join(" ") %></span
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200">
+                  <!-- Blog Post 1 -->
+                  <% for (let weblog of weblogs) {%>
+                    <div
+                      class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300">
+                      <a href="/weblog" onclick="event.preventDefault(); localStorage.setItem('weblogId', '<%= weblog._id %>'); window.location=this.href;">
+                        <div class="h-48 bg-pink-200 relative">
+                          <img src="<%= weblog.images[0] %>" alt="" style="height: 100%; width: 100%" />
+                        </div>
+                      </a>
+                      <div class="p-5">
+                        <div class="flex items-center text-gray-500 text-sm mb-3">
+                          <i class="far fa-calendar-alt ml-2"></i>
+                          <span>
+                            <%= toPersianDigitsForSizes(weblog.createTarikh).split(" ").slice(2).join(" ")
+                        %></span
                       >
-                      <span class="mx-2">• </span>
-                      <i class="far fa-user ml-2"></i>
-                      <span>نویسنده: <%= weblog.author %></span>
+                      <span class=" mx-2">•
+                          </span>
+                          <i class="far fa-user ml-2"></i>
+                          <span>نویسنده: <%= weblog.author %></span>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                          <%= weblog.title %>
+                        </h3>
+                        <p class="text-gray-600 mb-4">
+                          <%= weblog.description %>
+                        </p>
+                        <a href="/weblogDetails/<%= weblog.slug %>"
+                          class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors">
+                          بیشتر بخوانید
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 rotate-180" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </a>
+                      </div>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                      <%= weblog.title %>
-                    </h3>
-                    <p class="text-gray-600 mb-4"><%= weblog.description %></p>
-                    <a
-                      href="/weblogDetails/<%= weblog.slug %>"
-                      class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors"
-                    >
-                      بیشتر بخوانید
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mr-1 rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </a>
-                  </div>
+                    <% } %>
                 </div>
-                <% } %>
               </div>
-            </div>
-          </section>
 
-          <script>
-            function setSelectedCategory(categoryName) {
-              localStorage.setItem("selectedCategory", categoryName);
-            }
+            </section>
 
-            function setSelectedWeblog(weblogId) {
-              localStorage.setItem("weblogId", weblogId);
-            }
-
-            function incrementCartCount(id) {
-              fetch("/api/cart/add", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  productId: id,
-                }),
-              })
-                .then((res) => res.json())
-                .then((data) => {
-                  if (data.success) {
-                    // Only run this if registration was successful
-                    alert(data.message);
-                    location.reload();
-                  } else {
-                    // Show error message
-                    alert(data.message); // You can use a toast or modal instead
-                  }
-                })
-                .catch((err) => {
-                  console.error("Error:", err);
-                  alert("مشکلی در ارتباط با سرور به وجود آمده است");
-                });
-
-              // const countEl = document.getElementById("cartCount");
-              // let count = parseInt(countEl.textContent);
-              // count++;
-              // countEl.textContent = count;
-            }
-            document.querySelectorAll(".cart-icon").forEach((cartIcon) => {
-              cartIcon.addEventListener("click", function () {
-                // پیدا کردن آیکون تیک مربوط به همین محصول
-                const successIcon =
-                  this.closest(".icon-container").querySelector(
-                    ".success-icon"
-                  );
-
-                // مخفی کردن آیکون سبد خرید
-                this.classList.add("hidden");
-
-                // نمایش آیکون تیک
-                successIcon.classList.remove("hidden");
-
-                // بازگشت به حالت اولیه بعد از 2 ثانیه
-                setTimeout(() => {
-                  this.classList.remove("hidden");
-                  successIcon.classList.add("hidden");
-                }, 2000);
-              });
-            });
-
-            // Hero Slider
-            const slides = document.querySelectorAll(".slide");
-            const dots = document.querySelectorAll(".slider-dot");
-            let currentSlide = 0;
-
-            function showSlide(index) {
-              slides.forEach((slide) => slide.classList.remove("active"));
-              dots.forEach((dot) => dot.classList.remove("active"));
-              slides[index].classList.add("active");
-              dots[index].classList.add("active");
-              currentSlide = index;
-            }
-
-            dots.forEach((dot, index) => {
-              dot.addEventListener("click", () => {
-                showSlide(index);
-              });
-            });
-
-            function nextSlide() {
-              currentSlide = (currentSlide + 1) % slides.length;
-              showSlide(currentSlide);
-            }
-
-            // Auto slide every 5 seconds
-            setInterval(nextSlide, 5000);
-
-            // Discount Slider Scroll - Note: Reversed for RTL
-            const scrollLeftBtn = document.getElementById("scroll-left");
-            const scrollRightBtn = document.getElementById("scroll-right");
-            const discountSlider = document.querySelector(".discount-slider");
-
-            scrollLeftBtn.addEventListener("click", () => {
-              discountSlider.scrollBy({ left: 300, behavior: "smooth" }); // Reversed for RTL
-            });
-
-            scrollRightBtn.addEventListener("click", () => {
-              discountSlider.scrollBy({ left: -300, behavior: "smooth" }); // Reversed for RTL
-            });
-
-            // Fade-in animation on scroll
-            const fadeElements = document.querySelectorAll(".fade-in");
-
-            function checkFade() {
-              fadeElements.forEach((element) => {
-                const elementTop = element.getBoundingClientRect().top;
-                const windowHeight = window.innerHeight;
-
-                if (elementTop < windowHeight - 100) {
-                  element.classList.add("fade-visible");
-                }
-              });
-            }
-
-            window.addEventListener("scroll", checkFade);
-            window.addEventListener("load", checkFade);
-
-            document.addEventListener("DOMContentLoaded", function () {
-              // مدیریت اسلایدر هیرو
-              const slides = document.querySelectorAll(".slide");
-              const dots = document.querySelectorAll(".slider-dot");
-              let currentSlide = 0;
-
-              function showSlide(index) {
-                slides.forEach((slide) => slide.classList.remove("active"));
-                dots.forEach((dot) => dot.classList.remove("active"));
-
-                slides[index].classList.add("active");
-                dots[index].classList.add("active");
-                currentSlide = index;
+            <script>
+              function setSelectedCategory(categoryName) {
+                localStorage.setItem("selectedCategory", categoryName);
               }
-
-              dots.forEach((dot) => {
-                dot.addEventListener("click", function () {
-                  showSlide(parseInt(this.dataset.index));
-                });
-              });
-
-              setInterval(() => {
-                currentSlide = (currentSlide + 1) % slides.length;
-                showSlide(currentSlide);
-              }, 5000);
-
-              // مدیریت پاپ‌آپ احراز هویت
-              const authButton = document.getElementById("user-auth-button");
-              const authPopup = document.getElementById("auth-popup");
-
-              authButton.addEventListener("click", function (e) {
-                e.preventDefault();
-                authPopup.classList.remove("hidden");
-                switchTab("login");
-              });
-
-              authPopup.addEventListener("click", function (e) {
-                if (e.target === authPopup) {
-                  authPopup.classList.add("hidden");
-                }
-              });
-
-              // Tab Switching
-              const tabs = {
-                login: document.getElementById("login-tab"),
-                register: document.getElementById("register-tab"),
-                forgot: document.getElementById("forgot-tab"),
-              };
-
-              const contents = {
-                login: document.getElementById("login-content"),
-                register: document.getElementById("register-content"),
-                forgot: document.getElementById("forgot-content"),
-              };
-
-              function switchTab(activeTab) {
-                Object.values(tabs).forEach((tab) => {
-                  tab.classList.remove("border-pink-500", "text-pink-500");
-                  tab.classList.add("text-gray-500");
-                });
-
-                Object.values(contents).forEach((content) => {
-                  content.classList.remove("active");
-                });
-
-                tabs[activeTab].classList.add(
-                  "border-pink-500",
-                  "text-pink-500"
-                );
-                tabs[activeTab].classList.remove("text-gray-500");
-                contents[activeTab].classList.add("active");
-              }
-
-              tabs.login.addEventListener("click", () => switchTab("login"));
-              tabs.register.addEventListener("click", () =>
-                switchTab("register")
-              );
-              tabs.forgot.addEventListener("click", () => switchTab("forgot"));
-
-              // Improved OTP input handling (LTR focus movement)
-              function getOtpValue(containerSelector) {
-                const inputs = Array.from(
-                  document.querySelectorAll(`${containerSelector} .otp-input`)
-                );
-                return inputs.map((input) => input.value).join("");
-              }
-
-              // Registration Process
-              const registerForm = document.getElementById("register-form");
-              const registerStep1 = document.getElementById("register-step-1");
-              const registerStep2 = document.getElementById("register-step-2");
-              const registerPhoneDisplay = document.getElementById(
-                "register-phone-display"
-              );
-
-              registerForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const fullName = document.getElementById("register-name").value;
-                const mobile = document
-                  .getElementById("register-phone")
-                  .value.trim();
-                const email = document
-                  .getElementById("register-email")
-                  .value.trim();
-                const password =
-                  document.getElementById("register-password").value;
-                const confirmPassword = document.getElementById(
-                  "register-confirm-password"
-                ).value;
-
-                const iranMobileRegex = /^09\d{9}$/;
-                const emailRegex = /^\S+@\S+\.\S+$/;
-
-                if (fullName.length < 3) {
-                  alert("نام کامل باید حداقل ۳ کاراکتر باشد");
-                  return;
-                }
-
-                // ✅ Mobile number format
-                if (!iranMobileRegex.test(mobile)) {
-                  alert("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)");
-                  return;
-                }
-
-                // ✅ Email (if entered)
-                if (email && !emailRegex.test(email)) {
-                  alert("ایمیل وارد شده معتبر نیست");
-                  return;
-                }
-
-                // ✅ Password rules
-                if (password.length < 8) {
-                  alert("رمز عبور باید حداقل ۸ کاراکتر باشد");
-                  return;
-                }
-
-                if (password !== confirmPassword) {
-                  alert("رمز عبور و تکرار آن یکسان نیستند");
-                  return;
-                }
-
-                const formDataRegister = new FormData(registerForm);
-                const phone = document.getElementById("register-phone").value;
-                registerPhoneDisplay.textContent = phone;
-                registerStep1.classList.remove("active");
-                registerStep2.classList.add("active");
-                startCountdown("register-resend-timer", 120);
-                setupOtpInputs("#register-step-2");
-
-                fetch("/api/mobile/sendOtp", {
+              function incrementCartCount(id) {
+                fetch("/api/cart/add", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
-                  body: JSON.stringify({ mobile: phone }),
-                })
-                  .then((res) => res.json())
-                  .then((data) => {
-                    if (data.success) {
-                      // Only run this if otp was successful
-                      // otp verification form
-                      const registerVerificationForm = document.getElementById(
-                        "register-verification-form"
-                      );
-
-                      registerVerificationForm.addEventListener(
-                        "submit",
-                        function (e) {
-                          e.preventDefault();
-                          const otpValue = getOtpValue("#register-step-2");
-                          const reversedOtpValue = otpValue
-                            .split("")
-                            .reverse()
-                            .join("");
-                          fetch("/api/mobile/verifyOtp", {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                              mobile: phone,
-                              otp: reversedOtpValue,
-                            }),
-                          })
-                            .then((res) => res.json())
-                            .then((data) => {
-                              if (data.success) {
-                                fetch("/api/authentication/signUp", {
-                                  method: "POST",
-                                  body: formDataRegister,
-                                })
-                                  .then((res) => res.json())
-                                  .then((data) => {
-                                    if (data.success) {
-                                      // Only run this if registration was successful
-                                      alert(data.message);
-                                      location.reload();
-                                    } else {
-                                      // Show error message
-                                      alert(data.message); // You can use a toast or modal instead
-                                    }
-                                  })
-                                  .catch((err) => {
-                                    console.error("Error:", err);
-                                    alert(
-                                      "مشکلی در ارتباط با سرور به وجود آمده است"
-                                    );
-                                  });
-                                authPopup.classList.add("hidden");
-                              } else {
-                                alert(data.message);
-                              }
-                            })
-                            .catch((err) => {
-                              console.error("Error:", err);
-                              alert("مشکلی در ارتباط با سرور به وجود آمده است");
-                            });
-                        }
-                      );
-                    } else {
-                      // Show error message
-                      alert(data.message);
-                    }
-                  })
-                  .catch((err) => {
-                    console.error("Error:", err);
-                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
-                  });
-              });
-
-              document
-                .getElementById("register-back-btn")
-                .addEventListener("click", function () {
-                  registerStep2.classList.remove("active");
-                  registerStep1.classList.add("active");
-                });
-
-              // Forgot Password Process
-              const forgotForm = document.getElementById("forgot-form");
-              const forgotStep1 = document.getElementById("forgot-step-1");
-              const forgotStep2 = document.getElementById("forgot-step-2");
-              const forgotStep3 = document.getElementById("forgot-step-3");
-              const forgotPhoneDisplay = document.getElementById(
-                "forgot-phone-display"
-              );
-
-              forgotForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                const phone = document.getElementById("forgot-phone").value;
-                forgotPhoneDisplay.textContent = phone;
-                forgotStep1.classList.remove("active");
-                forgotStep2.classList.add("active");
-                startCountdown("forgot-resend-timer", 120);
-                setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
-              });
-
-              document
-                .getElementById("forgot-back-btn")
-                .addEventListener("click", function () {
-                  forgotStep2.classList.remove("active");
-                  forgotStep1.classList.add("active");
-                });
-              function setupOtpInputs(containerSelector) {
-                const inputs = Array.from(
-                  document.querySelectorAll(`${containerSelector} .otp-input`)
-                );
-
-                // فوکوس روی آخرین اینپوت (راست‌ترین)
-                inputs[inputs.length - 1].focus();
-
-                inputs.forEach((input, index) => {
-                  // حرکت به چپ هنگام وارد کردن عدد
-                  input.addEventListener("input", function () {
-                    if (this.value.length === 1) {
-                      if (index > 0) {
-                        inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
-                      }
-                    }
-                  });
-
-                  // حرکت به راست هنگام پاک کردن
-                  input.addEventListener("keydown", function (e) {
-                    if (e.key === "Backspace" && this.value.length === 0) {
-                      if (index < inputs.length - 1) {
-                        inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
-                      }
-                    }
-                  });
-                });
-              }
-
-              // Initialize OTP inputs for both forms
-              setupOtpInputs("#register-step-2");
-              setupOtpInputs("#forgot-step-2");
-
-              // Forgot password verification form
-              const forgotVerificationForm = document.getElementById(
-                "forgot-verification-form"
-              );
-              forgotVerificationForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                forgotStep2.classList.remove("active");
-                forgotStep3.classList.add("active");
-              });
-
-              // Login form submission
-              const loginForm = document.getElementById("login-form");
-
-              loginForm.addEventListener("submit", function (e) {
-                const formDataLogin = new FormData(loginForm);
-                e.preventDefault();
-                fetch("/api/authentication/signIn", {
-                  method: "POST",
-                  body: formDataLogin,
+                  body: JSON.stringify({
+                    productId: id,
+                    quantity : 1
+                  }),
                 })
                   .then((res) => res.json())
                   .then((data) => {
@@ -1723,7 +916,6 @@
                       // Only run this if registration was successful
                       alert(data.message);
                       location.reload();
-                      authPopup.classList.add("hidden");
                     } else {
                       // Show error message
                       alert(data.message); // You can use a toast or modal instead
@@ -1733,175 +925,557 @@
                     console.error("Error:", err);
                     alert("مشکلی در ارتباط با سرور به وجود آمده است");
                   });
+
+                // const countEl = document.getElementById("cartCount");
+                // let count = parseInt(countEl.textContent);
+                // count++;
+                // countEl.textContent = count;
+              }
+              document.querySelectorAll(".cart-icon").forEach((cartIcon) => {
+                cartIcon.addEventListener("click", function () {
+                  // پیدا کردن آیکون تیک مربوط به همین محصول
+                  const successIcon =
+                    this.closest(".icon-container").querySelector(
+                      ".success-icon"
+                    );
+
+                  // مخفی کردن آیکون سبد خرید
+                  this.classList.add("hidden");
+
+                  // نمایش آیکون تیک
+                  successIcon.classList.remove("hidden");
+
+                  // بازگشت به حالت اولیه بعد از 2 ثانیه
+                  setTimeout(() => {
+                    this.classList.remove("hidden");
+                    successIcon.classList.add("hidden");
+                  }, 2000);
+                });
               });
 
-              // New password form submission
-              const newPasswordForm =
-                document.getElementById("new-password-form");
-              newPasswordForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                alert("رمز عبور با موفقیت تغییر یافت!");
-                authPopup.classList.add("hidden");
-              });
+              // Hero Slider
+              const slides = document.querySelectorAll(".slide");
+              const dots = document.querySelectorAll(".slider-dot");
+              let currentSlide = 0;
 
-              // Countdown timer function
-              function startCountdown(elementId, seconds) {
-                const timerElement = document.getElementById(elementId);
-                const timerSpan = timerElement.querySelector("span");
-
-                let remaining = seconds;
-
-                const interval = setInterval(() => {
-                  const minutes = Math.floor(remaining / 60);
-                  const secs = remaining % 60;
-
-                  timerSpan.textContent = `${minutes
-                    .toString()
-                    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-
-                  if (remaining <= 0) {
-                    clearInterval(interval);
-                    timerElement.innerHTML =
-                      '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
-                  }
-
-                  remaining--;
-                }, 1000);
+              function showSlide(index) {
+                slides.forEach((slide) => slide.classList.remove("active"));
+                dots.forEach((dot) => dot.classList.remove("active"));
+                slides[index].classList.add("active");
+                dots[index].classList.add("active");
+                currentSlide = index;
               }
 
-              // Phone number input validation
-              const phoneInputs =
-                document.querySelectorAll('input[type="tel"]');
-              phoneInputs.forEach((input) => {
-                input.addEventListener("input", function (e) {
-                  this.value = this.value.replace(/\D/g, "");
-                });
-
-                input.addEventListener("blur", function () {
-                  if (!this.value.startsWith("0") && this.value.length > 0) {
-                    this.value = "0" + this.value;
-                  }
+              dots.forEach((dot, index) => {
+                dot.addEventListener("click", () => {
+                  showSlide(index);
                 });
               });
-            });
-          </script>
+
+              function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+              }
+
+              // Auto slide every 5 seconds
+              setInterval(nextSlide, 5000);
+
+              // Discount Slider Scroll - Note: Reversed for RTL
+              const scrollLeftBtn = document.getElementById("scroll-left");
+              const scrollRightBtn = document.getElementById("scroll-right");
+              const discountSlider = document.querySelector(".discount-slider");
+
+              scrollLeftBtn.addEventListener("click", () => {
+                discountSlider.scrollBy({ left: 300, behavior: "smooth" }); // Reversed for RTL
+              });
+
+              scrollRightBtn.addEventListener("click", () => {
+                discountSlider.scrollBy({ left: -300, behavior: "smooth" }); // Reversed for RTL
+              });
+
+              // Fade-in animation on scroll
+              const fadeElements = document.querySelectorAll(".fade-in");
+
+              function checkFade() {
+                fadeElements.forEach((element) => {
+                  const elementTop = element.getBoundingClientRect().top;
+                  const windowHeight = window.innerHeight;
+
+                  if (elementTop < windowHeight - 100) {
+                    element.classList.add("fade-visible");
+                  }
+                });
+              }
+
+              window.addEventListener("scroll", checkFade);
+              window.addEventListener("load", checkFade);
+
+              document.addEventListener("DOMContentLoaded", function () {
+                // مدیریت اسلایدر هیرو
+                const slides = document.querySelectorAll(".slide");
+                const dots = document.querySelectorAll(".slider-dot");
+                let currentSlide = 0;
+
+                function showSlide(index) {
+                  slides.forEach((slide) => slide.classList.remove("active"));
+                  dots.forEach((dot) => dot.classList.remove("active"));
+
+                  slides[index].classList.add("active");
+                  dots[index].classList.add("active");
+                  currentSlide = index;
+                }
+
+                dots.forEach((dot) => {
+                  dot.addEventListener("click", function () {
+                    showSlide(parseInt(this.dataset.index));
+                  });
+                });
+
+                setInterval(() => {
+                  currentSlide = (currentSlide + 1) % slides.length;
+                  showSlide(currentSlide);
+                }, 5000);
+
+                // مدیریت پاپ‌آپ احراز هویت
+                const authButton = document.getElementById("user-auth-button");
+                const authPopup = document.getElementById("auth-popup");
+
+                authButton.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  authPopup.classList.remove("hidden");
+                  switchTab("login");
+                });
+
+                authPopup.addEventListener("click", function (e) {
+                  if (e.target === authPopup) {
+                    authPopup.classList.add("hidden");
+                  }
+                });
+
+                // Tab Switching
+                const tabs = {
+                  login: document.getElementById("login-tab"),
+                  register: document.getElementById("register-tab"),
+                  forgot: document.getElementById("forgot-tab"),
+                };
+
+                const contents = {
+                  login: document.getElementById("login-content"),
+                  register: document.getElementById("register-content"),
+                  forgot: document.getElementById("forgot-content"),
+                };
+
+                function switchTab(activeTab) {
+                  Object.values(tabs).forEach((tab) => {
+                    tab.classList.remove("border-pink-500", "text-pink-500");
+                    tab.classList.add("text-gray-500");
+                  });
+
+                  Object.values(contents).forEach((content) => {
+                    content.classList.remove("active");
+                  });
+
+                  tabs[activeTab].classList.add(
+                    "border-pink-500",
+                    "text-pink-500"
+                  );
+                  tabs[activeTab].classList.remove("text-gray-500");
+                  contents[activeTab].classList.add("active");
+                }
+
+                tabs.login.addEventListener("click", () => switchTab("login"));
+                tabs.register.addEventListener("click", () =>
+                  switchTab("register")
+                );
+                tabs.forgot.addEventListener("click", () => switchTab("forgot"));
+
+                // Improved OTP input handling (LTR focus movement)
+                function getOtpValue(containerSelector) {
+                  const inputs = Array.from(
+                    document.querySelectorAll(`${containerSelector} .otp-input`)
+                  );
+                  return inputs.map((input) => input.value).join("");
+                }
+
+                // Registration Process
+                const registerForm = document.getElementById("register-form");
+                const registerStep1 = document.getElementById("register-step-1");
+                const registerStep2 = document.getElementById("register-step-2");
+                const registerPhoneDisplay = document.getElementById(
+                  "register-phone-display"
+                );
+
+                registerForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+
+                  const fullName = document.getElementById("register-name").value
+                  const mobile = document.getElementById("register-phone").value.trim();
+                  const email = document.getElementById("register-email").value.trim();
+                  const password = document.getElementById("register-password").value;
+                  const confirmPassword = document.getElementById("register-confirm-password").value;
+
+                  
+                  const iranMobileRegex = /^09\d{9}$/;
+                  const emailRegex = /^\S+@\S+\.\S+$/;
+
+
+                      if (fullName.length < 3) {
+                      alert("نام کامل باید حداقل ۳ کاراکتر باشد");
+                      return;
+                    }
+
+                    // ✅ Mobile number format
+                    if (!iranMobileRegex.test(mobile)) {
+                      alert("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)");
+                      return;
+                    }
+
+                    // ✅ Email (if entered)
+                    if (email && !emailRegex.test(email)) {
+                      alert("ایمیل وارد شده معتبر نیست");
+                      return;
+                    }
+
+                    // ✅ Password rules
+                    if (password.length < 8) {
+                      alert("رمز عبور باید حداقل ۸ کاراکتر باشد");
+                      return;
+                    }
+
+                    if (password !== confirmPassword) {
+                      alert("رمز عبور و تکرار آن یکسان نیستند");
+                      return;
+    }
+
+
+                  const formDataRegister = new FormData(registerForm);
+                  const phone = document.getElementById("register-phone").value;
+                  registerPhoneDisplay.textContent = phone;
+                  registerStep1.classList.remove("active");
+                  registerStep2.classList.add("active");
+                  startCountdown("register-resend-timer", 120);
+                  setupOtpInputs("#register-step-2");
+
+                  fetch("/api/mobile/sendOtp", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ mobile: phone }),
+                  })
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data.success) {
+                        // Only run this if otp was successful
+                        // otp verification form
+                        const registerVerificationForm = document.getElementById(
+                          "register-verification-form"
+                        );
+
+                        registerVerificationForm.addEventListener(
+                          "submit",
+                          function (e) {
+                            e.preventDefault();
+                            const otpValue = getOtpValue("#register-step-2");
+                            const reversedOtpValue = otpValue
+                              .split("")
+                              .reverse()
+                              .join("");
+                            fetch("/api/mobile/verifyOtp", {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({
+                                mobile: phone,
+                                otp: reversedOtpValue,
+                              }),
+                            })
+                              .then((res) => res.json())
+                              .then((data) => {
+                                if (data.success) {
+                                  fetch("/api/authentication/signUp", {
+                                    method: "POST",
+                                    body: formDataRegister,
+                                  })
+                                    .then((res) => res.json())
+                                    .then((data) => {
+                                      if (data.success) {
+                                        // Only run this if registration was successful
+                                        alert(data.message);
+                                        location.reload();
+                                      } else {
+                                        // Show error message
+                                        alert(data.message); // You can use a toast or modal instead
+                                      }
+                                    })
+                                    .catch((err) => {
+                                      console.error("Error:", err);
+                                      alert(
+                                        "مشکلی در ارتباط با سرور به وجود آمده است"
+                                      );
+                                    });
+                                  authPopup.classList.add("hidden");
+                                } else {
+                                  alert(data.message);
+                                }
+                              })
+                              .catch((err) => {
+                                console.error("Error:", err);
+                                alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                              });
+                          }
+                        );
+                      } else {
+                        // Show error message
+                        alert(data.message);
+                      }
+                    })
+                    .catch((err) => {
+                      console.error("Error:", err);
+                      alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                    });
+                });
+
+                document
+                  .getElementById("register-back-btn")
+                  .addEventListener("click", function () {
+                    registerStep2.classList.remove("active");
+                    registerStep1.classList.add("active");
+                  });
+
+                // Forgot Password Process
+                const forgotForm = document.getElementById("forgot-form");
+                const forgotStep1 = document.getElementById("forgot-step-1");
+                const forgotStep2 = document.getElementById("forgot-step-2");
+                const forgotStep3 = document.getElementById("forgot-step-3");
+                const forgotPhoneDisplay = document.getElementById(
+                  "forgot-phone-display"
+                );
+
+                forgotForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  const phone = document.getElementById("forgot-phone").value;
+                  forgotPhoneDisplay.textContent = phone;
+                  forgotStep1.classList.remove("active");
+                  forgotStep2.classList.add("active");
+                  startCountdown("forgot-resend-timer", 120);
+                  setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
+                });
+
+                document
+                  .getElementById("forgot-back-btn")
+                  .addEventListener("click", function () {
+                    forgotStep2.classList.remove("active");
+                    forgotStep1.classList.add("active");
+                  });
+                function setupOtpInputs(containerSelector) {
+                  const inputs = Array.from(
+                    document.querySelectorAll(`${containerSelector} .otp-input`)
+                  );
+
+                  // فوکوس روی آخرین اینپوت (راست‌ترین)
+                  inputs[inputs.length - 1].focus();
+
+                  inputs.forEach((input, index) => {
+                    // حرکت به چپ هنگام وارد کردن عدد
+                    input.addEventListener("input", function () {
+                      if (this.value.length === 1) {
+                        if (index > 0) {
+                          inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
+                        }
+                      }
+                    });
+
+                    // حرکت به راست هنگام پاک کردن
+                    input.addEventListener("keydown", function (e) {
+                      if (e.key === "Backspace" && this.value.length === 0) {
+                        if (index < inputs.length - 1) {
+                          inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
+                        }
+                      }
+                    });
+                  });
+                }
+
+                // Initialize OTP inputs for both forms
+                setupOtpInputs("#register-step-2");
+                setupOtpInputs("#forgot-step-2");
+
+                // Forgot password verification form
+                const forgotVerificationForm = document.getElementById(
+                  "forgot-verification-form"
+                );
+                forgotVerificationForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  forgotStep2.classList.remove("active");
+                  forgotStep3.classList.add("active");
+                });
+
+                // Login form submission
+                const loginForm = document.getElementById("login-form");
+
+                loginForm.addEventListener("submit", function (e) {
+                  const formDataLogin = new FormData(loginForm);
+                  e.preventDefault();
+                  fetch("/api/authentication/signIn", {
+                    method: "POST",
+                    body: formDataLogin,
+                  })
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data.success) {
+                        // Only run this if registration was successful
+                        alert(data.message);
+                        location.reload();
+                        authPopup.classList.add("hidden");
+                      } else {
+                        // Show error message
+                        alert(data.message); // You can use a toast or modal instead
+                      }
+                    })
+                    .catch((err) => {
+                      console.error("Error:", err);
+                      alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                    });
+                });
+
+                // New password form submission
+                const newPasswordForm =
+                  document.getElementById("new-password-form");
+                newPasswordForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  alert("رمز عبور با موفقیت تغییر یافت!");
+                  authPopup.classList.add("hidden");
+                });
+
+                // Countdown timer function
+                function startCountdown(elementId, seconds) {
+                  const timerElement = document.getElementById(elementId);
+                  const timerSpan = timerElement.querySelector("span");
+
+                  let remaining = seconds;
+
+                  const interval = setInterval(() => {
+                    const minutes = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+
+                    timerSpan.textContent = `${minutes
+                      .toString()
+                      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+
+                    if (remaining <= 0) {
+                      clearInterval(interval);
+                      timerElement.innerHTML =
+                        '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
+                    }
+
+                    remaining--;
+                  }, 1000);
+                }
+
+                // Phone number input validation
+                const phoneInputs =
+                  document.querySelectorAll('input[type="tel"]');
+                phoneInputs.forEach((input) => {
+                  input.addEventListener("input", function (e) {
+                    this.value = this.value.replace(/\D/g, "");
+                  });
+
+                  input.addEventListener("blur", function () {
+                    if (!this.value.startsWith("0") && this.value.length > 0) {
+                      this.value = "0" + this.value;
+                    }
+                  });
+                });
+              });
+            </script>
+      </div>
+    </div>
+  </section>
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-reverse space-x-3 mb-4">
+            <div
+              class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold">وبلاگ مدرن</h3>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
+          </p>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li>
+              <a href="#" class="hover:text-white transition-colors">طراحی وب</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-white transition-colors">برنامه‌نویسی</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-white transition-colors">UI/UX</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-white transition-colors">هوش مصنوعی</a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4">لینک‌های مفید</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li>
+              <a href="#" class="hover:text-white transition-colors">درباره ما</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-white transition-colors">تماس با ما</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-white transition-colors">حریم خصوصی</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-white transition-colors">شرایط استفاده</a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4">شبکه‌های اجتماعی</h4>
+          <div class="flex space-x-reverse space-x-4">
+            <a href="#"
+              class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+              </svg>
+            </a>
+            <a href="#"
+              class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+              </svg>
+            </a>
+            <a href="#"
+              class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
-    </section>
-    <footer class="bg-gray-900 text-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div class="flex items-center space-x-reverse space-x-3 mb-4">
-              <div
-                class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center"
-              >
-                <svg
-                  class="w-6 h-6 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold">وبلاگ مدرن</h3>
-            </div>
-            <p class="text-gray-400 text-sm leading-relaxed">
-              مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
-            </p>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >طراحی وب</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >برنامه‌نویسی</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors">UI/UX</a>
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >هوش مصنوعی</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">لینک‌های مفید</h4>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >درباره ما</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >تماس با ما</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >حریم خصوصی</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >شرایط استفاده</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">شبکه‌های اجتماعی</h4>
-            <div class="flex space-x-reverse space-x-4">
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-                  />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400"
-        >
-          <p>&amp;copy; ۱۴۰۳ وبلاگ مدرن. تمامی حقوق محفوظ است.</p>
-        </div>
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+        <p>&amp;copy; ۱۴۰۳ وبلاگ مدرن. تمامی حقوق محفوظ است.</p>
       </div>
-    </footer>
-  </body>
+    </div>
+  </footer>
+</body>
+
 </html>
