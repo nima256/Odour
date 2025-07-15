@@ -20,8 +20,16 @@ router.get("/", async (req, res) => {
     .populate("category")
     .populate("brand");
   const categories = await Category.find({ categoryType: "product" });
-  const orders = await Order.find({});
+  const orders = await Order.find({}).populate("user").populate("products");
   const brands = await Brand.find({});
+
+  const statusCounts = {
+    pendingProcessing: await Order.countDocuments({ status: "در حال پردازش" }),
+    inShipping: await Order.countDocuments({ status: "در حال ارسال" }),
+    delivered: await Order.countDocuments({ status: "تحویل داده شد" }),
+    cancelled: await Order.countDocuments({ status: "لغو شده" }),
+    totalOrders: orders.length,
+  };
 
   res.render("AdminPanel", {
     users,
@@ -29,6 +37,7 @@ router.get("/", async (req, res) => {
     categories,
     orders,
     brands,
+    statusCounts
   });
 });
 
@@ -351,24 +360,24 @@ router.post("/categories/add", async (req, res) => {
   }
 });
 
-router.put('/categories/edit/:id', async (req, res) => {
+router.put("/categories/edit/:id", async (req, res) => {
   try {
     const { name, categoryType, parentId } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
-        message: 'نام دسته‌بندی الزامی است'
+        message: "نام دسته‌بندی الزامی است",
       });
     }
 
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
-      { 
+      {
         name,
-        categoryType: categoryType || 'product',
+        categoryType: categoryType || "product",
         parentId: parentId || null,
-        updateTarikh: getPersianDate()
+        updateTarikh: getPersianDate(),
       },
       { new: true, runValidators: true }
     );
@@ -376,21 +385,21 @@ router.put('/categories/edit/:id', async (req, res) => {
     if (!updatedCategory) {
       return res.status(404).json({
         success: false,
-        message: 'دسته‌بندی یافت نشد'
+        message: "دسته‌بندی یافت نشد",
       });
     }
 
     res.json({
       success: true,
-      message: 'دسته‌بندی با موفقیت ویرایش شد',
-      category: updatedCategory
+      message: "دسته‌بندی با موفقیت ویرایش شد",
+      category: updatedCategory,
     });
   } catch (error) {
-    console.error('Error updating category:', error);
+    console.error("Error updating category:", error);
     res.status(500).json({
       success: false,
-      message: 'خطا در ویرایش دسته‌بندی',
-      error: error.message
+      message: "خطا در ویرایش دسته‌بندی",
+      error: error.message,
     });
   }
 });
@@ -450,22 +459,22 @@ router.post("/brands/add", async (req, res) => {
   }
 });
 
-router.put('/brands/edit/:id', async (req, res) => {
+router.put("/brands/edit/:id", async (req, res) => {
   try {
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
-        message: 'نام برند الزامی است'
+        message: "نام برند الزامی است",
       });
     }
 
     const updatedBrand = await Brand.findByIdAndUpdate(
       req.params.id,
-      { 
+      {
         name,
-        updateTarikh: getPersianDate()
+        updateTarikh: getPersianDate(),
       },
       { new: true, runValidators: true }
     );
@@ -473,25 +482,24 @@ router.put('/brands/edit/:id', async (req, res) => {
     if (!updatedBrand) {
       return res.status(404).json({
         success: false,
-        message: 'برند یافت نشد'
+        message: "برند یافت نشد",
       });
     }
 
     res.json({
       success: true,
-      message: 'برند با موفقیت ویرایش شد',
-      brand: updatedBrand
+      message: "برند با موفقیت ویرایش شد",
+      brand: updatedBrand,
     });
   } catch (error) {
-    console.error('Error updating brand:', error);
+    console.error("Error updating brand:", error);
     res.status(500).json({
       success: false,
-      message: 'خطا در ویرایش برند',
-      error: error.message
+      message: "خطا در ویرایش برند",
+      error: error.message,
     });
   }
 });
-
 
 router.delete("/brands/delete/:id", async (req, res) => {
   try {
@@ -513,6 +521,67 @@ router.delete("/brands/delete/:id", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "خطا در حذف برند",
+      error: error.message,
+    });
+  }
+});
+
+router.put("/orders/edit/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    if (!status) {
+      return res
+        .status(400)
+        .json({ success: false, message: "وضعیت جدید الزامی است" });
+    }
+
+    const validStatuses = [
+      "در انتظار پرداخت",
+      "در حال پردازش",
+      "بسته بندی شده",
+      "در حال ارسال",
+      "تحویل داده شد",
+      "لغو شده",
+    ];
+
+    if (!validStatuses.includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "وضعیت نامعتبر است" });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      id,
+      {
+        status,
+        $push: {
+          statusHistory: {
+            status,
+            note: req.body.note || "تغییر وضعیت توسط مدیر",
+          },
+        },
+      },
+      { new: true }
+    ).populate("user", "fullName email phone");
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "سفارش یافت نشد" });
+    }
+
+    res.json({
+      success: true,
+      message: "وضعیت سفارش با موفقیت به‌روزرسانی شد",
+      data: order,
+    });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطا در به‌روزرسانی وضعیت سفارش",
       error: error.message,
     });
   }

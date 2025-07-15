@@ -51,10 +51,10 @@
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         }
         
-        .status-pending { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
         .status-processing { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
         .status-shipping { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
         .status-delivered { background: linear-gradient(135deg, #10b981, #059669); }
+        .status-cancelled { background: linear-gradient(135deg, #ef4444, #dc2626);}
         
         .category-item {
             background: white;
@@ -79,8 +79,7 @@
         
         .notification-item:last-child {
             border-bottom: none;
-        }
-        
+        }        
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -419,32 +418,32 @@
             
             <!-- Order Status Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-                <div class="glass-card status-pending rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
-                    <div class="text-center">
-                        <i class="fas fa-clock text-2xl md:text-3xl mb-2"></i>
-                        <p class="text-xs md:text-sm opacity-90">در انتظار</p>
-                        <p class="text-xl md:text-2xl font-bold">24</p>
-                    </div>
-                </div>
                 <div class="glass-card status-processing rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
                     <div class="text-center">
                         <i class="fas fa-cog text-2xl md:text-3xl mb-2"></i>
                         <p class="text-xs md:text-sm opacity-90">در حال پردازش</p>
-                        <p class="text-xl md:text-2xl font-bold">18</p>
+                        <p class="text-xl md:text-2xl font-bold"><%= toPersianDigits(statusCounts.pendingProcessing) %></p>
                     </div>
                 </div>
                 <div class="glass-card status-shipping rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
                     <div class="text-center">
                         <i class="fas fa-truck text-2xl md:text-3xl mb-2"></i>
                         <p class="text-xs md:text-sm opacity-90">در حال ارسال</p>
-                        <p class="text-xl md:text-2xl font-bold">12</p>
+                        <p class="text-xl md:text-2xl font-bold"><%= toPersianDigits(statusCounts.inShipping) %></p>
                     </div>
                 </div>
                 <div class="glass-card status-delivered rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
                     <div class="text-center">
                         <i class="fas fa-check-circle text-2xl md:text-3xl mb-2"></i>
-                        <p class="text-xs md:text-sm opacity-90">تحویل شده</p>
-                        <p class="text-xl md:text-2xl font-bold">156</p>
+                        <p class="text-xs md:text-sm opacity-90">تحویل داده شد</p>
+                        <p class="text-xl md:text-2xl font-bold"><%= toPersianDigits(statusCounts.delivered) %></p>
+                    </div>
+                </div>
+                <div class="glass-card status-cancelled rounded-xl md:rounded-2xl p-4 md:p-6 text-white">
+                    <div class="text-center">
+                        <i class="fas fa-check-circle text-2xl md:text-3xl mb-2"></i>
+                        <p class="text-xs md:text-sm opacity-90">لغو شده</p>
+                        <p class="text-xl md:text-2xl font-bold"><%= toPersianDigits(statusCounts.cancelled) %></p>
                     </div>
                 </div>
             </div>
@@ -1626,6 +1625,7 @@
             currentItemType = null;
         }
 
+        let orders = <%- JSON.stringify(orders) %>;
 
         // Order Functions
         function loadOrders() {
@@ -1637,34 +1637,44 @@
                 row.className = 'product-row transition-all duration-300';
                 
                 const statusClasses = {
-                    pending: 'bg-yellow-100 text-yellow-800',
-                    processing: 'bg-blue-100 text-blue-800',
-                    shipping: 'bg-purple-100 text-purple-800',
-                    delivered: 'bg-green-100 text-green-800'
+                    'در حال پردازش': 'bg-yellow-100 text-yellow-800',
+                    'بسته بندی شده': 'bg-blue-100 text-blue-800',
+                    'در حال ارسال': 'bg-purple-100 text-purple-800',
+                    'تحویل داده شد': 'bg-green-100 text-green-800',
+                    'لغو شده': 'bg-red-100 text-red-800'
                 };
-                
-                const statusTexts = {
-                    pending: 'در انتظار',
-                    processing: 'در حال پردازش',
-                    shipping: 'در حال ارسال',
-                    delivered: 'تحویل شده'
-                };
-                
+
+                let classForStatus;
+
+                if (order.status === "در حال پردازش") {
+                    classForStatus = statusClasses['در حال پردازش']
+                } else if (order.status === "بسته بندی شده") {
+                    classForStatus = statusClasses['بسته بندی شده']
+                } else if (order.status === "در حال ارسال") {
+                    classForStatus = statusClasses['در حال ارسال']
+                } else if (order.status === "تحویل داده شد") {
+                    classForStatus = statusClasses['تحویل داده شد']
+                } else if (order.status === "لغو شده") {
+                    classForStatus = statusClasses['لغو شده']
+                }
+                                
                 row.innerHTML = `
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${order.id}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900 hidden md:table-cell">${order.customerName}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${order.amount.toLocaleString()} تومان</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${order.OrderNum}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900 hidden md:table-cell">${order.user.fullName}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${toPersianDigits(order.totalPrice)} تومان</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
-                        <select onchange="updateOrderStatus(${index}, this.value)" class="${statusClasses[order.status]} px-2 md:px-3 py-1 rounded-full text-xs font-medium border-none">
-                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>در انتظار</option>
-                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>در حال پردازش</option>
-                            <option value="shipping" ${order.status === 'shipping' ? 'selected' : ''}>در حال ارسال</option>
-                            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>تحویل شده</option>
-                        </select>
+                    <select onchange="updateOrderStatus('${order._id}', this)" 
+                        class="${classForStatus} px-2 md:px-3 py-1 rounded-full text-xs font-medium border-none">
+                        <option value="pending" ${order.status === 'در حال پردازش' ? 'selected' : ''}>در حال پردازش</option>
+                        <option value="processing" ${order.status === 'بسته بندی شده' ? 'selected' : ''}>بسته بندی شده</option>
+                        <option value="shipping" ${order.status === 'در حال ارسال' ? 'selected' : ''}>در حال ارسال</option>
+                        <option value="delivered" ${order.status === 'تحویل داده شد' ? 'selected' : ''}>تحویل داده شد</option>
+                        <option value="cancelled" ${order.status === 'لغو شده' ? 'selected' : ''}>لغو شده</option>
+                    </select>
                     </td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${order.date}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${order.createTarikh}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
-                        <button onclick="viewOrder(${index})" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
+                        <button onclick="viewOrder('${order._id}')" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
                     </td>
@@ -1673,32 +1683,41 @@
             });
         }
 
-        function viewOrder(index) {
-            const order = orders[index];
+        function viewOrder(id) {
+            const order = orders.find(p => p._id === id);
+            console.log(order.products)
             
-            const statusTexts = {
-                pending: 'در انتظار',
-                processing: 'در حال پردازش',
-                shipping: 'در حال ارسال',
-                delivered: 'تحویل شده'
+            const statusClasses = {
+                'در حال پردازش': 'bg-yellow-100 text-yellow-800',
+                'بسته بندی شده': 'bg-blue-100 text-blue-800',
+                'در حال ارسال': 'bg-purple-100 text-purple-800',
+                'تحویل داده شد': 'bg-green-100 text-green-800',
+                'لغو شده': 'bg-red-100 text-red-800'
             };
-            
-            const statusColors = {
-                pending: 'bg-yellow-100 text-yellow-800',
-                processing: 'bg-blue-100 text-blue-800',
-                shipping: 'bg-purple-100 text-purple-800',
-                delivered: 'bg-green-100 text-green-800'
-            };
+
+            let classForStatus;
+
+            if (order.status === "در حال پردازش") {
+                classForStatus = statusClasses['در حال پردازش']
+            } else if (order.status === "بسته بندی شده") {
+                classForStatus = statusClasses['بسته بندی شده']
+            } else if (order.status === "در حال ارسال") {
+                classForStatus = statusClasses['در حال ارسال']
+            } else if (order.status === "تحویل داده شد") {
+                classForStatus = statusClasses['تحویل داده شد']
+            } else if (order.status === "لغو شده") {
+                classForStatus = statusClasses['لغو شده']
+            }
             
             let productsHtml = '';
             order.products.forEach(product => {
                 productsHtml += `
                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div>
-                            <p class="font-medium text-gray-800">${product.name}</p>
+                            <p class="font-medium text-gray-800">${product.nameAtPurchase}</p>
                             <p class="text-sm text-gray-600">تعداد: ${product.quantity}</p>
                         </div>
-                        <p class="font-semibold text-gray-800">${product.price.toLocaleString()} تومان</p>
+                        <p class="font-semibold text-gray-800">${toPersianDigits(product.priceAtPurchase)} تومان</p>
                     </div>
                 `;
             });
@@ -1707,23 +1726,27 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">شماره سفارش:</span>
-                        <span class="text-gray-800 block text-lg">${order.id}</span>
+                        <span class="text-gray-800 block text-lg">${order.OrderNum}</span>
                     </div>
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">نام مشتری:</span>
-                        <span class="text-gray-800 block">${order.customerName}</span>
+                        <span class="text-gray-800 block">${order.user.fullName}</span>
                     </div>
                     <div class="glass-card p-4 rounded-xl">
-                        <span class="font-semibold text-gray-700">مبلغ کل:</span>
-                        <span class="text-green-600 font-semibold block text-lg">${order.amount.toLocaleString()} تومان</span>
+                        <span class="font-semibold text-gray-700">مبلغ قبل تخفیف:</span>
+                        <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.originalPrice)} تومان</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl">
+                        <span class="font-semibold text-gray-700">مبلغ کل بعد تخفیف:</span>
+                        <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.totalPrice)} تومان</span>
                     </div>
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">وضعیت:</span>
-                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status]}">${statusTexts[order.status]}</span>
+                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${classForStatus}">${order.status}</span>
                     </div>
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">تاریخ سفارش:</span>
-                        <span class="text-gray-800 block">${order.date}</span>
+                        <span class="text-gray-800 block">${order.createTarikh}</span>
                     </div>
                 </div>
                 
@@ -1739,22 +1762,70 @@
             document.getElementById('orderModal').classList.remove('hidden');
         }
 
-        function updateOrderStatus(index, newStatus) {
-            const statusTexts = {
-                pending: 'در انتظار',
-                processing: 'در حال پردازش',
-                shipping: 'در حال ارسال',
-                delivered: 'تحویل شده'
+        async function updateOrderStatus(orderId, selectElement) {
+            const newStatus = selectElement.value;
+            
+            // Map English values to Persian
+            const statusMap = {
+                'pending': 'در حال پردازش',
+                'processing': 'بسته بندی شده',
+                'shipping': 'در حال ارسال',
+                'delivered': 'تحویل داده شد',
+                'cancelled': 'لغو شده'
             };
             
-            if (confirm(`آیا از تغییر وضعیت سفارش به "${statusTexts[newStatus]}" اطمینان دارید؟`)) {
-                orders[index].status = newStatus;
-                loadOrders();
-                alert('وضعیت سفارش به‌روزرسانی شد');
+            const persianStatus = statusMap[newStatus] || newStatus;
+            
+            if (confirm(`آیا از تغییر وضعیت سفارش به "${persianStatus}" اطمینان دارید؟`)) {
+                try {
+                    const response = await fetch(`/admin/orders/edit/${orderId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ status: persianStatus })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.message || 'خطا در به‌روزرسانی وضعیت');
+                    }
+                    
+                    // Update local orders array
+                    const orderIndex = orders.findIndex(o => o._id === orderId);
+                    if (orderIndex !== -1) {
+                        orders[orderIndex].status = persianStatus;
+                    }
+                    
+                    showNotification('وضعیت سفارش با موفقیت به‌روزرسانی شد', 'success');
+                    loadOrders(); // Refresh the orders table
+                    
+                } catch (error) {
+                    console.error('Error updating order status:', error);
+                    showNotification(error.message || 'خطا در به‌روزرسانی وضعیت', 'error');
+                    loadOrders(); // Reset to original status if failed
+                }
             } else {
-                loadOrders(); // Reload to reset the select
+                // Reset the select to original value if user cancels
+                const order = orders.find(o => o._id === orderId);
+                selectElement.value = getEnglishStatus(order.status);
+                loadOrders(); // Force UI refresh
             }
         }
+
+        // Helper function to get English status value
+        function getEnglishStatus(persianStatus) {
+            const statusMap = {
+                'در حال پردازش': 'pending',
+                'بسته بندی شده': 'processing',
+                'در حال ارسال': 'shipping',
+                'تحویل داده شد': 'delivered',
+                'لغو شده': 'cancelled'
+            };
+            return statusMap[persianStatus] || persianStatus;
+        }
+
 
         // Modal Functions
         function closeModal(modalId) {
