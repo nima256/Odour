@@ -32,7 +32,7 @@ router.get("/", async (req, res) => {
   });
 });
 
-router.post("/", protect, admin, async (req, res) => {
+router.post("/products/add", async (req, res) => {
   try {
     // Calculate discount percentage if offerPrice exists
     let discount = null;
@@ -52,10 +52,14 @@ router.post("/", protect, admin, async (req, res) => {
     const product = new Product(productData);
     await product.save();
 
+    const populatedProduct = await Product.findById(product._id)
+      .populate("brand", "name") // Only populate the name field
+      .populate("category", "name"); // Only populate the name field
+
     res.status(201).json({
       success: true,
       message: "محصول با موفقیت ایجاد شد",
-      product,
+      product: populatedProduct,
     });
   } catch (error) {
     console.error("Error creating product:", error);
@@ -160,7 +164,7 @@ const validateProductUpdate = [
 ];
 
 router.put(
-  "/products/:id",
+  "/products/edit/:id",
   upload.array("images", 10), // حداکثر 10 تصویر
   validateProductUpdate,
   async (req, res) => {
@@ -195,6 +199,8 @@ router.put(
 
       // آماده‌سازی داده‌های به‌روزرسانی
       const updateData = { ...req.body };
+
+      updateData.updateTarikh = getPersianDate();
 
       // مدیریت قیمت ویژه و تخفیف
       if (
@@ -283,7 +289,7 @@ router.put(
   }
 );
 
-router.delete("/products/:id", async (req, res) => {
+router.delete("/products/delete/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
@@ -306,6 +312,207 @@ router.delete("/products/:id", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "خطای سرور در حذف محصول",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/categories/add", async (req, res) => {
+  try {
+    const { name, categoryType = "product", parentId = null } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "نام دسته‌بندی الزامی است",
+      });
+    }
+
+    const category = new Category({
+      name,
+      categoryType,
+      parentId: parentId || null,
+    });
+
+    await category.save();
+
+    res.status(201).json({
+      success: true,
+      message: "دسته‌بندی با موفقیت ایجاد شد",
+      category,
+    });
+  } catch (error) {
+    console.error("Error creating category:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطا در ایجاد دسته‌بندی",
+      error: error.message,
+    });
+  }
+});
+
+router.put('/categories/edit/:id', async (req, res) => {
+  try {
+    const { name, categoryType, parentId } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'نام دسته‌بندی الزامی است'
+      });
+    }
+
+    const updatedCategory = await Category.findByIdAndUpdate(
+      req.params.id,
+      { 
+        name,
+        categoryType: categoryType || 'product',
+        parentId: parentId || null,
+        updateTarikh: getPersianDate()
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCategory) {
+      return res.status(404).json({
+        success: false,
+        message: 'دسته‌بندی یافت نشد'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'دسته‌بندی با موفقیت ویرایش شد',
+      category: updatedCategory
+    });
+  } catch (error) {
+    console.error('Error updating category:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در ویرایش دسته‌بندی',
+      error: error.message
+    });
+  }
+});
+
+router.delete("/categories/delete/:id", async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "دسته‌بندی یافت نشد",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "دسته‌بندی با موفقیت حذف شد",
+    });
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطا در حذف دسته‌بندی",
+      error: error.message,
+    });
+  }
+});
+
+// Brand Routes
+router.post("/brands/add", async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "نام برند الزامی است",
+      });
+    }
+
+    const brand = new Brand({ name });
+    await brand.save();
+
+    res.status(201).json({
+      success: true,
+      message: "برند با موفقیت ایجاد شد",
+      brand,
+    });
+  } catch (error) {
+    console.error("Error creating brand:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطا در ایجاد برند",
+      error: error.message,
+    });
+  }
+});
+
+router.put('/brands/edit/:id', async (req, res) => {
+  try {
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'نام برند الزامی است'
+      });
+    }
+
+    const updatedBrand = await Brand.findByIdAndUpdate(
+      req.params.id,
+      { 
+        name,
+        updateTarikh: getPersianDate()
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedBrand) {
+      return res.status(404).json({
+        success: false,
+        message: 'برند یافت نشد'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'برند با موفقیت ویرایش شد',
+      brand: updatedBrand
+    });
+  } catch (error) {
+    console.error('Error updating brand:', error);
+    res.status(500).json({
+      success: false,
+      message: 'خطا در ویرایش برند',
+      error: error.message
+    });
+  }
+});
+
+
+router.delete("/brands/delete/:id", async (req, res) => {
+  try {
+    const brand = await Brand.findByIdAndDelete(req.params.id);
+
+    if (!brand) {
+      return res.status(404).json({
+        success: false,
+        message: "برند یافت نشد",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "برند با موفقیت حذف شد",
+    });
+  } catch (error) {
+    console.error("Error deleting brand:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطا در حذف برند",
       error: error.message,
     });
   }

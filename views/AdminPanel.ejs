@@ -335,14 +335,19 @@
 
         <!-- Products Content -->
         <div id="productsContent" class="hidden">
-            <div class="mb-4 md:mb-6">
-                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">مدیریت محصولات</h2>
-                <p class="text-gray-600">لیست تمام محصولات زیبایی</p>
-                <button onclick="addProduct()" class="ms-auto gradient-bg text-white px-3 md:px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm md:text-base">
-                    <i class="fas fa-plus ml-1"></i>
-                    افزودن محصول
-                </button>
+            <div class="">
+                <div class="mb-4 md:mb-6">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">مدیریت محصولات</h2>
+                    <div class="flex justify-between items-center">
+                        <p class="text-gray-600">لیست تمام محصولات زیبایی</p>
+                        <button onclick="addProduct()" class="gradient-bg text-white px-3 md:px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm md:text-base">
+                            <i class="fas fa-plus ml-1"></i>
+                            افزودن محصول
+                        </button>
+                    </div>
+                </div>
             </div>
+
             
             <div class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
@@ -660,14 +665,53 @@
                         <button type="button" onclick="closeModal('editModal')" class="px-4 md:px-6 py-2 md:py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
                             انصراف
                         </button>
-                        <button type="submit" class="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
-                            ذخیره تغییرات
+                        <button type="submit" id="form-button" class="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editItemModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-4 border-b">
+                <h3 id="editItemTitle" class="text-lg font-semibold text-gray-800"></h3>
+            </div>
+            <form id="editItemForm" class="p-4">
+                <div class="mb-4">
+                    <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">نام</label>
+                    <input type="text" id="editItemName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div id="editItemTypeField" class="mb-4 hidden">
+                    <label for="editItemType" class="block text-sm font-medium text-gray-700 mb-1">نوع دسته‌بندی</label>
+                    <select id="editItemType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="product">محصول</option>
+                        <option value="weblog">وبلاگ</option>
+                    </select>
+                </div>
+                
+                <div id="editItemParentField" class="mb-4 hidden">
+                    <label for="editItemParent" class="block text-sm font-medium text-gray-700 mb-1">دسته‌بندی والد</label>
+                    <select id="editItemParent" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">بدون والد</option>
+                    </select>
+                </div>
+                
+                <div class="flex justify-end space-x-reverse space-x-2 mt-4">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        انصراف
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        ذخیره
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Order Details Modal -->
     <div id="orderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal z-50 flex items-center justify-center p-4">
@@ -888,13 +932,16 @@
 
             
             products.forEach((product, index) => {
+                const brandName = product.brand?.name || 
+                                (typeof product.brand === 'string' ? 'در حال بارگذاری...' : 'نامشخص');
+                
                 const categoryBadges = product.category && product.category.length > 0 
-                ? product.category.map(cat => 
-                    `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">
-                        ${cat.name}
-                    </span>`
-                ).join('')
-                : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
+                    ? product.category.map(cat => 
+                        `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">
+                            ${cat.name || (typeof cat === 'string' ? 'در حال بارگذاری...' : 'بدون نام')}
+                        </span>`
+                    ).join('')
+                    : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
                 
                 const row = document.createElement('tr');
                 row.className = 'product-row transition-all duration-300';
@@ -905,7 +952,7 @@
                     </td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${product.name}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell"><div class="flex flex-wrap">${categoryBadges}</div></td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${product.brand.name}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${brandName}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${product.countInStock}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${product.offerPrice ? toPersianDigits(product.offerPrice) : toPersianDigits(product.price)} تومان</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
@@ -983,7 +1030,7 @@
             document.getElementById('productModal').classList.remove('hidden');
         }
 
-        const categories = <%- JSON.stringify(categories) %>
+        let categories = <%- JSON.stringify(categories) %>
 
         let brands = <%- JSON.stringify(brands) %>
 
@@ -991,12 +1038,54 @@
         let currentProduct = {};
 
         async function addProduct() {
+            currentProductId = null;
+            currentProduct = {};
+            document.getElementById('editForm').reset();
+
+            document.getElementById('colorFields').innerHTML = '';
+            document.getElementById('sizeFields').innerHTML = '';
+            document.getElementById('specFields').innerHTML = '';
+            document.getElementById('imagePreviews').innerHTML = '';
+
+            addColorField();
+            addSizeField();
+            addSpecField();
+
+            document.getElementById('hasDiscount').checked = false;
+            document.getElementById('editOfferPrice').disabled = true;
+            document.getElementById('editOfferPrice').value = '';
+
+            const categorySelect = document.getElementById('editCategory');
+            categorySelect.innerHTML = '';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category._id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+
+            const brandSelect = document.getElementById('editBrand');
+            brandSelect.innerHTML = '<option value="">انتخاب برند</option>';
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand._id;
+                option.textContent = brand.name;
+                brandSelect.appendChild(option);
+            });
+       
+            document.querySelector('#editModal h3').textContent = 'افزودن محصول جدید';
+            document.querySelector('#form-button').textContent = 'افزودن محصول جدید';
+
             document.getElementById('editModal').classList.remove('hidden');
         }
 
         async function editProduct(id) {
             currentProductId = id;
             const product = products.find(p => p._id === id);
+
+            document.querySelector('#editModal h3').textContent = 'ویرایش محصول';
+            document.querySelector('#form-button').textContent = 'ذخیره تغییرات';
+
 
             // Populate form fields
             document.getElementById('editName').value = product.name || '';
@@ -1174,7 +1263,7 @@
         async function deleteProduct(productId) {
         if (confirm('آیا از حذف این محصول اطمینان دارید؟ این عمل غیرقابل بازگشت است.')) {
             try {
-            const response = await fetch(`/admin/products/${productId}`, {
+            const response = await fetch(`/admin/products/delete/${productId}`, {
                 method: 'DELETE',
                 headers: {
                 'Content-Type': 'application/json',
@@ -1220,6 +1309,11 @@
             }, 3000);
         }
 
+
+        let currentEditItem = null;
+        let isEditing = false;
+        let currentItemType = null; // 'category' or 'brand'
+
         // Category and Brand Functions
         function loadCategories() {
             const container = document.getElementById('categoriesList');
@@ -1229,10 +1323,15 @@
                 const item = document.createElement('div');
                 item.className = 'category-item p-3 md:p-4 rounded-xl flex justify-between items-center';
                 item.innerHTML = `
-                    <span class="font-medium text-sm md:text-base">${category}</span>
-                    <button onclick="deleteCategory(${index})" class="text-red-500 hover:text-red-700 p-1">
-                        <i class="fas fa-trash text-sm"></i>
-                    </button>
+                    <span class="font-medium text-sm md:text-base">${category.name}</span>
+                    <div>
+                        <button onclick="editCategory('${category._id}')" class="text-red-500 hover:text-red-700 p-1">
+                            <i class="fas fa-pencil text-sm"></i>
+                        </button>
+                        <button onclick="deleteCategory('${category._id}')" class="text-red-500 hover:text-red-700 p-1">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
                 `;
                 container.appendChild(item);
             });
@@ -1246,52 +1345,287 @@
                 const item = document.createElement('div');
                 item.className = 'category-item p-3 md:p-4 rounded-xl flex justify-between items-center';
                 item.innerHTML = `
-                    <span class="font-medium text-sm md:text-base">${brand}</span>
-                    <button onclick="deleteBrand(${index})" class="text-red-500 hover:text-red-700 p-1">
-                        <i class="fas fa-trash text-sm"></i>
-                    </button>
+                    <span class="font-medium text-sm md:text-base">${brand.name}</span>
+                    <div>
+                        <button onclick="editBrand('${brand._id}')" class="text-red-500 hover:text-red-700 p-1">
+                            <i class="fas fa-pencil text-sm"></i>
+                        </button>
+                        <button onclick="deleteBrand('${brand._id}')" class="text-red-500 hover:text-red-700 p-1">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
                 `;
                 container.appendChild(item);
             });
         }
 
         function addCategory() {
-            const name = prompt('نام دسته‌بندی جدید را وارد کنید:');
-            if (name && name.trim()) {
-                if (confirm(`آیا از افزودن دسته‌بندی "${name}" اطمینان دارید؟`)) {
-                    categories.push(name.trim());
-                    loadCategories();
-                    alert('دسته‌بندی جدید اضافه شد');
-                }
-            }
+            currentItemType = 'category';
+            isEditing = false;
+            currentEditItem = null;
+            
+            // Show edit modal
+            document.getElementById('editItemModal').classList.remove('hidden');
+            document.getElementById('editItemTitle').textContent = 'افزودن دسته‌بندی جدید';
+            
+            // Populate form
+            document.getElementById('editItemName').value = '';
+            document.getElementById('editItemType').value = 'product';
+            
+            // Show category-specific fields
+            document.getElementById('editItemTypeField').classList.remove('hidden');
+            document.getElementById('editItemParentField').classList.remove('hidden');
+            
+            // Parent category dropdown
+            const parentSelect = document.getElementById('editItemParent');
+            parentSelect.innerHTML = '<option value="">بدون والد</option>';
+            categories.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c._id;
+                option.textContent = c.name;
+                parentSelect.appendChild(option);
+            });
         }
 
         function addBrand() {
-            const name = prompt('نام برند جدید را وارد کنید:');
-            if (name && name.trim()) {
-                if (confirm(`آیا از افزودن برند "${name}" اطمینان دارید؟`)) {
-                    brands.push(name.trim());
-                    loadBrands();
-                    alert('برند جدید اضافه شد');
+            currentItemType = 'brand';
+            isEditing = false;
+            currentEditItem = null;
+            
+            // Show edit modal
+            document.getElementById('editItemModal').classList.remove('hidden');
+            document.getElementById('editItemTitle').textContent = 'افزودن برند جدید';
+            
+            // Populate form
+            document.getElementById('editItemName').value = '';
+            
+            // Hide unused fields for brand
+            document.getElementById('editItemTypeField').classList.add('hidden');
+            document.getElementById('editItemParentField').classList.add('hidden');
+        }
+
+        async function deleteCategory(id) {
+            if (confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟')) {
+                try {
+                    const response = await fetch(`/admin/categories/delete/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.message || 'خطا در حذف دسته‌بندی');
+                    }
+
+                   categories = categories.filter(p => p._id !== id);
+
+                    
+                    showNotification('دسته‌بندی با موفقیت حذف شد', 'success');
+                    loadCategories(); // Refresh the list
+                } catch (error) {
+                    console.error('Error deleting category:', error);
+                    showNotification(error.message || 'خطا در حذف دسته‌بندی', 'error');
                 }
             }
         }
 
-        function deleteCategory(index) {
-            if (confirm(`آیا از حذف دسته‌بندی "${categories[index]}" اطمینان دارید؟`)) {
-                categories.splice(index, 1);
-                loadCategories();
-                alert('دسته‌بندی حذف شد');
+        async function deleteBrand(id) {
+            if (confirm('آیا از حذف این برند اطمینان دارید؟')) {
+                try {
+                    const response = await fetch(`/admin/brands/delete/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.message || 'خطا در حذف برند');
+                    }
+
+                   brands = brands.filter(p => p._id !== id);
+                    
+                    showNotification('برند با موفقیت حذف شد', 'success');
+                    loadBrands(); // Refresh the list
+                } catch (error) {
+                    console.error('Error deleting brand:', error);
+                    showNotification(error.message || 'خطا در حذف برند', 'error');
+                }
             }
         }
 
-        function deleteBrand(index) {
-            if (confirm(`آیا از حذف برند "${brands[index]}" اطمینان دارید؟`)) {
-                brands.splice(index, 1);
-                loadBrands();
-                alert('برند حذف شد');
+        async function editCategory(id) {
+            try {
+                currentItemType = 'category';
+                isEditing = true;
+                currentEditItem = id;
+                
+                const category = categories.find(c => c._id === id);
+                if (!category) {
+                    throw new Error('دسته‌بندی یافت نشد');
+                }
+
+                // Show edit modal
+                document.getElementById('editItemModal').classList.remove('hidden');
+                document.getElementById('editItemTitle').textContent = 'ویرایش دسته‌بندی';
+                
+                // Populate form
+                document.getElementById('editItemName').value = category.name;
+                document.getElementById('editItemType').value = category.categoryType || 'product';
+                
+                // Show category-specific fields
+                document.getElementById('editItemTypeField').classList.remove('hidden');
+                document.getElementById('editItemParentField').classList.remove('hidden');
+                
+                // Parent category dropdown
+                const parentSelect = document.getElementById('editItemParent');
+                parentSelect.innerHTML = '<option value="">بدون والد</option>';
+                categories
+                    .filter(c => c._id !== id) // Exclude current category from parents
+                    .forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c._id;
+                        option.textContent = c.name;
+                        option.selected = category.parentId === c._id;
+                        parentSelect.appendChild(option);
+                    });
+                
+            } catch (error) {
+                console.error('Error preparing to edit category:', error);
+                showNotification(error.message || 'خطا در آماده‌سازی ویرایش', 'error');
             }
         }
+
+        // Update your brand functions
+        async function editBrand(id) {
+            try {
+                currentItemType = 'brand';
+                isEditing = true;
+                currentEditItem = id;
+                
+                const brand = brands.find(b => b._id === id);
+                if (!brand) {
+                    throw new Error('برند یافت نشد');
+                }
+
+                // Show edit modal
+                document.getElementById('editItemModal').classList.remove('hidden');
+                document.getElementById('editItemTitle').textContent = 'ویرایش برند';
+                
+                // Populate form
+                document.getElementById('editItemName').value = brand.name;
+                
+                // Hide unused fields for brand
+                document.getElementById('editItemTypeField').classList.add('hidden');
+                document.getElementById('editItemParentField').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Error preparing to edit brand:', error);
+                showNotification(error.message || 'خطا در آماده‌سازی ویرایش', 'error');
+            }
+        }
+
+        // Add this form handler for the edit modal
+        document.getElementById('editItemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                const name = document.getElementById('editItemName').value.trim();
+                if (!name) {
+                    throw new Error('نام الزامی است');
+                }
+
+                let response;
+                let endpoint;
+                let body = { name };
+                
+                if (currentItemType === 'category') {
+                    if (isEditing) {
+                        endpoint = `/admin/categories/edit/${currentEditItem}`;
+                        body.categoryType = document.getElementById('editItemType').value;
+                        body.parentId = document.getElementById('editItemParent').value || null;
+                        
+                        response = await fetch(endpoint, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                    } else {
+                        endpoint = '/admin/categories/add';
+                        body.categoryType = document.getElementById('editItemType').value;
+                        body.parentId = document.getElementById('editItemParent').value || null;
+                        
+                        response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                    }
+                } else { // brand
+                    if (isEditing) {
+                        endpoint = `/admin/brands/edit/${currentEditItem}`;
+                        response = await fetch(endpoint, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                    } else {
+                        endpoint = '/admin/brands/add';
+                        response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                    }
+                }
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'خطا در ذخیره تغییرات');
+                }
+
+                // Update local data based on response
+                if (currentItemType === 'category') {
+                    if (isEditing) {
+                        const index = categories.findIndex(c => c._id === currentEditItem);
+                        if (index !== -1) {
+                            categories[index] = result.category; // Assuming server returns updated category as result.data
+                        }
+                    } else {
+                        categories.unshift(result.category); // Assuming server returns new category as result.data
+                    }
+                    loadCategories(); // Refresh categories list
+                } else { // brand
+                    if (isEditing) {
+                        const index = brands.findIndex(b => b._id === currentEditItem);
+                        if (index !== -1) {
+                            brands[index] = result.brand; // Assuming server returns updated brand as result.data
+                        }
+                    } else {
+                        brands.unshift(result.brand); // Assuming server returns new brand as result.data
+                    }
+                    loadBrands(); // Refresh brands list
+                }
+
+                showNotification('تغییرات با موفقیت ذخیره شد', 'success');
+                closeEditModal();
+            
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                showNotification(error.message || 'خطا در ذخیره تغییرات', 'error');
+            }
+        });
+        // Add this helper function
+        function closeEditModal() {
+            document.getElementById('editItemModal').classList.add('hidden');
+            document.getElementById('editItemForm').reset();
+            document.getElementById('editItemTypeField').classList.add('hidden');
+            document.getElementById('editItemParentField').classList.add('hidden');
+            currentEditItem = null;
+            isEditing = false;
+            currentItemType = null;
+        }
+
 
         // Order Functions
         function loadOrders() {
@@ -1494,6 +1828,12 @@
                     }
                 });
 
+                const imageInput = document.getElementById('editImages');
+                if (imageInput.files.length > 0) {
+                    // Here you would typically upload images to a server
+                    // For now, we'll just note that images need to be handled
+                    data.images = []; // This will be populated with uploaded image URLs
+                }
 
                 const hasDiscount = document.getElementById('hasDiscount').checked;
                 const offerPriceField = document.getElementById('editOfferPrice');
@@ -1509,39 +1849,56 @@
                     data.offerPrice = null;
                 }            
 
-                console.log(data)
 
+                let response;
+                if (currentProductId) {
+                    // Edit existing product
+                    response = await fetch(`/admin/products/edit/${currentProductId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // Add new product
+                    response = await fetch('/admin/products/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+                }
 
-                // ارسال درخواست به سرور
-                const response = await fetch(`/admin/products/${currentProductId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
                 const result = await response.json();
                 
-                if (result.success) {
-                    // 1. Update the product in the local products array
-                    const updatedProduct = result.product; // Assuming your API returns the updated product
-                    const productIndex = products.findIndex(p => p._id === currentProductId);
-                    if (productIndex !== -1) {
-                        products[productIndex] = updatedProduct;
-                    }
-                    
-                    // 2. Re-render the product table
-                    loadProducts();
-                    
-                    alert('محصول با موفقیت ویرایش شد');
-                    closeModal('editModal');
-                } else {
-                    throw new Error(result.message || 'خطا در ویرایش محصول');
+                if (!response.ok) {
+                    throw new Error(result.message || 'خطا در عملیات');
                 }
+
+                if (currentProductId) {
+                    const index = products.findIndex(p => p._id === currentProductId);
+                    if (index !== -1) {
+                        products[index] = result.product;
+                    }
+                } else {
+                    products.unshift(result.product);
+                }
+                
+                // Reload products and close modal
+                loadProducts();
+                closeModal('editModal');
+                showNotification(
+                    currentProductId 
+                        ? 'محصول با موفقیت ویرایش شد' 
+                        : 'محصول جدید با موفقیت اضافه شد', 
+                    'success'
+                );
+
             } catch (error) {
                 console.error('Error:', error);
-                alert('خطا در ویرایش محصول: ' + error.message);
+                showNotification('خطا در عملیات: ' + error.message, 'error');
             }
         });
 
