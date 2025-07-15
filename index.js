@@ -173,8 +173,8 @@ const asyncHandler = (fn) => (req, res, next) =>
 app.get(
   "/shop",
   asyncHandler(async (req, res) => {
-    const products = await Product.find({ categoryType: "product" });
-    const categories = await Category.find({});
+    const products = await Product.find({});
+    const categories = await Category.find({ categoryType: "product" });
     const brands = await Brand.find({});
     const user = await User.findById(req.session.userId);
 

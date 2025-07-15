@@ -338,6 +338,10 @@
             <div class="mb-4 md:mb-6">
                 <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">مدیریت محصولات</h2>
                 <p class="text-gray-600">لیست تمام محصولات زیبایی</p>
+                <button onclick="addProduct()" class="ms-auto gradient-bg text-white px-3 md:px-4 py-2 rounded-lg hover:opacity-90 transition-all text-sm md:text-base">
+                    <i class="fas fa-plus ml-1"></i>
+                    افزودن محصول
+                </button>
             </div>
             
             <div class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
@@ -548,6 +552,12 @@
                         <div>
                             <label for="editCountInStock" class="block text-sm font-semibold text-gray-700 mb-2">موجودی</label>
                             <input name="countInStock" type="number" id="editCountInStock" min="0" required
+                                class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="editRating" class="block text-sm font-semibold text-gray-700 mb-2">امتیاز</label>
+                            <input name="rating" type="number" id="editRating" min="0" required
                                 class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
 
@@ -868,7 +878,7 @@
             return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
         }
 
-        const products = <%- JSON.stringify(products) %>
+        let products = <%- JSON.stringify(products) %>
 
 
         // Product Functions
@@ -979,6 +989,11 @@
 
         let currentProductId = null;
         let currentProduct = {};
+
+        async function addProduct() {
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
         async function editProduct(id) {
             currentProductId = id;
             const product = products.find(p => p._id === id);
@@ -989,6 +1004,7 @@
             document.getElementById('editDescription').value = product.description || '';
             document.getElementById('editPrice').value = product.price || 0;
             document.getElementById('editCountInStock').value = product.countInStock || 0;
+            document.getElementById('editRating').value = product.rating || 0;
             document.getElementById('editWeight').value = product.weight || '';
             document.getElementById('editTags').value = product.tags ? product.tags.join(', ') : '';
 
@@ -1061,7 +1077,6 @@
             }
 
 
-
             document.getElementById('editIsFeatured').checked = product.isFeatured || false;
             document.getElementById('editIsNewProduct').checked = product.isNewProduct || false;
             document.getElementById('editIsPopular').checked = product.isPopular || false;
@@ -1103,14 +1118,12 @@
 
         function addColorField(name = '', rgb = '#ffffff') {
             const colorFields = document.getElementById('colorFields');
-            const colorId = Date.now();
-            
             const colorField = document.createElement('div');
             colorField.className = 'flex items-center gap-2';
             colorField.innerHTML = `
-                <input type="text" name="colors[${colorId}][name]" placeholder="نام رنگ" value="${name}"
+                <input type="text" placeholder="نام رنگ" value="${name}"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
-                <input type="color" name="colors[${colorId}][rgb]" value="${rgb}"
+                <input type="color" value="${rgb}"
                     class="w-10 h-10 border border-gray-300 rounded-lg">
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
             `;
@@ -1126,7 +1139,7 @@
             sizeField.className = 'flex items-center gap-2';
             sizeField.innerHTML = `
                 <input type="text" name="sizes[${sizeId}][size]" placeholder="سایز" value="${size}"
-                    class="flex-1 px-3 py-2 sborder border-gray-300 rounded-lg">
+                    class="flex-1 px-3 py-2 sborder border-gray-300 rounded-lg"> 
                 <input type="text" name="sizes[${sizeId}][usage]" placeholder="کاربرد" value="${usage}"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
@@ -1158,12 +1171,53 @@
         }
 
 
-        function deleteProduct(index) {
-            if (confirm('آیا از حذف این محصول اطمینان دارید؟')) {
-                products.splice(index, 1);
-                loadProducts();
-                alert('محصول با موفقیت حذف شد');
+        async function deleteProduct(productId) {
+        if (confirm('آیا از حذف این محصول اطمینان دارید؟ این عمل غیرقابل بازگشت است.')) {
+            try {
+            const response = await fetch(`/admin/products/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'خطا در حذف محصول');
             }
+            
+            // Remove the product from the local array (if using client-side state)
+            products = products.filter(p => p._id !== productId);
+            
+            // Reload the products table
+            loadProducts();
+            
+            // Show success notification
+            showNotification('محصول با موفقیت حذف شد', 'success');
+            
+            } catch (error) {
+            console.error('Error deleting product:', error);
+            showNotification(error.message || 'خطا در حذف محصول', 'error');
+            }
+        }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
         }
 
         // Category and Brand Functions
@@ -1397,8 +1451,9 @@
                     lilDescription: formData.get('lilDescription'),
                     description: formData.get('description'),
                     price: parseFloat(formData.get('price')),
-                    offerPrice: formData.get('hasDiscount') ? parseFloat(formData.get('offerPrice')) : null, // ارسال صریح null
+                    offerPrice: formData.get('hasDiscount') ? parseFloat(formData.get('offerPrice')) : null,
                     countInStock: parseInt(formData.get('countInStock')),
+                    rating: parseInt(formData.get('rating')),
                     weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
                     tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : [],
                     category: Array.from(formData.getAll('category')),
@@ -1410,42 +1465,35 @@
                     sizes: [],
                     specifications: []
                 };
+
                 
                 // جمع‌آوری رنگ‌ها
-                const colorNames = formData.getAll('colors[][name]');
-                const colorRgbs = formData.getAll('colors[][rgb]');
-                colorNames.forEach((name, index) => {
-                    if (name && colorRgbs[index]) {
-                        data.colors.push({
-                            name: name.trim(),
-                            rgb: colorRgbs[index]
-                        });
+                document.querySelectorAll('#colorFields > div').forEach((colorDiv, index) => {
+                    const name = colorDiv.querySelector('input[type="text"]').value;
+                    const rgb = colorDiv.querySelector('input[type="color"]').value;
+                    if (name && rgb) {
+                        data.colors.push({ name, rgb });
+                    }
+                });                
+
+                // جمع‌آوری سایزها - روش جدید
+                document.querySelectorAll('#sizeFields > div').forEach((sizeDiv, index) => {
+                    const size = sizeDiv.querySelector('input:nth-of-type(1)').value;
+                    const usage = sizeDiv.querySelector('input:nth-of-type(2)').value;
+                    if (size && usage) {
+                        data.sizes.push({ size, usage });
                     }
                 });
                 
-                // جمع‌آوری سایزها
-                const sizeSizes = formData.getAll('sizes[][size]');
-                const sizeUsages = formData.getAll('sizes[][usage]');
-                sizeSizes.forEach((size, index) => {
-                    if (size && sizeUsages[index]) {
-                        data.sizes.push({
-                            size: size.trim(),
-                            usage: sizeUsages[index].trim()
-                        });
+                // جمع‌آوری مشخصات فنی - روش جدید
+                document.querySelectorAll('#specFields > div').forEach((specDiv, index) => {
+                    const key = specDiv.querySelector('input:nth-of-type(1)').value;
+                    const value = specDiv.querySelector('input:nth-of-type(2)').value;
+                    if (key && value) {
+                        data.specifications.push({ key, value });
                     }
                 });
-                
-                // جمع‌آوری مشخصات فنی
-                const specKeys = formData.getAll('specifications[][key]');
-                const specValues = formData.getAll('specifications[][value]');
-                specKeys.forEach((key, index) => {
-                    if (key && specValues[index]) {
-                        data.specifications.push({
-                            key: key.trim(),
-                            value: specValues[index].trim()
-                        });
-                    }
-                });
+
 
                 const hasDiscount = document.getElementById('hasDiscount').checked;
                 const offerPriceField = document.getElementById('editOfferPrice');
@@ -1461,6 +1509,9 @@
                     data.offerPrice = null;
                 }            
 
+                console.log(data)
+
+
                 // ارسال درخواست به سرور
                 const response = await fetch(`/admin/products/${currentProductId}`, {
                     method: 'PUT',
@@ -1473,9 +1524,18 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    // 1. Update the product in the local products array
+                    const updatedProduct = result.product; // Assuming your API returns the updated product
+                    const productIndex = products.findIndex(p => p._id === currentProductId);
+                    if (productIndex !== -1) {
+                        products[productIndex] = updatedProduct;
+                    }
+                    
+                    // 2. Re-render the product table
+                    loadProducts();
+                    
                     alert('محصول با موفقیت ویرایش شد');
                     closeModal('editModal');
-                    // بارگذاری مجدد لیست محصولات یا به‌روزرسانی UI
                 } else {
                     throw new Error(result.message || 'خطا در ویرایش محصول');
                 }
