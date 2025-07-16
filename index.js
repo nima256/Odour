@@ -5,6 +5,7 @@ const path = require("path");
 const session = require("express-session");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
+const flash = require("connect-flash");
 
 require("dotenv").config();
 
@@ -101,6 +102,7 @@ app.use(
     },
   })
 );
+app.use(flash());
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -134,6 +136,14 @@ app.locals.toPersianDigits = function (num) {
   const withCommas = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
 };
+
+app.use(async (req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  res.locals.ICON = req.session.icon;
+  res.locals.TEXT = req.session.text;
+  next();
+});
 
 function generateOrderNumber() {
   const randomNum = Math.floor(100000 + Math.random() * 900000); // random 6-digit number from 100000 to 999999
@@ -231,12 +241,14 @@ app.get("/productDetails/:slug", async (req, res) => {
 
 app.get(
   "/cart",
-  isLoggedIn,
   asyncHandler(async (req, res) => {
     if (!req.session.userId) {
-      const error = new Error("لطفا به حساب خود وارد شوید");
-      error.statusCode = 401;
-      throw error;
+      res.status(401);
+      req.session.icon = "error";
+      req.session.text = "ابتدا وارد حساب کاربری خود شوید";
+      req.flash("error", req.session.text);
+      res.redirect("/");
+      return;
     }
 
     const user = await User.findById(req.session.userId)
@@ -327,7 +339,15 @@ app.get("/api/weblogs/:id/related", async (req, res) => {
   }
 });
 
-app.get("/userProfile", isLoggedIn, async (req, res) => {
+app.get("/userProfile", async (req, res) => {
+  if (!req.session.userId) {
+    res.status(401);
+    req.session.icon = "error";
+    req.session.text = "ابتدا وارد حساب کاربری خود شوید";
+    req.flash("error", req.session.text);
+    res.redirect("/");
+    return;
+  }
   const user = await User.findById(req.session.userId).populate({
     path: "orders",
     populate: {

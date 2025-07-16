@@ -894,6 +894,51 @@
               </div>
 
             </section>
+            <script>
+              function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+                    type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 
+                    'bg-blue-500'
+                }`;
+                
+                // Mobile: centered at top, Desktop: top-right
+                notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+                
+                // Width control
+                notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+                
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                // Animation in
+                notification.classList.add('transform', 'transition-all', 'duration-300');
+                notification.classList.add('translate-y-2', 'opacity-0');
+                
+                setTimeout(() => {
+                    notification.classList.remove('translate-y-2', 'opacity-0');
+                }, 10);
+                
+                setTimeout(() => {
+                    notification.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+            </script>
+
+
+            <% if(success.length) {%>
+            <script>
+              showNotification('<%= TEXT %>', '<%= ICON %>')
+            </script>
+            <% } %>
+            <% if(error.length) {%>
+              <script>
+                  showNotification('<%= TEXT %>', '<%= ICON %>')
+              </script>
+            <% } %>
 
             <script>
               function setSelectedCategory(categoryName) {
