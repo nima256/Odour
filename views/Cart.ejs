@@ -20,7 +20,22 @@
     <style>
       body {
         font-family: "Vazir", sans-serif;
-        background-color: #f8f9fa;
+        background-color: #eef2ff var(--tw-gradient-to-position);
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0; /* حذف padding-bottom اگر وجود دارد */
+      }
+
+      .main-content {
+        flex: 1;
+      }
+
+      footer {
+        position: relative; /* تغییر از absolute به relative */
+        margin-top: auto;
+        width: 100%;
       }
       .cart-button {
         background-color: #2563eb;
@@ -147,6 +162,7 @@
       }
     </style>
   </head>
+  <body>
   <nav
     class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
   >
@@ -156,7 +172,7 @@
         <div class="h-full overflow-hidden flex items-center">
           <img
             src="/logo.png"
-            alt="لوگوی گلو بیوتی"
+            alt="لوگوی اودور"
             class="h-full w-auto object-contain"
           />
         </div>
@@ -320,7 +336,6 @@
                   اعمال
                 </button>
               </div>
-              <div class="text-gray-600">کد تخفیف</div>
             </div>
 
             <div class="flex justify-between items-center mb-2">
@@ -1236,4 +1251,5 @@
       });
     </script>
   </div>
+  </body>
 </html>

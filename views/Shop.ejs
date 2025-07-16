@@ -349,7 +349,7 @@
           <div class="h-full overflow-hidden flex items-center">
             <img
               src="logo.png"
-              alt="لوگوی گلو بیوتی"
+              alt="لوگوی اودور"
               class="h-full w-auto object-contain"
             />
           </div>
@@ -600,7 +600,7 @@
                 </div>
                 <div>
                   <label class="block text-gray-700 mb-2" for="register-email"
-                    >ایمیل (اختیاری)</label
+                    >ایمیل</label
                   >
                   <input
                     type="email"
@@ -1219,6 +1219,33 @@
     </footer>
 
     <script>
+      function showNotificationInPopUp(message, type = 'info') {
+          const authPopup = document.getElementById('auth-popup');
+          const notification = document.createElement('div'); // Create element on document, not authPopup
+          notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+              type === 'success' ? 'bg-green-500' : 
+              type === 'error' ? 'bg-red-500' : 
+              'bg-blue-500'
+          }`;
+          
+          notification.textContent = message;
+          
+          // Animation in
+          notification.classList.add('transform', 'transition-all', 'duration-300');
+          notification.classList.add('-translate-y-[100px]', 'opacity-0');
+          
+          // Append the notification to the authPopup
+          authPopup.appendChild(notification);
+          
+          setTimeout(() => {
+              notification.classList.remove('translate-y-2', 'opacity-0');
+          }, 10);
+          
+          setTimeout(() => {
+              notification.classList.add('opacity-0', 'translate-y-2');
+              setTimeout(() => notification.remove(), 300);
+          }, 3000);
+      }
       function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
@@ -1611,94 +1638,138 @@
                 "register-phone-display"
               );
 
-              registerForm.addEventListener("submit", function (e) {
-                e.preventDefault();
+              
+                registerForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
 
-                const formDataRegister = new FormData(registerForm);
-                const phone = document.getElementById("register-phone").value;
-                registerPhoneDisplay.textContent = phone;
-                registerStep1.classList.remove("active");
-                registerStep2.classList.add("active");
-                startCountdown("register-resend-timer", 120);
-                setupOtpInputs("#register-step-2");
+                  const fullName = document.getElementById("register-name").value
+                  const mobile = document.getElementById("register-phone").value.trim();
+                  const email = document.getElementById("register-email").value.trim();
+                  const password = document.getElementById("register-password").value;
+                  const confirmPassword = document.getElementById("register-confirm-password").value;
 
-                fetch("/api/mobile/sendOtp", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ mobile: phone }),
-                })
-                  .then((res) => res.json())
-                  .then((data) => {
-                    if (data.success) {
-                      // Only run this if otp was successful
-                      // otp verification form
-                      const registerVerificationForm = document.getElementById(
-                        "register-verification-form"
-                      );
+                  
+                  const iranMobileRegex = /^09\d{9}$/;
+                  const emailRegex = /^\S+@\S+\.\S+$/;
 
-                      registerVerificationForm.addEventListener(
-                        "submit",
-                        function (e) {
-                          e.preventDefault();
-                          const otpValue = getOtpValue("#register-step-2");
-                          const reversedOtpValue = otpValue
-                            .split("")
-                            .reverse()
-                            .join("");
-                          fetch("/api/mobile/verifyOtp", {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                              mobile: phone,
-                              otp: reversedOtpValue,
-                            }),
-                          })
-                            .then((res) => res.json())
-                            .then((data) => {
-                              if (data.success) {
-                                fetch("/api/authentication/signUp", {
-                                  method: "POST",
-                                  body: formDataRegister,
-                                })
-                                  .then((res) => res.json())
-                                  .then((data) => {
-                                    if (data.success) {
-                                      showNotification(data.message, 'success')
-                                      location.reload();
-                                    } else {
-                                      // Show error message
-                                      showNotification(data.message, 'error')
-                                    }
-                                  })
-                                  .catch((err) => {
-                                    console.error("Error:", err);
-                                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
-                                  });
-                                authPopup.classList.add("hidden");
-                              } else {
-                                showNotification(data.message, 'error')
-                              }
-                            })
-                            .catch((err) => {
-                              console.error("Error:", err);
-                              showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
-                            });
-                        }
-                      );
-                    } else {
-                      // Show error message
-                      showNotification(data.message, 'error')
+
+                      if (fullName.length < 3) {
+                      showNotificationInPopUp("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
+                      return;
                     }
+
+                    // ✅ Mobile number format
+                    if (!iranMobileRegex.test(mobile)) {
+                      showNotificationInPopUp("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
+                      return;
+                    }
+
+                    // ✅ Email (if entered)
+                    if (email && !emailRegex.test(email)) {
+                      showNotificationInPopUp("ایمیل وارد شده معتبر نیست", 'error');
+                      return;
+                    }
+
+                    // ✅ Password rules
+                    if (password.length < 8) {
+                      showNotificationInPopUp("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
+                      return;
+                    }
+
+                    if (password !== confirmPassword) {
+                      showNotificationInPopUp("رمز عبور و تکرار آن یکسان نیستند", 'error');
+                      return;
+                    }
+
+
+                  const formDataRegister = new FormData(registerForm);
+                  const phone = document.getElementById("register-phone").value;
+                  registerPhoneDisplay.textContent = phone;
+                  registerStep1.classList.remove("active");
+                  registerStep2.classList.add("active");
+                  startCountdown("register-resend-timer", 120);
+                  setupOtpInputs("#register-step-2");
+
+                  fetch("/api/mobile/sendOtp", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ mobile: phone }),
                   })
-                  .catch((err) => {
-                    console.error("Error:", err);
-                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
-                  });
-              });
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data.success) {
+                        // Only run this if otp was successful
+                        // otp verification form
+                        const registerVerificationForm = document.getElementById(
+                          "register-verification-form"
+                        );
+
+                        registerVerificationForm.addEventListener(
+                          "submit",
+                          function (e) {
+                            e.preventDefault();
+                            const otpValue = getOtpValue("#register-step-2");
+                            const reversedOtpValue = otpValue
+                              .split("")
+                              .reverse()
+                              .join("");
+                            fetch("/api/mobile/verifyOtp", {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({
+                                mobile: phone,
+                                otp: reversedOtpValue,
+                              }),
+                            })
+                              .then((res) => res.json())
+                              .then((data) => {
+                                if (data.success) {
+                                  fetch("/api/authentication/signUp", {
+                                    method: "POST",
+                                    body: formDataRegister,
+                                  })
+                                    .then((res) => res.json())
+                                    .then((data) => {
+                                      if (data.success) {
+                                        // Only run this if registration was successful
+                                        showNotification(data.message, 'success');
+                                        setTimeout(() => {
+                                          location.reload();
+                                        }, 800);
+                                      } else {
+                                        // Show error message
+                                        showNotificationInPopUp(data.message, 'error');
+                                      }
+                                    })
+                                    .catch((err) => {
+                                      console.error("Error:", err);
+                                      showNotificationInPopUp(data.message, 'error');
+                                    });
+                                  authPopup.classList.add("hidden");
+                                } else {
+                                  showNotificationInPopUp(data.message, 'error');
+                                }
+                              })
+                              .catch((err) => {
+                                console.error("Error:", err);
+                                showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                              });
+                          }
+                        );
+                      } else {
+                        // Show error message
+                        showNotificationInPopUp(data.message, 'error')
+                      }
+                    })
+                    .catch((err) => {
+                      console.error("Error:", err);
+                      showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
+                    });
+                });
 
               document
                 .getElementById("register-back-btn")
@@ -1788,18 +1859,20 @@
                   .then((res) => res.json())
                   .then((data) => {
                     if (data.success) {
-                      // Only run this if registration was successful
-                      showNotification(data.message, 'success')
+                    // Only run this if registration was successful
+                    showNotification(data.message, 'success');
+                    setTimeout(() => {
                       location.reload();
-                      authPopup.classList.add("hidden");
+                    }, 800);
+                    authPopup.classList.add("hidden");
                     } else {
                       // Show error message
-                      showNotification(data.message, 'error')
+                      showNotificationInPopUp(data.message, 'error');
                     }
                   })
                   .catch((err) => {
                     console.error("Error:", err);
-                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
+                    showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                   });
               });
 
@@ -1865,8 +1938,10 @@
             .then((res) => res.json())
             .then((data) => {
               if (data.success) {
+                showNotification('محصول مورد نظر به سبد خرید اضافه شد', 'success')            
+                setTimeout(() => {
                   location.reload();
-                  showNotification('محصول مورد نظر به سبد خرید اضافه شد', 'success')            
+                }, 800);
               } else {
                 showNotification(data.message, 'error');
               }

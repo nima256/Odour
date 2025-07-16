@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>گلو بیوتی | لوازم آرایشی با کیفیت</title>
+  <title> لوازم آرایشی با کیفیت</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;display=swap"
@@ -249,7 +249,7 @@
       <!-- Logo -->
       <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
         <div class="h-full overflow-hidden flex items-center">
-          <img src="logo.png" alt="لوگوی گلو بیوتی" class="h-full w-auto object-contain" />
+          <img src="logo.png" alt="لوگوی اودور" class="h-full w-auto object-contain" />
         </div>
       </a>
 
@@ -465,7 +465,7 @@
             <div>
               <label class="block text-gray-700 mb-2" for="register-email">ایمیل</label>
               <input type="email" name="email" id="register-email" class="w-full px-4 py-3 rounded-lg border"
-                placeholder="email@example.com" />
+                placeholder="email@example.com" required />
             </div>
             <div>
               <label class="block text-gray-700 mb-2" for="register-password">رمز عبور</label>
@@ -705,19 +705,11 @@
         <!-- Scroll Arrows -->
         <button
           class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
-          id="scroll-right">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
+          id="scroll-right" style="display: none;">
         </button>
         <button
           class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 focus:outline-none hidden md:block"
-          id="scroll-left">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
+          id="scroll-left" style="display: none;">
         </button>
       </div>
     </div>
@@ -843,60 +835,7 @@
           </div>
           <% } %>
 
-            <!-- Blog Section -->
-            <section class="py-12 px-4 bg-gray-50 w-[26em] sm:w-[47em] lg:w-[80em] mx-auto">
-              <div class="max-w-7xl mx-auto">
-                <h2 class="text-3xl font-bold text-gray-800 mb-2 fade-in">
-                  وبلاگ زیبایی
-                </h2>
-                <p class="text-gray-600 mb-8 fade-in delay-100">
-                  نکات، روندها و الهام بخشی زیبایی
-                </p>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in delay-200">
-                  <!-- Blog Post 1 -->
-                  <% for (let weblog of weblogs) {%>
-                    <div
-                      class="blog-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-300">
-                      <a href="/weblog" onclick="event.preventDefault(); localStorage.setItem('weblogId', '<%= weblog._id %>'); window.location=this.href;">
-                        <div class="h-48 bg-pink-200 relative">
-                          <img src="<%= weblog.images[0] %>" alt="" style="height: 100%; width: 100%" />
-                        </div>
-                      </a>
-                      <div class="p-5">
-                        <div class="flex items-center text-gray-500 text-sm mb-3">
-                          <i class="far fa-calendar-alt ml-2"></i>
-                          <span>
-                            <%= toPersianDigitsForSizes(weblog.createTarikh).split(" ").slice(2).join(" ")
-                        %></span
-                      >
-                      <span class=" mx-2">•
-                          </span>
-                          <i class="far fa-user ml-2"></i>
-                          <span>نویسنده: <%= weblog.author %></span>
-                        </div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">
-                          <%= weblog.title %>
-                        </h3>
-                        <p class="text-gray-600 mb-4">
-                          <%= weblog.description %>
-                        </p>
-                        <a href="/weblogDetails/<%= weblog.slug %>"
-                          class="inline-flex items-center text-pink-500 font-medium hover:text-pink-600 transition-colors">
-                          بیشتر بخوانید
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 rotate-180" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </a>
-                      </div>
-                    </div>
-                    <% } %>
-                </div>
-              </div>
-
-            </section>
-            <script>
+          <script>
               function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
@@ -928,21 +867,79 @@
                     setTimeout(() => notification.remove(), 300);
                 }, 3000);
             }
+          </script>
+
+          <% if(success.length) {%>
+          <script>
+            showNotification('<%= TEXT %>', '<%= ICON %>')
+          </script>
+          <% } %>
+          <% if(error.length) {%>
+            <script>
+                showNotification('<%= TEXT %>', '<%= ICON %>')
             </script>
-
-
-                <% if(success.length) {%>
-                <script>
-                  showNotification('<%= TEXT %>', '<%= ICON %>')
-                </script>
-                <% } %>
-                <% if(error.length) {%>
-                  <script>
-                      showNotification('<%= TEXT %>', '<%= ICON %>')
-                  </script>
-                <% } %>
+          <% } %>
 
             <script>
+              function showNotificationInPopUp(message, type = 'info') {
+                  const authPopup = document.getElementById('auth-popup');
+                  const notification = document.createElement('div'); // Create element on document, not authPopup
+                  notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+                      type === 'success' ? 'bg-green-500' : 
+                      type === 'error' ? 'bg-red-500' : 
+                      'bg-blue-500'
+                  }`;
+                  
+                  notification.textContent = message;
+                  
+                  // Animation in
+                  notification.classList.add('transform', 'transition-all', 'duration-300');
+                  notification.classList.add('-translate-y-[100px]', 'opacity-0');
+                  
+                  // Append the notification to the authPopup
+                  authPopup.appendChild(notification);
+                  
+                  setTimeout(() => {
+                      notification.classList.remove('translate-y-2', 'opacity-0');
+                  }, 10);
+                  
+                  setTimeout(() => {
+                      notification.classList.add('opacity-0', 'translate-y-2');
+                      setTimeout(() => notification.remove(), 300);
+                  }, 3000);
+              }
+
+              function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+                    type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 
+                    'bg-blue-500'
+                }`;
+                
+                // Mobile: centered at top, Desktop: top-right
+                notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+                
+                // Width control
+                notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+                
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                // Animation in
+                notification.classList.add('transform', 'transition-all', 'duration-300');
+                notification.classList.add('translate-y-2', 'opacity-0');
+                
+                setTimeout(() => {
+                    notification.classList.remove('translate-y-2', 'opacity-0');
+                }, 10);
+                
+                setTimeout(() => {
+                    notification.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
               
               function setSelectedCategory(categoryName) {
                 localStorage.setItem("selectedCategory", categoryName);
@@ -962,16 +959,16 @@
                   .then((data) => {
                     if (data.success) {
                       // Only run this if registration was successful
-                      showNotification(data.message, 'success');
+                      showNotification(data.message, 'success');                      
                       location.reload();
                     } else {
                       // Show error message
-                      showNotification(data.message, 'error');
+                      showNotification(data.message, 'error');                      
                     }
                   })
                   .catch((err) => {
                     console.error("Error:", err);
-                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                    showNotification(data.message, 'error');                      
                   });
 
                 // const countEl = document.getElementById("cartCount");
@@ -1168,30 +1165,30 @@
 
 
                       if (fullName.length < 3) {
-                      showNotification("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
+                      showNotificationInPopUp("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
                       return;
                     }
 
                     // ✅ Mobile number format
                     if (!iranMobileRegex.test(mobile)) {
-                      showNotification("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
+                      showNotificationInPopUp("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
                       return;
                     }
 
                     // ✅ Email (if entered)
                     if (email && !emailRegex.test(email)) {
-                      showNotification("ایمیل وارد شده معتبر نیست", 'error');
+                      showNotificationInPopUp("ایمیل وارد شده معتبر نیست", 'error');
                       return;
                     }
 
                     // ✅ Password rules
                     if (password.length < 8) {
-                      showNotification("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
+                      showNotificationInPopUp("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
                       return;
                     }
 
                     if (password !== confirmPassword) {
-                      showNotification("رمز عبور و تکرار آن یکسان نیستند", 'error');
+                      showNotificationInPopUp("رمز عبور و تکرار آن یکسان نیستند", 'error');
                       return;
                     }
 
@@ -1251,35 +1248,37 @@
                                       if (data.success) {
                                         // Only run this if registration was successful
                                         showNotification(data.message, 'success');
-                                        location.reload();
+                                        setTimeout(() => {
+                                          location.reload();
+                                        }, 800);
                                       } else {
                                         // Show error message
-                                        showNotification(data.message, 'error');
+                                        showNotificationInPopUp(data.message, 'error');
                                       }
                                     })
                                     .catch((err) => {
                                       console.error("Error:", err);
-                                      showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                                      showNotificationInPopUp(data.message, 'error');
                                     });
                                   authPopup.classList.add("hidden");
                                 } else {
-                                  showNotification(data.message, 'error');
+                                  showNotificationInPopUp(data.message, 'error');
                                 }
                               })
                               .catch((err) => {
                                 console.error("Error:", err);
-                                showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                                showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                               });
                           }
                         );
                       } else {
                         // Show error message
-                        showNotification(data.message, 'error');
+                        showNotificationInPopUp(data.message, 'error')
                       }
                     })
                     .catch((err) => {
                       console.error("Error:", err);
-                      showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                      showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
                     });
                 });
 
@@ -1371,18 +1370,20 @@
                     .then((res) => res.json())
                     .then((data) => {
                       if (data.success) {
-                        // Only run this if registration was successful
-                        showNotification(data.message, 'success');
+                      // Only run this if registration was successful
+                      showNotification(data.message, 'success');
+                      setTimeout(() => {
                         location.reload();
-                        authPopup.classList.add("hidden");
+                      }, 800);
+                      authPopup.classList.add("hidden");
                       } else {
                         // Show error message
-                        showNotification(data.message, 'error');
+                        showNotificationInPopUp(data.message, 'error');
                       }
                     })
                     .catch((err) => {
                       console.error("Error:", err);
-                      showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                      showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                     });
                 });
 
