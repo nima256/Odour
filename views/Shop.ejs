@@ -405,17 +405,21 @@
               <span
                 style="bottom: 15px; right: 7px"
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                ><%= toPersianDigits(cartCount) %></span
-              >
+                ><%= toPersianDigitsForSizes(cartCount) %></span>
               <% } else {%><% } %>
             </button>
           </div>
-          <button
-            id="user-auth-button"
-            class="text-gray-700 hover:text-pink-500 transition-colors"
-          >
+        <% if (!user) {%>
+          <button id="user-auth-button" class="text-gray-700 hover:text-pink-500 transition-colors">
             <i class="fas fa-user text-xl"></i>
           </button>
+          <% } else { %>
+            <a href="/userProfile">
+              <button class="text-gray-700 hover:text-pink-500 transition-colors">
+                <i class="fas fa-user text-xl"></i>
+              </button>
+            </a>
+            <% } %>
         </div>
       </div>
 
@@ -1213,7 +1217,40 @@
         </div>
       </div>
     </footer>
+
     <script>
+      function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+            type === 'success' ? 'bg-green-500' : 
+            type === 'error' ? 'bg-red-500' : 
+            'bg-blue-500'
+        }`;
+        
+        // Mobile: centered at top, Desktop: top-right
+        notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+        
+        // Width control
+        notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+        
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animation in
+        notification.classList.add('transform', 'transition-all', 'duration-300');
+        notification.classList.add('translate-y-2', 'opacity-0');
+        
+        setTimeout(() => {
+            notification.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+        
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
         // State
         const productFromServer = <%- JSON.stringify(products) %>;
         let currentView = "grid";
@@ -1228,16 +1265,6 @@
         function formatPrice(price) {
           // return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
           return price.toLocaleString("fa-IR");
-        }
-
-        function showNotification(message) {
-          const notification = document.getElementById("notification");
-          const notificationText = document.getElementById("notification-text");
-          notificationText.textContent = message;
-          notification.classList.add("show");
-          setTimeout(() => {
-            notification.classList.remove("show");
-          }, 3000);
         }
 
         // Render products
@@ -1266,7 +1293,7 @@
                                 <a href="/productDetails/${product.slug}">
                                   <div class="absolute inset-0 bg-gradient-to-br"><img src=${product.images[0]} alt=${product.name}></div>
                                 </a>
-                                ${product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
+                                ${product.countInStock === 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
                                 ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
                                 <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${ toPersianDigits(product.rating)} (${toPersianDigits(product.reviewsNum)} نظر)</div>
                             </div>
@@ -1344,10 +1371,7 @@
           cartCount.textContent = currentCount;
 
           // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
-          localStorage.setItem("cartCount", currentCount);
-
-          // 4. نمایش پیام (اختیاری)
-          alert(`${productName} به سبد خرید اضافه شد!`);
+          localStorage.setItem("cartCount", currentCount);          
         }
 
         // بارگذاری عدد ذخیره شده هنگام لود صفحه
@@ -1360,12 +1384,13 @@
         // Filter products
         function filterProducts() {
           filteredProducts = productFromServer.filter((product) => {
-            // Category filter
-            if (
-              selectedCategories.length > 0 &&
-              !selectedCategories.includes(product.catName)
-            ) {
-              return false;
+            // Category filter - now checks all categories in product.categories
+            if (selectedCategories.length > 0) {
+              const productCategories = product.category || []; // Handle cases where categories might be undefined
+              const hasMatchingCategory = productCategories.some(cat => 
+                selectedCategories.includes(cat.name) // Assuming each category in the array has a 'name' property
+              );
+              if (!hasMatchingCategory) return false;
             }
 
             // Brand filter
@@ -1385,9 +1410,7 @@
             if (
               searchQuery &&
               !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-              !product.lilDescription
-                .toLowerCase()
-                .includes(searchQuery.toLowerCase())
+              !product.lilDescription.toLowerCase().includes(searchQuery.toLowerCase())
             ) {
               return false;
             }
@@ -1395,7 +1418,7 @@
             return true;
           });
 
-          // Sort products
+          // Rest of your sorting logic remains the same...
           switch (sortBy) {
             case "price-low":
               filteredProducts.sort((a, b) => a.price - b.price);
@@ -1410,7 +1433,6 @@
               filteredProducts.sort((a, b) => b.rating - a.rating);
               break;
             default:
-              // Default sorting by popularity (rating * reviews)
               filteredProducts.sort(
                 (a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum
               );
@@ -1620,7 +1642,6 @@
                         "submit",
                         function (e) {
                           e.preventDefault();
-                          // alert("ثبت نام با موفقیت انجام شد!");
                           const otpValue = getOtpValue("#register-step-2");
                           const reversedOtpValue = otpValue
                             .split("")
@@ -1646,39 +1667,36 @@
                                   .then((res) => res.json())
                                   .then((data) => {
                                     if (data.success) {
-                                      // Only run this if registration was successful
-                                      alert(data.message);
+                                      showNotification(data.message, 'success')
                                       location.reload();
                                     } else {
                                       // Show error message
-                                      alert(data.message); // You can use a toast or modal instead
+                                      showNotification(data.message, 'error')
                                     }
                                   })
                                   .catch((err) => {
                                     console.error("Error:", err);
-                                    alert(
-                                      "مشکلی در ارتباط با سرور به وجود آمده است"
-                                    );
+                                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
                                   });
                                 authPopup.classList.add("hidden");
                               } else {
-                                alert(data.message);
+                                showNotification(data.message, 'error')
                               }
                             })
                             .catch((err) => {
                               console.error("Error:", err);
-                              alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                              showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
                             });
                         }
                       );
                     } else {
                       // Show error message
-                      alert(data.message);
+                      showNotification(data.message, 'error')
                     }
                   })
                   .catch((err) => {
                     console.error("Error:", err);
-                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
                   });
               });
 
@@ -1771,17 +1789,17 @@
                   .then((data) => {
                     if (data.success) {
                       // Only run this if registration was successful
-                      alert(data.message);
+                      showNotification(data.message, 'success')
                       location.reload();
                       authPopup.classList.add("hidden");
                     } else {
                       // Show error message
-                      alert(data.message); // You can use a toast or modal instead
+                      showNotification(data.message, 'error')
                     }
                   })
                   .catch((err) => {
                     console.error("Error:", err);
-                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
                   });
               });
 
@@ -1790,7 +1808,7 @@
                 document.getElementById("new-password-form");
               newPasswordForm.addEventListener("submit", function (e) {
                 e.preventDefault();
-                alert("رمز عبور با موفقیت تغییر یافت!");
+                showNotification("رمز عبور با موفقیت تغییر یافت!", 'success')
                 authPopup.classList.add("hidden");
               });
 
@@ -1844,34 +1862,19 @@
                 quantity : 1
               }),
             })
-              .then((res) => res.json())
-              .then((data) => {
-                if (data.success) {
-                  // Only run this if registration was successful
-                  const toast = document.getElementById("toast");
-                  const toastMessage = document.getElementById("toast-message");
-
-                  toastMessage.textContent = `محصول "${productName}" به سبد خرید اضافه شد`;
-                  toast.classList.remove("hidden");
-
-                  // پس از 3 ثانیه toast را مخفی کنید
-                  setTimeout(() => {
-                    toast.classList.add("hidden");
-                  }, 3000);
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
                   location.reload();
-                } else {
-                  // Show error message
-                  alert(data.message); // You can use a toast or modal instead
-                }
-              })
-              .catch((err) => {
-                console.error("Error:", err);
-                alert("مشکلی در ارتباط با سرور به وجود آمده است");
-              });
-          // نمایش toast
-
-
-          // در اینجا می‌توانید منطق واقعی اضافه به سبد خرید را نیز اضافه کنید
+                  showNotification('محصول مورد نظر به سبد خرید اضافه شد', 'success')            
+              } else {
+                showNotification(data.message, 'error');
+              }
+            })
+            .catch((err) => {
+              console.error("Error:", err);
+              showNotification('مشکلی در ارتباط با سرور به وجود آمده است', 'error')
+            });
         }
     </script>
   </body>

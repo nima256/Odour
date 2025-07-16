@@ -240,7 +240,7 @@
       height: 24px;
     }
   </style>
-</head>
+  </head>
 
 <body class="bg-gray-50">
   <!-- Navigation Bar -->
@@ -266,9 +266,11 @@
       <!-- Icons -->
       <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
         <div class="relative">
-          <button onclick="window.location.href='/cart';"
+          <button 
             class="relative text-gray-700 hover:text-pink-500 transition-colors">
+            <a href="/cart">
             <i class="fas fa-shopping-bag text-xl"></i>
+            </a>
             <% if(user) { %>
               <span id="cartCount"
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -929,18 +931,19 @@
             </script>
 
 
-            <% if(success.length) {%>
-            <script>
-              showNotification('<%= TEXT %>', '<%= ICON %>')
-            </script>
-            <% } %>
-            <% if(error.length) {%>
-              <script>
+                <% if(success.length) {%>
+                <script>
                   showNotification('<%= TEXT %>', '<%= ICON %>')
-              </script>
-            <% } %>
+                </script>
+                <% } %>
+                <% if(error.length) {%>
+                  <script>
+                      showNotification('<%= TEXT %>', '<%= ICON %>')
+                  </script>
+                <% } %>
 
             <script>
+              
               function setSelectedCategory(categoryName) {
                 localStorage.setItem("selectedCategory", categoryName);
               }
@@ -959,16 +962,16 @@
                   .then((data) => {
                     if (data.success) {
                       // Only run this if registration was successful
-                      alert(data.message);
+                      showNotification(data.message, 'success');
                       location.reload();
                     } else {
                       // Show error message
-                      alert(data.message); // You can use a toast or modal instead
+                      showNotification(data.message, 'error');
                     }
                   })
                   .catch((err) => {
                     console.error("Error:", err);
-                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                   });
 
                 // const countEl = document.getElementById("cartCount");
@@ -1165,32 +1168,32 @@
 
 
                       if (fullName.length < 3) {
-                      alert("نام کامل باید حداقل ۳ کاراکتر باشد");
+                      showNotification("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
                       return;
                     }
 
                     // ✅ Mobile number format
                     if (!iranMobileRegex.test(mobile)) {
-                      alert("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)");
+                      showNotification("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
                       return;
                     }
 
                     // ✅ Email (if entered)
                     if (email && !emailRegex.test(email)) {
-                      alert("ایمیل وارد شده معتبر نیست");
+                      showNotification("ایمیل وارد شده معتبر نیست", 'error');
                       return;
                     }
 
                     // ✅ Password rules
                     if (password.length < 8) {
-                      alert("رمز عبور باید حداقل ۸ کاراکتر باشد");
+                      showNotification("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
                       return;
                     }
 
                     if (password !== confirmPassword) {
-                      alert("رمز عبور و تکرار آن یکسان نیستند");
+                      showNotification("رمز عبور و تکرار آن یکسان نیستند", 'error');
                       return;
-    }
+                    }
 
 
                   const formDataRegister = new FormData(registerForm);
@@ -1247,38 +1250,36 @@
                                     .then((data) => {
                                       if (data.success) {
                                         // Only run this if registration was successful
-                                        alert(data.message);
+                                        showNotification(data.message, 'success');
                                         location.reload();
                                       } else {
                                         // Show error message
-                                        alert(data.message); // You can use a toast or modal instead
+                                        showNotification(data.message, 'error');
                                       }
                                     })
                                     .catch((err) => {
                                       console.error("Error:", err);
-                                      alert(
-                                        "مشکلی در ارتباط با سرور به وجود آمده است"
-                                      );
+                                      showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                                     });
                                   authPopup.classList.add("hidden");
                                 } else {
-                                  alert(data.message);
+                                  showNotification(data.message, 'error');
                                 }
                               })
                               .catch((err) => {
                                 console.error("Error:", err);
-                                alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                                showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                               });
                           }
                         );
                       } else {
                         // Show error message
-                        alert(data.message);
+                        showNotification(data.message, 'error');
                       }
                     })
                     .catch((err) => {
                       console.error("Error:", err);
-                      alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                      showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                     });
                 });
 
@@ -1371,17 +1372,17 @@
                     .then((data) => {
                       if (data.success) {
                         // Only run this if registration was successful
-                        alert(data.message);
+                        showNotification(data.message, 'success');
                         location.reload();
                         authPopup.classList.add("hidden");
                       } else {
                         // Show error message
-                        alert(data.message); // You can use a toast or modal instead
+                        showNotification(data.message, 'error');
                       }
                     })
                     .catch((err) => {
                       console.error("Error:", err);
-                      alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                      showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                     });
                 });
 
@@ -1390,7 +1391,7 @@
                   document.getElementById("new-password-form");
                 newPasswordForm.addEventListener("submit", function (e) {
                   e.preventDefault();
-                  alert("رمز عبور با موفقیت تغییر یافت!");
+                  showNotification("رمز عبور با موفقیت تغییر یافت!", 'success');
                   authPopup.classList.add("hidden");
                 });
 

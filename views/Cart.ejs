@@ -686,7 +686,40 @@
         </div>
       </div>
     </footer>
+    
     <script>
+      function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+            type === 'success' ? 'bg-green-500' : 
+            type === 'error' ? 'bg-red-500' : 
+            'bg-blue-500'
+        }`;
+        
+        // Mobile: centered at top, Desktop: top-right
+        notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+        
+        // Width control
+        notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+        
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animation in
+        notification.classList.add('transform', 'transition-all', 'duration-300');
+        notification.classList.add('translate-y-2', 'opacity-0');
+        
+        setTimeout(() => {
+            notification.classList.remove('translate-y-2', 'opacity-0');
+        }, 10);
+        
+        setTimeout(() => {
+            notification.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
       const cartItemsFromServer = <%- JSON.stringify(cartItems) %>;
 
       let appliedDiscount = 0;
@@ -700,12 +733,12 @@
         const code = codeInput.value.trim();
 
         if (!code) {
-          alert("لطفا کد تخفیف را وارد کنید");
+          showNotification("لطفا کد تخفیف را وارد کنید", 'error');
           return;
         }
 
         if (currentDiscountCode === code && isDiscountStillValid()) {
-          alert("این کد تخفیف قبلاً اعمال شده است");
+          showNotification("این کد تخفیف قبلاً اعمال شده است", 'error');
           return;
         }
 
@@ -738,16 +771,16 @@
               calculatedAmount: data.discount.calculatedAmount // اضافه کردن این خط
             };
 
-            alert(data.message);
+            showNotification(data.message, 'success');
             updateTotals();
           } else {
             resetDiscount();
-            alert(data.message);
+            showNotification(data.message, 'error');
             updateTotals();
           }
         } catch (err) {
           console.error("Error:", err);
-          alert("مشکلی در ارتباط با سرور به وجود آمده است");
+          showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
         }
       }
 
@@ -912,14 +945,14 @@
                         // 2. Update totals and re-render
                         updateTotals();
                         renderCartItems();
-                        alert("محصول از سبد خرید شما حذف شد");
+                        showNotification("محصول از سبد خرید شما حذف شد", 'success');
                     } else {
-                        alert(data.message);
+                        showNotification(data.message, 'error');
                     }
                 })
                 .catch((err) => {
                     console.error("Error:", err);
-                    alert("مشکلی در ارتباط با سرور به وجود آمده است");
+                    showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                 });
             }
         }
@@ -934,7 +967,7 @@
 
           // اگر تخفیف نامعتبر شد، پیام نمایش دهید
           if (currentDiscountCode && !isDiscountStillValid()) {
-            alert(`کد تخفیف ${currentDiscountCode} به دلیل تغییر در سبد خرید دیگر قابل استفاده نیست`);
+            showNotification(`کد تخفیف ${currentDiscountCode} به دلیل تغییر در سبد خرید دیگر قابل استفاده نیست`, 'error');
             resetDiscount();
           }
 
@@ -992,12 +1025,12 @@
               updateTotals();
               renderCartItems();
             } else {
-              alert(data.message);
+              showNotification(data.message, 'error');
             }
           })
           .catch((err) => {
             console.error("Error:", err);
-            alert("مشکلی در ارتباط با سرور به وجود آمده است");
+            showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
           });
         }
 
@@ -1140,7 +1173,7 @@
             function validatePostalCode(postalCode) {
             const regex = /^\d{10}$/;
             if (!regex.test(postalCode)) {
-              alert("کد پستی باید دقیقاً ۱۰ رقم باشد");
+              showNotification("کد پستی باید دقیقاً ۱۰ رقم باشد", 'error');
               return false;
             }
             return true;
@@ -1149,12 +1182,12 @@
           // اعتبارسنجی آدرس
           function validateAddress(address) {
             if (address.length < 10) {
-              alert("آدرس نمی‌تواند کمتر از ۱۰ کاراکتر باشد");
+              showNotification("آدرس نمی‌تواند کمتر از ۱۰ کاراکتر باشد", 'error');
               return false;
             }
             
             if (address.length > 500) {
-              alert("آدرس نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد");
+              showNotification("آدرس نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد", 'error');
               return false;
             }
             
@@ -1163,7 +1196,7 @@
 
 
             if (!postalCode || !address) {
-              alert("لطفاً تمام فیلدها را پر کنید:");
+              showNotification("لطفاً تمام فیلدها را پر کنید", 'error');
               return;
             }
 
@@ -1189,14 +1222,12 @@
                     showPage("confirmation-page")
                   } else {
                     // Show error message
-                    alert(data.message); // You can use a toast or modal instead
+                    showNotification(data.message, 'error');
                   }
                 })
                 .catch((err) => {
                   console.error("Error:", err);
-                  alert(
-                    "مشکلی در ارتباط با سرور به وجود آمده است"
-                  );
+                  showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                 });
           });
         document

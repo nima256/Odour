@@ -183,7 +183,7 @@ const asyncHandler = (fn) => (req, res, next) =>
 app.get(
   "/shop",
   asyncHandler(async (req, res) => {
-    const products = await Product.find({});
+    const products = await Product.find({}).populate('category');
     const categories = await Category.find({ categoryType: "product" });
     const brands = await Brand.find({});
     const user = await User.findById(req.session.userId);
@@ -199,10 +199,10 @@ app.get(
     // count products for each category
     const categoriesWithCounts = await Promise.all(
       categories.map(async (cat) => {
-        const count = await Product.countDocuments({ category: cat._id });
+        const count = await Product.countDocuments({ category: cat._id }); // Changed to "categories" array
         return {
-          ...cat._doc, // spread the original category fields
-          productCount: count, // add a new property
+          ...cat._doc,
+          productCount: count,
         };
       })
     );
