@@ -37,6 +37,10 @@ const otpSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    lastSentAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt automatically

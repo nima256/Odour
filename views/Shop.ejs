@@ -1244,7 +1244,7 @@
           setTimeout(() => {
               notification.classList.add('opacity-0', 'translate-y-2');
               setTimeout(() => notification.remove(), 300);
-          }, 3000);
+          }, 2000);
       }
       function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
@@ -1275,7 +1275,7 @@
         setTimeout(() => {
             notification.classList.add('opacity-0', 'translate-y-2');
             setTimeout(() => notification.remove(), 300);
-        }, 3000);
+        }, 2000);
     }
 
         // State
@@ -1411,11 +1411,14 @@
         // Filter products
         function filterProducts() {
           filteredProducts = productFromServer.filter((product) => {
+            // Get the effective price (use offerPrice if available, otherwise use price)
+            const effectivePrice = product.offerPrice || product.price;
+            
             // Category filter - now checks all categories in product.categories
             if (selectedCategories.length > 0) {
-              const productCategories = product.category || []; // Handle cases where categories might be undefined
+              const productCategories = product.category || [];
               const hasMatchingCategory = productCategories.some(cat => 
-                selectedCategories.includes(cat.name) // Assuming each category in the array has a 'name' property
+                selectedCategories.includes(cat.name)
               );
               if (!hasMatchingCategory) return false;
             }
@@ -1428,8 +1431,8 @@
               return false;
             }
 
-            // Price filter
-            if (product.price > maxPrice) {
+            // Price filter - now uses effectivePrice
+            if (effectivePrice > maxPrice) {
               return false;
             }
 
@@ -1445,13 +1448,21 @@
             return true;
           });
 
-          // Rest of your sorting logic remains the same...
+          // Update sorting to use effectivePrice
           switch (sortBy) {
             case "price-low":
-              filteredProducts.sort((a, b) => a.price - b.price);
+              filteredProducts.sort((a, b) => {
+                const aPrice = a.offerPrice || a.price;
+                const bPrice = b.offerPrice || b.price;
+                return aPrice - bPrice;
+              });
               break;
             case "price-high":
-              filteredProducts.sort((a, b) => b.price - a.price);
+              filteredProducts.sort((a, b) => {
+                const aPrice = a.offerPrice || a.price;
+                const bPrice = b.offerPrice || b.price;
+                return bPrice - aPrice;
+              });
               break;
             case "newest":
               filteredProducts.sort((a, b) => b.isNew - a.isNew);
@@ -1523,7 +1534,7 @@
 
           priceRange.addEventListener("input", function () {
             maxPrice = parseInt(this.value);
-            currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice).toLocaleString("fa-IR")} تومان`;
+            currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)} تومان`;
             filterProducts();
           });
 
@@ -1739,7 +1750,7 @@
                                         showNotification(data.message, 'success');
                                         setTimeout(() => {
                                           location.reload();
-                                        }, 800);
+                                        }, 2000);
                                       } else {
                                         // Show error message
                                         showNotificationInPopUp(data.message, 'error');
@@ -1863,7 +1874,7 @@
                     showNotification(data.message, 'success');
                     setTimeout(() => {
                       location.reload();
-                    }, 800);
+                    }, 2000);
                     authPopup.classList.add("hidden");
                     } else {
                       // Show error message
@@ -1941,7 +1952,7 @@
                 showNotification('محصول مورد نظر به سبد خرید اضافه شد', 'success')            
                 setTimeout(() => {
                   location.reload();
-                }, 800);
+                }, 2000);
               } else {
                 showNotification(data.message, 'error');
               }

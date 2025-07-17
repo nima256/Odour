@@ -865,7 +865,7 @@
                 setTimeout(() => {
                     notification.classList.add('opacity-0', 'translate-y-2');
                     setTimeout(() => notification.remove(), 300);
-                }, 3000);
+                }, 2000);
             }
           </script>
 
@@ -906,7 +906,7 @@
                   setTimeout(() => {
                       notification.classList.add('opacity-0', 'translate-y-2');
                       setTimeout(() => notification.remove(), 300);
-                  }, 3000);
+                  }, 2000);
               }
 
               function showNotification(message, type = 'info') {
@@ -938,7 +938,7 @@
                 setTimeout(() => {
                     notification.classList.add('opacity-0', 'translate-y-2');
                     setTimeout(() => notification.remove(), 300);
-                }, 3000);
+                }, 2000);
             }
               
               function setSelectedCategory(categoryName) {
@@ -959,8 +959,10 @@
                   .then((data) => {
                     if (data.success) {
                       // Only run this if registration was successful
-                      showNotification(data.message, 'success');                      
-                      location.reload();
+                      showNotification(data.message, 'success');      
+                      setTimeout(() => {
+                        location.reload();
+                      }, 2000);                
                     } else {
                       // Show error message
                       showNotification(data.message, 'error');                      
@@ -1201,6 +1203,13 @@
                   startCountdown("register-resend-timer", 120);
                   setupOtpInputs("#register-step-2");
 
+                  document.getElementById("register-resend-timer").addEventListener("click", function(e) {
+                    if (e.target.classList.contains("resend-link")) {
+                      e.preventDefault();
+                      handleResendOtp("register-resend-timer");
+                    }
+                  });
+
                   fetch("/api/mobile/sendOtp", {
                     method: "POST",
                     headers: {
@@ -1250,7 +1259,7 @@
                                         showNotification(data.message, 'success');
                                         setTimeout(() => {
                                           location.reload();
-                                        }, 800);
+                                        }, 2000);
                                       } else {
                                         // Show error message
                                         showNotificationInPopUp(data.message, 'error');
@@ -1305,7 +1314,15 @@
                   forgotStep1.classList.remove("active");
                   forgotStep2.classList.add("active");
                   startCountdown("forgot-resend-timer", 120);
-                  setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
+                  setupOtpInputs("#forgot-step-2");
+
+                  // Add click event for resend button
+                  document.getElementById("forgot-resend-timer").addEventListener("click", function(e) {
+                    if (e.target.classList.contains("resend-link")) {
+                      e.preventDefault();
+                      handleResendOtp("forgot-resend-timer");
+                    }
+                  });
                 });
 
                 document
@@ -1374,7 +1391,7 @@
                       showNotification(data.message, 'success');
                       setTimeout(() => {
                         location.reload();
-                      }, 800);
+                      }, 2000);
                       authPopup.classList.add("hidden");
                       } else {
                         // Show error message
@@ -1396,7 +1413,6 @@
                   authPopup.classList.add("hidden");
                 });
 
-                // Countdown timer function
                 function startCountdown(elementId, seconds) {
                   const timerElement = document.getElementById(elementId);
                   const timerSpan = timerElement.querySelector("span");
@@ -1414,12 +1430,65 @@
                     if (remaining <= 0) {
                       clearInterval(interval);
                       timerElement.innerHTML =
-                        '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
+                        '<a href="#" class="text-pink-500 resend-link">ارسال مجدد کد</a>';
+                      
+                      // Add click event to resend link
+                      const resendLink = timerElement.querySelector('.resend-link');
+                      resendLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        handleResendOtp(elementId);
+                      });
                     }
 
                     remaining--;
                   }, 1000);
                 }
+
+                function handleResendOtp(elementId) {
+                  // Determine which form we're in (register or forgot password)
+                  const isRegister = elementId.includes('register');
+                  const phone = isRegister 
+                    ? document.getElementById('register-phone').value
+                    : document.getElementById('forgot-phone').value;
+
+                  if (!phone) {
+                    showNotificationInPopUp('شماره موبایل یافت نشد', 'error');
+                    return;
+                  }
+
+                  fetch("/api/mobile/sendOtp", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ mobile: phone }),
+                  })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.success) {
+                      showNotificationInPopUp('کد تأیید جدید ارسال شد', 'success');
+                      startCountdown(elementId, 120); // Restart the countdown
+                    } else {
+                      showNotificationInPopUp(data.message || 'خطا در ارسال کد تأیید', 'error');
+                      if (data.retryAfter) {
+                        // If we need to wait before resending
+                        setTimeout(() => {
+                          document.getElementById(elementId).innerHTML =
+                            '<a href="#" class="text-pink-500 resend-link">ارسال مجدد کد</a>';
+                          const resendLink = document.querySelector(`#${elementId} .resend-link`);
+                          resendLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            handleResendOtp(elementId);
+                          });
+                        }, data.retryAfter * 1000);
+                      }
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error:", err);
+                    showNotificationInPopUp('مشکلی در ارتباط با سرور به وجود آمده است', 'error');
+                  });
+                }                
 
                 // Phone number input validation
                 const phoneInputs =

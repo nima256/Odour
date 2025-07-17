@@ -136,7 +136,7 @@
           <div class="h-full overflow-hidden flex items-center">
             <img
               src="/logo.png"
-              alt="لوگوی اودور"
+              alt="لوگوی گلو بیوتی"
               class="h-full w-auto object-contain"
             />
           </div>
@@ -329,6 +329,7 @@
 
             <!-- Tabs -->
             <div class="flex border-b border-gray-200 bg-gray-50">
+              <% if (user.orders.length !== 0) {%>
               <% if (currentOrders.length > 0) { %>
                 <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-blue-600" data-tab="current">
                   جاری (<%= currentOrders.length %>)
@@ -344,9 +345,15 @@
                   لغو شده (<%= canceledOrders.length %>)
                 </button>
               <% } %>
+              <% } else {%>
+                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-red-600 tab-active" data-tab="current">
+                  بدون سفارش
+                </button>
+              <% } %>
             </div>
 
             <!-- Tab Content -->
+             <% if (user.orders.length !== 0) {%>
             <div class="p-6">
                 <!-- Current Orders -->
               <% if (currentOrders.length > 0) { %>
@@ -619,6 +626,14 @@
                 </div>
                 <% } %>
             </div>
+            <% } else { %>
+              <div class="p-6">
+                <div id="current-tab" class="tab-content">
+                    <div class="text-center py-12">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">هیچ سفارشی ثبت نکرده اید</h3>
+                    </div>
+                </div>
+            <% } %>
         </div>
     </main>
 

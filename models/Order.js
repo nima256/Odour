@@ -185,16 +185,6 @@ orderSchema.pre("save", function (next) {
   next();
 });
 
-orderSchema.pre("validate", function (next) {
-  if (this.discount && this.discountAmount === 0) {
-    this.invalidate(
-      "discountAmount",
-      "مقدار تخفیف باید برای تخفیف اعمال شده مشخص باشد"
-    );
-  }
-  next();
-});
-
 orderSchema.virtual("userDetails", {
   ref: "User",
   localField: "user",
