@@ -7,7 +7,7 @@
   <title> لوازم آرایشی با کیفیت</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;display=swap"
+  <link href="https://fonts.googleapis.com/css2`family=Vazirmatn:wght@300;400;500;600;700;display=swap"
     rel="stylesheet" />
   <style>
     body {
@@ -585,12 +585,13 @@
             <div>
               <label class="block text-gray-700 mb-2" for="new-password">رمز عبور جدید</label>
               <input type="password" id="new-password" class="w-full px-4 py-3 rounded-lg border"
-                placeholder="حداقل 6 کاراکتر" required />
+                placeholder="حداقل 8 کاراکتر" required />
             </div>
             <div>
               <label class="block text-gray-700 mb-2" for="confirm-new-password">تکرار رمز عبور جدید</label>
               <input type="password" id="confirm-new-password" class="w-full px-4 py-3 rounded-lg border"
                 placeholder="تکرار رمز عبور جدید" required />
+              <input type="hidden" id="reset-token" name="reset-token">
             </div>
             <button type="submit"
               class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
@@ -1299,7 +1300,6 @@
                   });
 
                 // Forgot Password Process
-                const forgotForm = document.getElementById("forgot-form");
                 const forgotStep1 = document.getElementById("forgot-step-1");
                 const forgotStep2 = document.getElementById("forgot-step-2");
                 const forgotStep3 = document.getElementById("forgot-step-3");
@@ -1307,23 +1307,39 @@
                   "forgot-phone-display"
                 );
 
-                forgotForm.addEventListener("submit", function (e) {
-                  e.preventDefault();
-                  const phone = document.getElementById("forgot-phone").value;
-                  forgotPhoneDisplay.textContent = phone;
-                  forgotStep1.classList.remove("active");
-                  forgotStep2.classList.add("active");
-                  startCountdown("forgot-resend-timer", 120);
-                  setupOtpInputs("#forgot-step-2");
-
-                  // Add click event for resend button
-                  document.getElementById("forgot-resend-timer").addEventListener("click", function(e) {
-                    if (e.target.classList.contains("resend-link")) {
-                      e.preventDefault();
-                      handleResendOtp("forgot-resend-timer");
+              const forgotForm = document.getElementById("forgot-form");
+              forgotForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const phone = document.getElementById("forgot-phone").value;                
+                fetch("/api/authentication/forgotPassword", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ mobile: phone }),
+                })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    forgotPhoneDisplay.textContent = phone;
+                    forgotStep1.classList.remove("active");
+                    forgotStep2.classList.add("active");
+                    startCountdown("forgot-resend-timer", 120);
+                    setupOtpInputs("#forgot-step-2");
+                    
+                    // For development only - show OTP in console
+                    if (data.otp) {
+                      console.log("OTP for testing:", data.otp);
                     }
-                  });
+                  } else {
+                    showNotificationInPopUp(data.message, 'error');
+                  }
+                })
+                .catch(err => {
+                  console.error("Error:", err);
+                  showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                 });
+              }); 
 
                 document
                   .getElementById("forgot-back-btn")
@@ -1370,8 +1386,40 @@
                 );
                 forgotVerificationForm.addEventListener("submit", function (e) {
                   e.preventDefault();
-                  forgotStep2.classList.remove("active");
-                  forgotStep3.classList.add("active");
+                  const otpValue = getOtpValue("#forgot-step-2");
+                  const reversedOtpValue = otpValue
+                      .split("")
+                      .reverse()
+                      .join("");
+                  
+                  fetch("/api/authentication/verifyPasswordResetOtp", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      mobile: forgotPhoneDisplay.textContent,
+                      otp: reversedOtpValue
+                    }),
+                  })
+                  .then(res => res.json())
+                  .then(data => {
+                    if (data.success) {
+                      forgotStep2.classList.remove("active");
+                      forgotStep3.classList.add("active");
+                      
+                      // Store the reset token in a hidden field or variable
+                      if (data.resetToken) {
+                        document.getElementById("reset-token").value = data.resetToken;
+                      }
+                    } else {
+                      showNotificationInPopUp(data.message, 'error');
+                    }
+                  })
+                  .catch(err => {
+                    console.error("Error:", err);
+                    showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                  });
                 });
 
                 // Login form submission
@@ -1405,12 +1453,44 @@
                 });
 
                 // New password form submission
-                const newPasswordForm =
-                  document.getElementById("new-password-form");
+                const newPasswordForm = document.getElementById("new-password-form");
                 newPasswordForm.addEventListener("submit", function (e) {
                   e.preventDefault();
-                  showNotification("رمز عبور با موفقیت تغییر یافت!", 'success');
-                  authPopup.classList.add("hidden");
+                  const password = document.getElementById("new-password").value;
+                  const confirmPassword = document.getElementById("confirm-new-password").value;
+                  const resetToken = document.getElementById("reset-token").value;
+                  
+                  if (password !== confirmPassword) {
+                    showNotificationInPopUp("رمز عبور و تکرار آن یکسان نیستند", 'error');
+                    return;
+                  }
+                  
+                  fetch(`/api/authentication/resetPassword/${resetToken}`, {
+                    method: "PATCH",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ password }),
+                  })
+                  .then(res => res.json())
+                  .then(data => {
+                    if (data.success) {
+                      showNotification("رمز عبور با موفقیت تغییر یافت!", 'success');
+                      authPopup.classList.add("hidden");
+                      
+                      // Optional: Automatically log the user in
+                      if (data.token) {
+                        localStorage.setItem('token', data.token);
+                        // Update UI to show user is logged in
+                      }
+                    } else {
+                      showNotificationInPopUp(data.message, 'error');
+                    }
+                  })
+                  .catch(err => {
+                    console.error("Error:", err);
+                    showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                  });
                 });
 
                 function startCountdown(elementId, seconds) {
@@ -1504,7 +1584,7 @@
                     }
                   });
                 });
-              });
+              });             
             </script>
       </div>
     </div>

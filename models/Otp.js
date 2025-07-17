@@ -41,6 +41,11 @@ const otpSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    purpose: {
+      type: String,
+      enum: ["registration", "password_reset"],
+      default: "registration",
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt automatically
