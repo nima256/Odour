@@ -60,11 +60,11 @@ router.post(
       // ساخت آرایه محصولات با اطلاعات کامل
       const productsForOrder = await Promise.all(
         user.cart.map(async (item) => {
-          const product = await Product.findById(item.productId._id);
+          const product = await Product.findById(item.productId);
           if (!product || product.stock < item.quantity) {
             unavailableProducts.push({
-              productId: item.productId._id,
-              name: item.productId.name,
+              productId: item.productId,
+              name: product?.name || 'نامعلوم',
               requested: item.quantity,
               available: product?.stock || 0,
             });
@@ -77,8 +77,10 @@ router.post(
           return {
             product: product._id,
             quantity: item.quantity,
-            priceAtPurchase: price, // اضافه کردن قیمت در زمان خرید
-            nameAtPurchase: product.name, // اضافه کردن نام در زمان خرید
+            priceAtPurchase: price,
+            nameAtPurchase: product.name,
+            selectedColor: item.selectedColor, // اضافه کردن رنگ انتخاب شده
+            selectedSize: item.selectedSize    // اضافه کردن سایز انتخاب شده
           };
         })
       );

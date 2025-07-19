@@ -62,6 +62,14 @@ const userSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        selectedColor: {
+          type: String,
+          required: true,
+        },
+        selectedSize: {
+          type: String,
+          required: true,
+        },
       },
     ],
     orders: [

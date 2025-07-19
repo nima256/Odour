@@ -1439,7 +1439,7 @@
                         <a href="/productDetails/${product.slug}">
                           <div class="p-6 ${isListView ? "flex-1" : ""}">
                               <div class="flex justify-between items-start mb-3">
-                                  <div class="px-3 py-1 rounded-full text-xs font-medium">
+                                  <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
                                       ${product.catName}
                                   </div>
                                   <button class="text-gray-400 hover:text-red-500 transition-colors">
@@ -1479,8 +1479,7 @@
                               </div>
                               </a>
 
-                      <button onclick="addToCartAlert('${product.name}', '${product._id}')" class="w-full bg-gradient-to-r ${
-                product.btnColor
+                      <button onclick="location.href='/productDetails/${ product.slug }';" class="w-full bg-gradient-to-r from-blue-600 to-teal-600
               } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
           افزودن به سبد خرید
       </button>
@@ -2062,33 +2061,6 @@
                   }
                 });
               });
-        function addToCartAlert(productName,id) {
-            fetch("/api/cart/add", {
-                method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                productId: id,
-                quantity : 1
-              }),
-            })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                showNotification('محصول مورد نظر به سبد خرید اضافه شد', 'success')            
-                setTimeout(() => {
-                  location.reload();
-                }, 2000);
-              } else {
-                showNotification(data.message, 'error');
-              }
-            })
-            .catch((err) => {
-              console.error("Error:", err);
-              showNotification('مشکلی در ارتباط با سرور به وجود آمده است', 'error')
-            });
-        }
     </script>
   </body>
 </html>

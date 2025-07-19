@@ -369,8 +369,7 @@
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 <%= toPersianDigits(cartCount) %>
               </span>
-              <% } else {%>
-                <% } %>
+              <% } %>
           </button>
         </div>
         <% if (!user) {%>
@@ -996,7 +995,7 @@
             <a href="/productDetails/<%= product.slug %>">
               <div class="relative">
                 <div class="h-64 bg-pink-100 flex items-center justify-center">
-                  <img src="<%= product.images[0].url %>" alt="" style="height: 100%; width: 100%" />
+                  <img src="<%= product?.images[0]?.url %>" alt="" style="height: 100%; width: 100%" />
                 </div>
               </div>
             </a>
@@ -1045,7 +1044,7 @@
                       <div class="icon-container">
                         <!-- آیکون سبد خرید -->
 
-                        <svg id="cartIcon" onclick="incrementCartCount('<%= product._id %>')"
+                        <svg id="cartIcon" onclick="location.href='/productDetails/<%= product.slug %>';"
                           class="cart-icon icon cursor-pointer" viewBox="0 0 24 24">
                           <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"></path>
                           <circle cx="9" cy="20" r="1"></circle>
@@ -1093,7 +1092,7 @@
                     notification.classList.add('opacity-0', 'translate-y-2');
                     setTimeout(() => notification.remove(), 300);
                 }, 2000);
-            }
+              }
           </script>
 
           <% if(success.length) {%>
@@ -1171,61 +1170,6 @@
               function setSelectedCategory(categoryName) {
                 localStorage.setItem("selectedCategory", categoryName);
               }
-              function incrementCartCount(id) {
-                fetch("/api/cart/add", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    productId: id,
-                    quantity : 1
-                  }),
-                })
-                  .then((res) => res.json())
-                  .then((data) => {
-                    if (data.success) {
-                      // Only run this if registration was successful
-                      showNotification(data.message, 'success');      
-                      setTimeout(() => {
-                        location.reload();
-                      }, 2000);                
-                    } else {
-                      // Show error message
-                      showNotification(data.message, 'error');                      
-                    }
-                  })
-                  .catch((err) => {
-                    console.error("Error:", err);
-                    showNotification(data.message, 'error');                      
-                  });
-
-                // const countEl = document.getElementById("cartCount");
-                // let count = parseInt(countEl.textContent);
-                // count++;
-                // countEl.textContent = count;
-              }
-              document.querySelectorAll(".cart-icon").forEach((cartIcon) => {
-                cartIcon.addEventListener("click", function () {
-                  // پیدا کردن آیکون تیک مربوط به همین محصول
-                  const successIcon =
-                    this.closest(".icon-container").querySelector(
-                      ".success-icon"
-                    );
-
-                  // مخفی کردن آیکون سبد خرید
-                  this.classList.add("hidden");
-
-                  // نمایش آیکون تیک
-                  successIcon.classList.remove("hidden");
-
-                  // بازگشت به حالت اولیه بعد از 2 ثانیه
-                  setTimeout(() => {
-                    this.classList.remove("hidden");
-                    successIcon.classList.add("hidden");
-                  }, 2000);
-                });
-              });
 
               // Hero Slider
               const slides = document.querySelectorAll(".slide");

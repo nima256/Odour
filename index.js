@@ -167,7 +167,7 @@ function generateOrderNumber() {
 
 app.get("/", async (req, res) => {
   const categories = await Category.find({ categoryType: "product" });
-  const products = await Product.find({ isPopular: true });
+  const products = await Product.find({ isPopular: true }).limit(4);
   const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
   const user = await User.findById(req.session.userId);
 
@@ -314,6 +314,7 @@ app.get("/api/products/filtered", async (req, res) => {
 app.get("/productDetails/:slug", async (req, res) => {
   try {
     const slug = req?.params?.slug;
+    const user = await User.findById(req.session.userId);
     if (!slug) {
       const error = new Error("محصول انتخاب نشده است");
       error.statusCode = 400;
@@ -327,7 +328,10 @@ app.get("/productDetails/:slug", async (req, res) => {
       throw error;
     }
 
-    res.render("ProductDetails", { product });
+     const cartCount = user?.cart?.length || 0;
+
+
+    res.render("ProductDetails", { product, user , cartCount });
   } catch (err) {
     next(err);
   }

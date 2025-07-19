@@ -1822,6 +1822,8 @@
                         <div>
                             <p class="font-medium text-gray-800">${product.nameAtPurchase}</p>
                             <p class="text-sm text-gray-600">تعداد: ${product.quantity}</p>
+                            <p class="text-sm text-gray-600">رنگ: ${product.selectedColor}</p>
+                            <p class="text-sm text-gray-600">سایز: ${product.selectedSize}</p>
                         </div>
                         <p class="font-semibold text-gray-800">${toPersianDigits(product.priceAtPurchase)} تومان</p>
                     </div>
@@ -1838,14 +1840,24 @@
                         <span class="font-semibold text-gray-700">نام مشتری:</span>
                         <span class="text-gray-800 block">${order.user.fullName}</span>
                     </div>
-                    <div class="glass-card p-4 rounded-xl">
-                        <span class="font-semibold text-gray-700">مبلغ قبل تخفیف:</span>
-                        <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.originalPrice)} تومان</span>
-                    </div>
-                    <div class="glass-card p-4 rounded-xl">
-                        <span class="font-semibold text-gray-700">مبلغ کل بعد تخفیف:</span>
-                        <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.totalPrice)} تومان</span>
-                    </div>
+                    ${
+                        order.discount ? `
+                            <div class="glass-card p-4 rounded-xl">
+                                <span class="font-semibold text-gray-700">مبلغ قبل تخفیف:</span>
+                                <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.originalPrice)} تومان</span>
+                            </div>
+                            <div class="glass-card p-4 rounded-xl">
+                                <span class="font-semibold text-gray-700">مبلغ کل بعد تخفیف:</span>
+                                <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.totalPrice)} تومان</span>
+                            </div>
+                        ` : `
+                            <div class="glass-card p-4 rounded-xl">
+                                <span class="font-semibold text-gray-700">مبلغ:</span>
+                                <span class="text-green-600 font-semibold block text-lg">${toPersianDigits(order.originalPrice)} تومان</span>
+                            </div>
+                        `
+                    }
+
                     <div class="glass-card p-4 rounded-xl">
                         <span class="font-semibold text-gray-700">وضعیت:</span>
                         <span class="inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${classForStatus}">${order.status}</span>

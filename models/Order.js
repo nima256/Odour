@@ -59,6 +59,14 @@ const orderSchema = new Schema(
           type: String,
           required: [true, "نام محصول در زمان خرید الزامی است"],
         },
+        selectedColor: {
+          type: String,
+          required: true,
+        },
+        selectedSize: {
+          type: String,
+          required: true,
+        },
       },
     ],
     delivery: {

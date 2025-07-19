@@ -377,7 +377,9 @@
                       image: p.product.images[0].url,
                       price: p.product.price,
                       offerPrice: p.product.offerPrice,
-                      quantity: p.quantity
+                      quantity: p.quantity,
+                      selectedColor: p.selectedColor,
+                      selectedSize: p.selectedSize,
                     }))
                   }) %>'
                 >
@@ -467,7 +469,9 @@
                             name: p.product.name,
                             image: p.product.images[0].url,
                             price: p.product.price,
-                            quantity: p.quantity
+                            quantity: p.quantity,
+                            selectedColor: p.selectedColor,
+                            selectedSize: p.selectedSize,
                           }))
                         }) %>'
                       >
@@ -557,7 +561,9 @@
                             name: p.product.name,
                             image: p.product.images[0].url,
                             price: p.product.price,
-                            quantity: p.quantity
+                            quantity: p.quantity,
+                            selectedColor: p.selectedColor,
+                            selectedSize: p.selectedSize,
                           }))
                         }) %>'
                       >
@@ -930,7 +936,9 @@
                       >
                       ${product.name}
                       </h5>
-                      <p id="modal-product-count" class="text-sm text-gray-600" style="margin-top: 10px;font-size: 18px;">${toPersianDigits(product.quantity)}</p>
+                      <p id="modal-product-count" class="text-sm text-gray-600" style="margin-top: 10px;font-size: 14px;">تعداد: ${toPersianDigits(product.quantity)} </p>
+                      <p id="modal-product-count" class="text-sm text-gray-600" style="margin-top: 10px;font-size: 14px;">رنگ: ${product.selectedColor} </p>
+                      <p id="modal-product-count" class="text-sm text-gray-600" style="margin-top: 10px;font-size: 14px;">سایز: ${product.selectedSize} </p>
                     </div>
                     <div class="text-left">
                       ${

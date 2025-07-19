@@ -171,14 +171,16 @@
             <!-- Icons -->
             <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
                 <div class="relative">
-                    <button onclick="window.location.href='cart.html';"
+                    <button onclick="window.location.href='/cart';"
                         class="relative text-gray-700 hover:text-pink-500 transition-colors">
                         <i class="fas fa-shopping-bag text-xl"></i>
-                       <!-- <span style="    bottom: 15px;
-    right: 7px;"
-                            class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-                   </button> -->
-
+                        <% if(user) { %>
+                        <span id="cartCount" style="top: -8px;left: 8px;"
+                            class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            <%= toPersianDigits(cartCount) %>
+                        </span>
+                        <% } %>
+                   </button>
                 </div>
                 <button id="user-auth-button" class="text-gray-700 hover:text-pink-500 transition-colors">
                     <i class="fas fa-user text-xl"></i>
@@ -339,9 +341,13 @@
                     <h3 class="text-xl font-semibold text-gray-900 mb-6">انتخاب حجم:</h3>
                     <div class="grid grid-cols-3 gap-4 mb-6">
                         <% product.sizes.forEach((size, index) => { %>
-                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent <%= index === 0 ? 'selected' : '' %>" data-volume="<%= toPersianDigitsForSizes(size.size) %>">
+                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent 
+                            <%= (index === 0 || product.sizes.length === 1) ? 'selected bg-gradient-to-r from-pink-500 to-rose-500 text-white' : '' %>" 
+                            data-volume="<%= toPersianDigitsForSizes(size.size) %>">
                             <div class="text-lg font-bold"><%= toPersianDigitsForSizes(size.size) %></div>
-                            <div class="text-xs text-gray-500 mt-1"><%= size.usage %></div>
+                            <div class="volume-usage text-xs <%= (index === 0 || product.sizes.length === 1) ? 'text-white' : 'text-gray-500' %> mt-1">
+                                <%= size.usage %>
+                            </div>
                         </button>
                         <% }) %>
                     </div>
@@ -409,7 +415,7 @@
 
                 <!-- Add to Cart Button -->
                 <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <button id="add-to-cart" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-5 px-8 rounded-2xl font-semibold text-lg hover:from-pink-600 hover:to-rose-600 transition duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105">
+                    <button onclick="addToCart('<%= product.name %>', '<%= product._id %>')"  id="add-to-cart" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-5 px-8 rounded-2xl font-semibold text-lg hover:from-pink-600 hover:to-rose-600 transition duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105">
                         افزودن به سبد خرید
                     </button>
                 </div>
@@ -427,7 +433,7 @@
             
         </div>
     </main>
-        <footer class="bg-gray-900 text-white py-12">
+    <footer class="bg-gray-900 text-white py-12">
       <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -574,7 +580,21 @@
             // Volume selector functionality
             const volumeOptions = document.querySelectorAll('.volume-option');
             const selectedVolumeSpan = document.getElementById('selected-volume');
-            
+            const volumeUsages = document.querySelectorAll('.volume-usage');
+
+            // اگر فقط یک گزینه وجود دارد، آن را به صورت خودکار انتخاب کنید
+            if (volumeOptions.length === 1) {
+                const singleOption = volumeOptions[0];
+                singleOption.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+                singleOption.classList.remove('bg-gray-50', 'hover:bg-gray-100');
+                
+                const singleUsage = singleOption.querySelector('.volume-usage');
+                singleUsage.classList.add('text-white');
+                singleUsage.classList.remove('text-gray-500');
+                
+                selectedVolumeSpan.textContent = singleOption.dataset.volume;
+            }
+
             volumeOptions.forEach(option => {
                 option.addEventListener('click', () => {
                     volumeOptions.forEach(opt => {
@@ -584,48 +604,100 @@
                         }
                     });
                     
+                    volumeUsages.forEach(usage => {
+                        usage.classList.remove('text-white');
+                        usage.classList.add('text-gray-500');
+                    });
+                    
                     option.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
                     option.classList.remove('bg-gray-50', 'hover:bg-gray-100');
+                    
+                    const selectedUsage = option.querySelector('.volume-usage');
+                    selectedUsage.classList.add('text-white');
+                    selectedUsage.classList.remove('text-gray-500');
+                    
                     selectedVolumeSpan.textContent = option.dataset.volume;
                 });
             });
-
-            // Add to cart functionality
-            const addToCartBtn = document.getElementById('add-to-cart');
-            
-            addToCartBtn.addEventListener('click', () => {
-                const selectedColor = document.querySelector('.color-swatch.selected').dataset.color;
-                const selectedVolume = document.querySelector('.volume-option.selected').dataset.volume;
-                
-                // نمایش پیام با انیمیشن
-                const notification = document.createElement('div');
-                notification.className = 'fixed bottom-6 left-6 right-6 lg:left-auto bg-green-500 text-white px-6 py-4 rounded-xl shadow-xl transform translate-y-20 opacity-0 transition-all duration-300';
-                notification.innerHTML = `
-                    <div class="flex items-center space-x-3 space-x-reverse">
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>محصول با مشخصات زیر به سبد خرید اضافه شد:</span>
-                    </div>
-                    <div class="mt-2 text-sm">
-                        <p>رنگ: ${selectedColor}</p>
-                        <p>حجم: ${selectedVolume}</p>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-                
-                // نمایش نوتیفیکیشن
-                setTimeout(() => {
-                    notification.classList.remove('translate-y-20', 'opacity-0');
-                    notification.classList.add('translate-y-0', 'opacity-100');
-                }, 50);
-                
-                // پنهان کردن نوتیفیکیشن پس از 5 ثانیه
-                setTimeout(() => {
-                    notification.classList.remove('translate-y-0', 'opacity-100');
-                    notification.classList.add('translate-y-20', 'opacity-0');
-                    setTimeout(() => notification.remove(), 300);
-                }, 5000);
-            });
         });
+
+        function toEnglishDigits(str) {
+        const persianNumbers = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
+        const arabicNumbers = [/٠/g, /١/g, /٢/g, /٣/g, /٤/g, /٥/g, /٦/g, /٧/g, /٨/g, /٩/g];
+        
+        if(typeof str === 'string') {
+            for(let i=0; i<10; i++) {
+            str = str.replace(persianNumbers[i], i).replace(arabicNumbers[i], i);
+            }
+        }
+        return str;
+        }
+
+        function addToCart(productName, id) {
+            const selectedColor = document.querySelector('.color-swatch.selected').dataset.color;
+            const selectedSize = toEnglishDigits(document.querySelector('.volume-option.selected').dataset.volume);
+
+            fetch("/api/cart/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    productId: id,
+                    quantity: 1,
+                    selectedColor: selectedColor.trim(),
+                    selectedSize: selectedSize.trim()
+                }),
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) {
+                    showNotification(`محصول ${productName} با رنگ ${selectedColor} و سایز ${selectedSize} به سبد خرید اضافه شد`, 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch((err) => {
+                console.error("Error:", err);
+                showNotification('مشکلی در ارتباط با سرور به وجود آمده است', 'error');
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            }`;
+            
+            // Mobile: centered at top, Desktop: top-right
+            notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+            
+            // Width control
+            notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+            
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animation in
+            notification.classList.add('transform', 'transition-all', 'duration-300');
+            notification.classList.add('translate-y-2', 'opacity-0');
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
     </script>
 </body>
 </html>
