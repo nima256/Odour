@@ -247,7 +247,7 @@
                 <!-- Main Image -->
                 <div class="mb-8">
                     <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                        <img id="main-image" src="<%= product.images[0] %>" alt="<%= product.name %>" class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl">
+                        <img id="main-image" src="<%= product.images[0].url %>" alt="<%= product.name %>" class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl">
                     </div>
                 </div>
                 
@@ -255,7 +255,7 @@
                 <div class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1">
                     <% for (let image of product.images) {%>
                     <div class="thumbnail active bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0">
-                        <img src="<%= image %>" alt="<%= product.name %>" class="w-16 h-16 object-contain rounded-xl">
+                        <img src="<%= image.url %>" alt="<%= product.name %>" class="w-16 h-16 object-contain rounded-xl">
                     </div>
                     <% } %>
                 </div>

@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
-const upload = require("../middlewares/uploadMiddleware");
+const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 
 const User = require("../models/User");
 const Product = require("../models/Product");
@@ -13,6 +16,161 @@ const { getPersianDate } = require("../helper/getPersianDate");
 
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = "public/uploads/temp";
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({ storage });
+
+const retryUnlink = async (filePath, retries = 5, delay = 100) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await fs.promises.unlink(filePath);
+      return;
+    } catch (err) {
+      if (err.code === "EPERM" || err.code === "EBUSY") {
+        // Try again after delay
+        await new Promise((res) => setTimeout(res, delay));
+      } else {
+        throw err; // Unknown error, rethrow
+      }
+    }
+  }
+
+  throw new Error(
+    `Failed to delete file after ${retries} attempts: ${filePath}`
+  );
+};
+
+const processImages = async (req, res, next) => {
+  if (!req.files || req.files.length === 0) return next();
+
+  try {
+    const processedImages = [];
+
+    for (const file of req.files) {
+      const outputPath = path.join(
+        "public/uploads",
+        path.basename(file.path, path.extname(file.path)) + ".webp"
+      );
+
+      try {
+        // Process image
+        await sharp(file.path)
+          .webp({ quality: 80 })
+          .resize(1200, 1200, {
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .toFile(outputPath);
+
+        // Manually null the sharp instance (optional but may help)
+        sharp.cache(false); // Disable caching globally (can help)
+
+        processedImages.push({
+          url: `/uploads/${path.basename(outputPath)}`,
+          filename: path.basename(outputPath),
+        });
+      } finally {
+        const tempFilePath = file.path;
+
+        try {
+          await retryUnlink(tempFilePath);
+        } catch (err) {
+          console.error(
+            `Still could not delete temp file ${tempFilePath}:`,
+            err
+          );
+        }
+      }
+    }
+
+    req.processedImages = processedImages;
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.post(
+  "/upload-images",
+  upload.array("images"),
+  processImages,
+  async (req, res) => {
+    try {
+      if (!req.processedImages || req.processedImages.length === 0) {
+        return res.status(400).json({ error: "هیچ عکسی پردازش نشد" });
+      }
+
+      // Return relative URLs instead of absolute ones
+      const processedImages = req.processedImages.map((img) => ({
+        url: img.url.replace(/^https?:\/\/[^/]+/, ""), // Remove domain part
+        filename: img.filename,
+      }));
+
+      res.status(200).json({
+        success: true,
+        images: processedImages,
+      });
+    } catch (error) {
+      console.error("Image upload error:", error);
+
+      // Additional cleanup if error occurs
+      if (req.processedImages) {
+        req.processedImages.forEach((img) => {
+          const filePath = path.join("public/uploads", img.filename);
+          try {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          } catch (err) {
+            console.error(`Error cleaning up ${filePath}:`, err);
+          }
+        });
+      }
+
+      res.status(500).json({
+        error: "ارور در آپلود عکس",
+        details:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
+    }
+  }
+);
+
+router.delete("/delete-image", async (req, res) => {
+  try {
+    const { filename } = req.body;
+
+    if (!filename) {
+      return res.status(400).json({ error: "Filename is required" });
+    }
+
+    const filePath = path.join("public/uploads", filename);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      res.status(200).json({ success: true });
+    } else {
+      res.status(404).json({ error: "File not found" });
+    }
+  } catch (error) {
+    console.error("Image deletion error:", error);
+    res.status(500).json({
+      error: "Failed to delete image",
+      details: error.message,
+    });
+  }
+});
 
 router.get("/", async (req, res) => {
   const users = await User.find({});
@@ -37,7 +195,7 @@ router.get("/", async (req, res) => {
     categories,
     orders,
     brands,
-    statusCounts
+    statusCounts,
   });
 });
 
@@ -51,8 +209,11 @@ router.post("/products/add", async (req, res) => {
       );
     }
 
+    console.log(req.body.category);
+
     const productData = {
       ...req.body,
+      images: req.body.images || [],
       discount,
       createTarikh: getPersianDate(),
       updateTarikh: getPersianDate(),
@@ -64,6 +225,11 @@ router.post("/products/add", async (req, res) => {
     const populatedProduct = await Product.findById(product._id)
       .populate("brand", "name") // Only populate the name field
       .populate("category", "name"); // Only populate the name field
+
+    if (populatedProduct.category && populatedProduct.category.length > 0) {
+      populatedProduct.catName = populatedProduct.category[0].name;
+      await populatedProduct.save();
+    }
 
     res.status(201).json({
       success: true,
@@ -172,131 +338,119 @@ const validateProductUpdate = [
     .withMessage("برچسب نمی‌تواند خالی باشد"),
 ];
 
-router.put(
-  "/products/edit/:id",
-  upload.array("images", 10), // حداکثر 10 تصویر
-  validateProductUpdate,
-  async (req, res) => {
-    try {
-      console.log(req.body);
-      // بررسی خطاهای اعتبارسنجی
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          success: false,
-          message: "خطا در اعتبارسنجی",
-          errors: errors.array(),
-        });
-      }
-
-      const productId = req.params.id;
-      if (!mongoose.Types.ObjectId.isValid(productId)) {
-        return res.status(400).json({
-          success: false,
-          message: "شناسه محصول نامعتبر است",
-        });
-      }
-
-      // یافتن محصول
-      const product = await Product.findById(productId);
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: "محصول یافت نشد",
-        });
-      }
-
-      // آماده‌سازی داده‌های به‌روزرسانی
-      const updateData = { ...req.body };
-
-      updateData.updateTarikh = getPersianDate();
-
-      // مدیریت قیمت ویژه و تخفیف
-      if (
-        updateData.offerPrice === null ||
-        updateData.offerPrice === undefined
-      ) {
-        // اگر قیمت ویژه حذف شده
-        updateData.offerPrice = undefined;
-        updateData.discount = 0;
-      } else if (updateData.offerPrice) {
-        // اگر قیمت ویژه وجود دارد
-        const price = updateData.price || product.price;
-        updateData.discount = Math.round(
-          ((price - updateData.offerPrice) / price) * 100
-        );
-      }
-
-      // حذف فیلد offerPrice اگر null است
-      if (updateData.offerPrice === null) {
-        delete updateData.offerPrice;
-      }
-
-      // مدیریت تصاویر
-      if (req.files && req.files.length > 0) {
-        updateData.images = req.files.map(
-          (file) =>
-            `${req.protocol}://${req.get("host")}/uploads/${file.filename}`
-        );
-      }
-
-      // مدیریت آرایه‌ها
-      const arrayFields = [
-        "colors",
-        "sizes",
-        "specifications",
-        "tags",
-        "category",
-      ];
-      arrayFields.forEach((field) => {
-        if (req.body[field] && Array.isArray(req.body[field])) {
-          updateData[field] = req.body[field];
-        } else {
-          updateData[field] = [];
-        }
-      });
-
-      // محاسبه تخفیف اگر قیمت ویژه تغییر کرده
-      if (
-        updateData.offerPrice === null ||
-        updateData.offerPrice === undefined
-      ) {
-        updateData.offerPrice = undefined;
-        updateData.discount = 0;
-      } else if (updateData.offerPrice) {
-        const price = updateData.price || product.price;
-        updateData.discount = Math.round(
-          ((price - updateData.offerPrice) / price) * 100
-        );
-      }
-
-      // به‌روزرسانی محصول
-      const updatedProduct = await Product.findByIdAndUpdate(
-        productId,
-        updateData,
-        {
-          new: true,
-          runValidators: true,
-        }
-      )
-        .populate("category")
-        .populate("brand");
-
-      res.json({
-        success: true,
-        message: "محصول با موفقیت به‌روزرسانی شد",
-        product: updatedProduct,
-      });
-    } catch (error) {
-      console.error("خطا در ویرایش محصول:", error);
-      res.status(500).json({
+router.put("/products/edit/:id", validateProductUpdate, async (req, res) => {
+  try {
+    console.log(req.body);
+    // بررسی خطاهای اعتبارسنجی
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
         success: false,
-        message: "خطای سرور در ویرایش محصول",
-        error: error.message,
+        message: "خطا در اعتبارسنجی",
+        errors: errors.array(),
       });
     }
+
+    const productId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({
+        success: false,
+        message: "شناسه محصول نامعتبر است",
+      });
+    }
+
+    // یافتن محصول
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "محصول یافت نشد",
+      });
+    }
+
+    // آماده‌سازی داده‌های به‌روزرسانی
+    const updateData = { ...req.body };
+
+    updateData.updateTarikh = getPersianDate();
+
+    // مدیریت قیمت ویژه و تخفیف
+    if (updateData.offerPrice === null || updateData.offerPrice === undefined) {
+      // اگر قیمت ویژه حذف شده
+      updateData.offerPrice = undefined;
+      updateData.discount = 0;
+    } else if (updateData.offerPrice) {
+      // اگر قیمت ویژه وجود دارد
+      const price = updateData.price || product.price;
+      updateData.discount = Math.round(
+        ((price - updateData.offerPrice) / price) * 100
+      );
+    }
+
+    // حذف فیلد offerPrice اگر null است
+    if (updateData.offerPrice === null) {
+      delete updateData.offerPrice;
+    }
+
+    // مدیریت تصاویر
+    if (updateData.images && Array.isArray(updateData.images)) {
+      // You might want to merge with existing images or replace them
+      // This example replaces all images with the new array
+      updateData.images = updateData.images;
+    }
+
+    // مدیریت آرایه‌ها
+    const arrayFields = [
+      "colors",
+      "sizes",
+      "specifications",
+      "tags",
+      "category",
+    ];
+    arrayFields.forEach((field) => {
+      if (req.body[field] && Array.isArray(req.body[field])) {
+        updateData[field] = req.body[field];
+      } else {
+        updateData[field] = [];
+      }
+    });
+
+    // محاسبه تخفیف اگر قیمت ویژه تغییر کرده
+    if (updateData.offerPrice === null || updateData.offerPrice === undefined) {
+      updateData.offerPrice = undefined;
+      updateData.discount = 0;
+    } else if (updateData.offerPrice) {
+      const price = updateData.price || product.price;
+      updateData.discount = Math.round(
+        ((price - updateData.offerPrice) / price) * 100
+      );
+    }
+
+    // به‌روزرسانی محصول
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    )
+      .populate("category")
+      .populate("brand");
+
+    res.json({
+      success: true,
+      message: "محصول با موفقیت به‌روزرسانی شد",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error("خطا در ویرایش محصول:", error);
+    res.status(500).json({
+      success: false,
+      message: "خطای سرور در ویرایش محصول",
+      error: error.message,
+    });
   }
-);
+});
 
 router.delete("/products/delete/:id", async (req, res) => {
   try {

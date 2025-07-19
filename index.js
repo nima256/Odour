@@ -6,6 +6,7 @@ const session = require("express-session");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const flash = require("connect-flash");
+const fs = require("fs");
 
 require("dotenv").config();
 
@@ -15,6 +16,7 @@ app.set("views", path.join(__dirname, "views"));
 
 // Public folder for css js font and etc.
 app.use(express.static("public/"));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // Middlewares
 
@@ -110,6 +112,19 @@ const apiLimiter = rateLimit({
   message: "Too many requests from this IP, please try again later",
 });
 
+const initDirectories = () => {
+  const dirs = ["public/uploads", "public/uploads/temp"];
+
+  dirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`Created directory: ${dir}`);
+    }
+  });
+};
+
+initDirectories();
+
 // Routes
 const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
@@ -183,7 +198,9 @@ const asyncHandler = (fn) => (req, res, next) =>
 app.get(
   "/shop",
   asyncHandler(async (req, res) => {
-    const products = await Product.find({}).populate('category');
+    const products = await Product.find({})
+      .populate("category")
+      .populate("brand");
     const categories = await Category.find({ categoryType: "product" });
     const brands = await Brand.find({});
     const user = await User.findById(req.session.userId);
@@ -216,6 +233,83 @@ app.get(
     });
   })
 );
+
+app.get("/api/products/filtered", async (req, res) => {
+  try {
+    const {
+      categories = [],
+      brands = [],
+      maxPrice,
+      searchQuery,
+      sortBy,
+      page = 1,
+      limit = 12,
+    } = req.query;
+
+    let query = {};
+
+    // فیلتر دسته‌بندی‌ها
+    if (categories.length > 0) {
+      query.category = { $in: categories };
+    }
+
+    // فیلتر برندها
+    if (brands.length > 0) {
+      query.brandName = { $in: brands };
+    }
+
+    // فیلتر قیمت
+    if (maxPrice) {
+      query.$or = [
+        { offerPrice: { $lte: maxPrice } },
+        { price: { $lte: maxPrice } },
+      ];
+    }
+
+    // جستجو
+    if (searchQuery) {
+      query.$or = [
+        { name: { $regex: searchQuery, $options: "i" } },
+        { lilDescription: { $regex: searchQuery, $options: "i" } },
+      ];
+    }
+
+    // مرتب‌سازی
+    let sortOption = {};
+    switch (sortBy) {
+      case "price-low":
+        sortOption = { price: 1 };
+        break;
+      case "price-high":
+        sortOption = { price: -1 };
+        break;
+      case "newest":
+        sortOption = { createdAt: -1 };
+        break;
+      case "rating":
+        sortOption = { rating: -1 };
+        break;
+      default:
+        sortOption = { rating: -1, reviewsNum: -1 };
+    }
+
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .sort(sortOption)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      products,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 app.get("/productDetails/:slug", async (req, res) => {
   try {

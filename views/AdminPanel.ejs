@@ -79,6 +79,33 @@
         
         .notification-item:last-child {
             border-bottom: none;
+        }
+        #imagePreviews {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+        }
+
+        #imagePreviews .relative {
+        transition: all 0.3s ease;
+        }
+
+        #imagePreviews .relative:hover {
+        transform: scale(1.05);
+        }
+
+        #imagePreviews img {
+        border: 1px solid #e5e7eb;
+        }
+
+        #imagePreviews button {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        }
+
+        #imagePreviews .relative:hover button {
+        opacity: 1;
         }        
         /* Mobile Responsive */
         @media (max-width: 768px) {
@@ -947,7 +974,7 @@
                 row.innerHTML = `
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">${index + 1}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
-                        <img src="${product.images[0]}" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
+                        <img src="${product.images[0]?.url}" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
                     </td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${product.name}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell"><div class="flex flex-wrap">${categoryBadges}</div></td>
@@ -992,7 +1019,7 @@
 
             const detailsHtml = `
                 <div class="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-reverse md:space-x-4 mb-6">
-                    <img src="${product.images[0]}" alt="Product" class="w-20 h-20 md:w-24 md:h-24 rounded-xl mx-auto md:mx-0">
+                    <img src="${product.images[0].url}" alt="Product" class="w-20 h-20 md:w-24 md:h-24 rounded-xl mx-auto md:mx-0">
                     <div class="text-center md:text-right">
                         <h4 class="text-xl md:text-2xl font-bold text-gray-800">${product.name}</h4>
                     </div>
@@ -1029,9 +1056,9 @@
             document.getElementById('productModal').classList.remove('hidden');
         }
 
-        let categories = <%- JSON.stringify(categories) %>
+        let categories = <%- JSON.stringify(categories) %>;
 
-        let brands = <%- JSON.stringify(brands) %>
+        let brands = <%- JSON.stringify(brands) %>;
 
         let currentProductId = null;
         let currentProduct = {};
@@ -1039,12 +1066,14 @@
         async function addProduct() {
             currentProductId = null;
             currentProduct = {};
+
             document.getElementById('editForm').reset();
 
             document.getElementById('colorFields').innerHTML = '';
             document.getElementById('sizeFields').innerHTML = '';
             document.getElementById('specFields').innerHTML = '';
             document.getElementById('imagePreviews').innerHTML = '';
+            document.getElementById('editImages').addEventListener('change', handleImageUpload);
 
             addColorField();
             addSizeField();
@@ -1081,6 +1110,7 @@
         async function editProduct(id) {
             currentProductId = id;
             const product = products.find(p => p._id === id);
+            currentProduct = product;
 
             document.querySelector('#editModal h3').textContent = 'ویرایش محصول';
             document.querySelector('#form-button').textContent = 'ذخیره تغییرات';
@@ -1174,18 +1204,101 @@
             imagePreviews.innerHTML = '';
             if (product.images && product.images.length > 0) {
                 product.images.forEach(image => {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'relative';
-                    imgContainer.innerHTML = `
-                        <img src="${image}" class="w-20 h-20 object-cover rounded-lg">
-                        <button type="button" onclick="removeImage('${image}')" class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">×</button>
-                    `;
-                    imagePreviews.appendChild(imgContainer);
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'relative';
+                imgContainer.dataset.filename = image.filename;
+                imgContainer.innerHTML = `
+                    <img src="${image.url}" class="w-20 h-20 object-cover rounded-lg">
+                    <button type="button" onclick="removeImage(this, '${image.url}', '${image.filename}')" 
+                    class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                    ×
+                    </button>
+                `;
+                imagePreviews.appendChild(imgContainer);
                 });
             }
+            document.getElementById('editImages').addEventListener('change', handleImageUpload);
 
             document.getElementById('editModal').classList.remove('hidden');
         }
+
+        async function handleImageUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
+        }
+
+        try {
+            const response = await fetch('/admin/upload-images', {
+            method: 'POST',
+            body: formData,
+            });
+
+            const result = await response.json();
+            
+            if (!response.ok) {
+            throw new Error(result.error || 'خطا در آپلود تصویر');
+            }
+
+            // Display the uploaded images
+            const imagePreviews = document.getElementById('imagePreviews');
+            result.images.forEach(img => {
+            const displayUrl = img.url.startsWith('http') ? img.url : `${window.location.origin}${img.url}`;
+            
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'relative';
+            imgContainer.dataset.filename = img.filename;
+            imgContainer.innerHTML = `
+                <img src="${displayUrl}" class="w-20 h-20 object-cover rounded-lg">
+                <button type="button" onclick="removeImage(this, '${img.url}', '${img.filename}')" 
+                class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                ×
+                </button>
+            `;
+            imagePreviews.appendChild(imgContainer);
+            });
+
+            // Clear the file input
+            event.target.value = '';
+        } catch (error) {
+            console.error('Image upload error:', error);
+            showNotification('خطا در آپلود تصویر: ' + error.message, 'error');
+        }
+        }
+
+        // Image removal function
+        async function removeImage(buttonElement, imageUrl, filename) {
+        if (!confirm('آیا از حذف این تصویر مطمئن هستید؟')) return;
+
+        try {
+            const response = await fetch('/admin/delete-image', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filename })
+            });
+
+            const result = await response.json();
+            
+            if (!response.ok) {
+            throw new Error(result.error || 'حذف تصویر انجام نشد');
+            }
+
+            // Remove the image preview
+            buttonElement.parentElement.remove();
+            
+            showNotification('تصویر با موفقیت حذف شد', 'success');
+        } catch (error) {
+            console.error('Image deletion error:', error);
+            showNotification('خطا در حذف تصویر: ' + error.message, 'error');
+        }
+        }
+
+
 
         function toggleDiscountField() {
             const offerPriceField = document.getElementById('editOfferPrice');
@@ -1251,13 +1364,6 @@
             `;
             specFields.appendChild(specField);
         }
-
-        function removeImage(imageUrl) {
-            // این تابع باید تصویر را از لیست تصاویر محصول حذف کند
-            // در اینجا می‌توانید یک درخواست به سرور ارسال کنید یا فقط از پیش‌نمایش حذف کنید
-            alert('این تابع باید پیاده‌سازی شود');
-        }
-
 
         async function deleteProduct(productId) {
         if (confirm('آیا از حذف این محصول اطمینان دارید؟ این عمل غیرقابل بازگشت است.')) {
@@ -1849,6 +1955,15 @@
 
             try {
                 const formData = new FormData(this);
+
+                const images = [];
+                document.querySelectorAll('#imagePreviews img').forEach(img => {
+                const container = img.parentElement;
+                images.push({
+                    url: img.src,
+                    filename: container.dataset.filename
+                });
+                });
                 
                 // تبدیل داده‌های آرایه‌ای به JSON
                 const data = {
@@ -1860,6 +1975,7 @@
                     countInStock: parseInt(formData.get('countInStock')),
                     rating: parseInt(formData.get('rating')),
                     weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
+                    images: images,
                     tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : [],
                     category: Array.from(formData.getAll('category')),
                     brand: formData.get('brand'),

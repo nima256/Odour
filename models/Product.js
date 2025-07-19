@@ -37,15 +37,28 @@ const productSchema = mongoose.Schema(
     },
     images: [
       {
-        type: String,
-        validate: {
-          validator: function (v) {
-            return validator.isURL(v, {
-              protocols: ["http", "https"],
-              require_protocol: true,
-            });
+        url: {
+          type: String,
+          required: true,
+          validate: {
+            validator: function (v) {
+              // Allow both relative paths (/uploads/) and full URLs
+              return (
+                v.startsWith("/uploads/") ||
+                /^https?:\/\//.test(v) ||
+                validator.isURL(v, {
+                  protocols: ["http", "https"],
+                  require_protocol: true,
+                })
+              );
+            },
+            message:
+              "آدرس تصویر باید با /uploads/ شروع شود یا یک URL معتبر باشد",
           },
-          message: "آدرس تصویر نامعتبر است",
+        },
+        filename: {
+          type: String,
+          required: true,
         },
       },
     ],

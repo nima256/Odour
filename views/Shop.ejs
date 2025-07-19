@@ -1067,32 +1067,13 @@
           </div>
 
           <!-- Premium Pagination -->
-          <div class="flex justify-center mt-12">
-            <div class="glass-effect rounded-2xl p-4 shadow-xl">
-              <div class="flex items-center gap-2">
-                <button
-                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                >
-                  قبلی
-                </button>
-                <button
-                  class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl shadow-lg"
-                >
-                  ۱
-                </button>
-                <button
-                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                >
-                  ۲
-                </button>
-                <button
-                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                >
-                  بعدی
-                </button>
-              </div>
+        <div class="flex justify-center mt-12">
+          <div class="glass-effect rounded-2xl p-4 shadow-xl">
+            <div class="pagination-container flex items-center gap-2">
+              <!-- Pagination buttons will be inserted here by JavaScript -->
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -1281,12 +1262,127 @@
         // State
         const productFromServer = <%- JSON.stringify(products) %>;
         let currentView = "grid";
-        let filteredProducts = [...productFromServer];
+        let allProducts = [...productFromServer];
+        let filteredProducts = [...productFromServer]; // ابتدا همه محصولات را در filteredProducts قرار دهید
+        let displayedProducts = []; // اینجا خالی می‌ماند تا در init پر شود
         let selectedCategories = [];
         let selectedBrands = [];
         let maxPrice = 2000000;
         let searchQuery = "";
         let sortBy = "default";
+        let currentPage = 1;
+        const productsPerPage = 12;
+
+        function initializeProducts() {
+          // در ابتدا همه محصولات را نمایش دهید
+          filteredProducts = [...allProducts];
+          paginateProducts();
+          renderProducts();
+        }
+
+        function updatePaginationControls() {
+          const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+          const paginationContainer = document.querySelector('.pagination-container');
+          
+          let paginationHTML = `
+            <div class="flex items-center gap-2">
+              <button onclick="changePage(${currentPage - 1})" 
+                class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                ${currentPage === 1 ? 'disabled' : ''}>
+                قبلی
+              </button>`;
+          
+          for (let i = 1; i <= totalPages; i++) {
+            paginationHTML += `
+              <button onclick="changePage(${i})" 
+                class="px-4 py-2 ${i === currentPage ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/50'} rounded-xl hover:bg-white transition-all">
+                ${toPersianDigits(i)}
+              </button>`;
+          }
+          
+          paginationHTML += `
+              <button onclick="changePage(${currentPage + 1})" 
+                class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                ${currentPage === totalPages ? 'disabled' : ''}>
+                بعدی
+              </button>
+            </div>`;
+          
+          paginationContainer.innerHTML = paginationHTML;
+        }
+
+        async function fetchFilteredProducts() {
+          try {
+            const response = await fetch(`/api/products/filtered?${new URLSearchParams({
+              categories: selectedCategories.join(','),
+              brands: selectedBrands.join(','),
+              maxPrice,
+              searchQuery,
+              sortBy,
+              page: currentPage
+            })}`);
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              filteredProducts = data.products;
+              totalProducts = data.total;
+              currentPage = data.page;
+              totalPages = data.pages;
+              
+              renderProducts();
+            } else {
+              console.error('Error fetching filtered products:', data.error);
+            }
+          } catch (err) {
+            console.error('Failed to fetch filtered products:', err);
+          }
+        }
+
+        function changePage(page) {
+          const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+          if (page < 1 || page > totalPages) return;
+          
+          currentPage = page;
+          
+          // اگر از API back-end استفاده می‌کنید:
+          // fetchFilteredProducts();
+          
+          // اگر pagination در front-end انجام می‌شود:
+          paginateProducts();
+          renderProducts();
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetFilters() {
+          selectedCategories = [];
+          selectedBrands = [];
+          maxPrice = 2000000;
+          searchQuery = "";
+          sortBy = "default";
+          currentPage = 1;
+          
+          // بازنشانی فیلدهای UI
+          document.getElementById("search-input").value = "";
+          document.getElementById("price-range").value = maxPrice;
+          document.getElementById("current-price").textContent = `تا ${formatPrice(maxPrice)} تومان`;
+          document.getElementById("sort-select").value = "default";
+          
+          // حذف حالت active از دسته‌بندی‌ها و برندها
+          document.querySelectorAll(".category-chip").forEach(chip => {
+            chip.classList.remove("active");
+          });
+          
+          document.querySelectorAll(".brand-filter").forEach(filter => {
+            filter.classList.remove("bg-purple-100");
+            filter.classList.add("bg-white/70");
+          });
+          
+          // اعمال فیلترهای بازنشانی شده
+          filterProducts();
+        }
+
 
         // Utility functions
         function formatPrice(price) {
@@ -1295,18 +1391,31 @@
         }
 
         // Render products
-          function toPersianDigits(str) {
-            return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-          }
+        function toPersianDigits(str) {
+          return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        }
         function renderProducts() {
           const container = document.getElementById("products-container");
           const isListView = currentView === "list";
+
+          if (displayedProducts.length === 0) {
+            container.innerHTML = `
+              <div class="col-span-full text-center py-12">
+                <div class="text-gray-500 text-lg mb-4">محصولی یافت نشد</div>
+                <button onclick="resetFilters()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  بازنشانی فیلترها
+                </button>
+              </div>
+            `;
+            updatePaginationControls();
+            return;
+          }
 
           container.className = isListView
             ? "space-y-6 list-view"
             : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
 
-          container.innerHTML = filteredProducts
+          container.innerHTML = displayedProducts
             .map((product) => {
               return `
               <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
@@ -1318,7 +1427,7 @@
                         <div class="relative">
                             <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
                                 <a href="/productDetails/${product.slug}">
-                                  <div class="absolute inset-0 bg-gradient-to-br"><img src=${product.images[0]} alt=${product.name}></div>
+                                  <div class="absolute inset-0 bg-gradient-to-br"><img src=${product?.images[0]?.url} alt=${product.name}></div>
                                 </a>
                                 ${product.countInStock === 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
                                 ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
@@ -1385,7 +1494,10 @@
           // Update product count
           document.getElementById(
             "product-count"
-          ).textContent = `نمایش ${toPersianDigits(filteredProducts.length)} از ${toPersianDigits( productFromServer.length)} محصول`;
+          ).textContent = `نمایش ${toPersianDigits(displayedProducts.length)} از ${toPersianDigits(filteredProducts.length)} محصول (صفحه ${toPersianDigits(currentPage)} از ${toPersianDigits(Math.ceil(filteredProducts.length / productsPerPage))})`;
+
+          // Update pagination controls
+          updatePaginationControls();
         }
         // تابع افزایش عدد سبد خرید
         function addToCart(productName) {
@@ -1410,6 +1522,7 @@
         });
         // Filter products
         function filterProducts() {
+          currentPage = 1;
           filteredProducts = productFromServer.filter((product) => {
             // Get the effective price (use offerPrice if available, otherwise use price)
             const effectivePrice = product.offerPrice || product.price;
@@ -1476,11 +1589,25 @@
               );
           }
 
+          paginateProducts();
           renderProducts();
+        }
+
+        function paginateProducts() {
+          const startIndex = (currentPage - 1) * productsPerPage;
+          const endIndex = startIndex + productsPerPage;
+          displayedProducts = filteredProducts.slice(startIndex, endIndex);
+          
+          const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+          if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+            paginateProducts();
+          }
         }
 
         // Event listeners
         document.addEventListener("DOMContentLoaded", function () {
+          initializeProducts();
           // Initial render
           renderProducts();
 

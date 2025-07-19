@@ -374,7 +374,7 @@
                     delivery: order.delivery,
                     products: order.products.map(p => ({
                       name: p.product.name,
-                      image: p.product.images[0],
+                      image: p.product.images[0].url,
                       price: p.product.price,
                       offerPrice: p.product.offerPrice,
                       quantity: p.quantity
@@ -465,7 +465,7 @@
                           delivery: order.delivery,
                           products: order.products.map(p => ({
                             name: p.product.name,
-                            image: p.product.images[0],
+                            image: p.product.images[0].url,
                             price: p.product.price,
                             quantity: p.quantity
                           }))
@@ -555,7 +555,7 @@
                           delivery: order.delivery,
                           products: order.products.map(p => ({
                             name: p.product.name,
-                            image: p.product.images[0],
+                            image: p.product.images[0].url,
                             price: p.product.price,
                             quantity: p.quantity
                           }))
