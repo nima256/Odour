@@ -9,6 +9,8 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const Otp = require("../models/Otp");
+const https = require("https");
+
 
 // Models
 const User = require("../models/User");
@@ -166,6 +168,8 @@ router.post("/signIn", upload.none(), async (req, res) => {
 router.post("/forgotPassword", async (req, res) => {
   try {
     // 1. Get user based on mobile number
+    const now = new Date();
+
     const { mobile } = req.body;
 
     if (!mobile) {
@@ -186,26 +190,69 @@ router.post("/forgotPassword", async (req, res) => {
 
     // 2. Generate OTP and save it
     const otp = Math.floor(10000 + Math.random() * 90000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiration
 
-    await Otp.findOneAndUpdate(
-      { mobile },
-      {
-        code: otp,
-        expiresAt,
-        attempts: 0,
-        purpose: "password_reset",
-      },
-      { upsert: true, new: true }
-    );
-
-    // 3. Send OTP to user's mobile (you'll need to implement this)
-    // For now, we'll just return the OTP for testing
-    return res.status(200).json({
-      success: true,
-      message: "کد تأیید برای بازیابی رمز عبور ارسال شد",
-      otp: process.env.NODE_ENV === "development" ? otp : undefined, // Only return OTP in development
+    const data = JSON.stringify({
+      bodyId: 347717,
+      to: mobile,
+      args: [otp],
     });
+
+    const options = {
+      hostname: "console.melipayamak.com",
+      port: 443,
+      path: "/api/send/shared/b38b715606c847b491c032790a75c7d8",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": Buffer.byteLength(data),
+      },
+    };
+
+    const reqSms = https.request(options, async (smsRes) => {
+      let responseData = "";
+      smsRes.on("data", (d) => {
+        responseData += d;
+      });
+
+      smsRes.on("end", async () => {
+        if (smsRes.statusCode === 200) {
+          // ذخیره OTP در MongoDB با انقضا 2 دقیقه
+          const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+
+          await Otp.findOneAndUpdate(
+            { mobile },
+            {
+              code: otp,
+              expiresAt,
+              attempts: 0,
+              lastSentAt: now,
+              purpose: "password_reset",
+            },
+            { upsert: true, new: true }
+          );
+
+          return res.status(200).json({
+            success: true,
+            message: "کد تأیید برای بازیابی رمز عبور ارسال شد",
+            otp,
+          });
+        } else {
+          return res
+            .status(500)
+            .json({ success: false, message: "خطا در ارسال پیامک" });
+        }
+      });
+    });
+
+    reqSms.on("error", (error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "خطا در اتصال به سامانه پیامک" });
+    });
+
+    reqSms.write(data, "utf8");
+    reqSms.end();
   } catch (err) {
     console.error("Forgot Password Error:", err);
     return res.status(500).json({

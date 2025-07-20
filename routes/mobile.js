@@ -73,78 +73,66 @@ router.post("/sendOtp", otpLimiter, validateMobile, async (req, res) => {
     }
 
     const otp = Math.floor(10000 + Math.random() * 90000).toString();
-    const expiresAt = new Date(now.getTime() + 2 * 60 * 1000); // 2 minutes expiration
 
-    await Otp.findOneAndUpdate(
-      { mobile },
-      {
-        code: otp,
-        expiresAt,
-        attempts: 0,
-        lastSentAt: now,
-      },
-      { upsert: true, new: true }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "کد تأیید ارسال شد",
+    const data = JSON.stringify({
+      bodyId: 347717,
+      to: mobile,
+      args: [otp],
     });
 
-    // const data = JSON.stringify({
-    //   bodyId: 344616,
-    //   to: mobile,
-    //   args: [phoneNumber],
-    // });
+    const options = {
+      hostname: "console.melipayamak.com",
+      port: 443,
+      path: "/api/send/shared/b38b715606c847b491c032790a75c7d8",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": Buffer.byteLength(data),
+      },
+    };
 
-    // const options = {
-    //   hostname: "console.melipayamak.com",
-    //   port: 443,
-    //   path: "/api/send/shared/b38b715606c847b491c032790a75c7d8",
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json; charset=utf-8",
-    //     "Content-Length": Buffer.byteLength(data),
-    //   },
-    // };
+    const reqSms = https.request(options, async (smsRes) => {
+      let responseData = "";
+      smsRes.on("data", (d) => {
+        responseData += d;
+      });
 
-    // const reqSms = https.request(options, async (smsRes) => {
-    //   let responseData = "";
-    //   smsRes.on("data", (d) => {
-    //     responseData += d;
-    //   });
+      smsRes.on("end", async () => {
+        if (smsRes.statusCode === 200) {
+          // ذخیره OTP در MongoDB با انقضا 2 دقیقه
+          const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
 
-    //   smsRes.on("end", async () => {
-    //     if (smsRes.statusCode === 200) {
-    //       // ذخیره OTP در MongoDB با انقضا 2 دقیقه
-    //       const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+          await Otp.findOneAndUpdate(
+            { mobile },
+            {
+              code: otp,
+              expiresAt,
+              attempts: 0,
+              lastSentAt: now,
+            },
+            { upsert: true, new: true }
+          );
 
-    //       await Otp.findOneAndUpdate(
-    //         { mobile },
-    //         { code: otp, expiresAt },
-    //         { upsert: true, new: true }
-    //       );
+          return res
+            .status(200)
+            .json({ success: true, message: "کد تأیید ارسال شد" });
+        } else {
+          return res
+            .status(500)
+            .json({ success: false, message: "خطا در ارسال پیامک" });
+        }
+      });
+    });
 
-    //       return res
-    //         .status(200)
-    //         .json({ success: true, message: "کد تأیید ارسال شد" });
-    //     } else {
-    //       return res
-    //         .status(500)
-    //         .json({ success: false, message: "خطا در ارسال پیامک" });
-    //     }
-    //   });
-    // });
+    reqSms.on("error", (error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "خطا در اتصال به سامانه پیامک" });
+    });
 
-    // reqSms.on("error", (error) => {
-    //   console.error(error);
-    //   return res
-    //     .status(500)
-    //     .json({ success: false, message: "خطا در اتصال به سامانه پیامک" });
-    // });
-
-    // reqSms.write(data, "utf8");
-    // reqSms.end();
+    reqSms.write(data, "utf8");
+    reqSms.end();
   } catch (error) {
     console.error("OTP Send Error:", error);
     return errorResponse(res, 500, "خطا در ارسال کد تأیید");
