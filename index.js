@@ -7,6 +7,9 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const flash = require("connect-flash");
 const fs = require("fs");
+const MongoStore = require("connect-mongo");
+const { SitemapStream, streamToPromise } = require("sitemap");
+const { createGzip } = require("zlib");
 
 require("dotenv").config();
 
@@ -473,6 +476,42 @@ app.get("/userProfile", async (req, res) => {
     completedOrders,
     canceledOrders,
   });
+});
+
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const smStream = new SitemapStream({
+      hostname: process.env.SITE_URL,
+    });
+
+    res.header("Content-Type", "application/xml");
+    res.header("Content-Encoding", "gzip");
+
+    const products = await Product.find({});
+    products.forEach((product) => {
+      smStream.write({
+        url: `/productDetails/${product.slug}`,
+        changefreq: "weekly",
+        priority: 0.8,
+      });
+    });
+
+    smStream.end();
+    streamToPromise(smStream.pipe(createGzip())).then((sm) => res.send(sm));
+  } catch (err) {
+    console.error(err);
+    res.status(500).end();
+  }
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.send(`
+    User-agent: *
+    Allow: /
+    Disallow: /admin/
+    Sitemap: ${process.env.SITE_URL}/sitemap.xml
+  `);
 });
 
 app.use(async (req, res, next) => {

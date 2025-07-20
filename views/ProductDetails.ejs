@@ -1,437 +1,702 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رژ لب مایع مات - فروشگاه زیبایی</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= product?.name %> | محصولات شیگلم</title>
+    <meta
+      name="description"
+      content="<%= product?.lilDescription %>"
+    />
+    <meta name="keywords" content="<%= product?.tags.join(", ") %>" />
     <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
 
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'rose-dust': '#f4e6e7',
-                        'nude-pink': '#e8b4b8',
-                        'soft-peach': '#f5d5ae',
-                        'warm-beige': '#f7f3f0'
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "rose-dust": "#f4e6e7",
+              "nude-pink": "#e8b4b8",
+              "soft-peach": "#f5d5ae",
+              "warm-beige": "#f7f3f0",
+            },
+          },
+        },
+      };
     </script>
     <style>
+      * {
+        font-family: "Vazirmatn", sans-serif;
+      }
+      .main-image {
+        transition: all 0.4s ease;
+      }
+      .thumbnail {
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .thumbnail:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      }
+      .thumbnail.active {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
+      }
+      .color-swatch {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+      }
+      .color-swatch:hover {
+        transform: scale(1.15);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+      .color-swatch.selected::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+      }
+      .volume-option {
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .volume-option:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+      .volume-option.selected {
+        background: linear-gradient(135deg, #ec4899, #f472b6);
+        color: white;
+        box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4);
+      }
+      .feature-card {
+        transition: all 0.3s ease;
+      }
+      .feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+      .section-card {
+        transition: all 0.3s ease;
+      }
+      .section-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
 
-        * { font-family: 'Vazirmatn', sans-serif; }
-        .main-image { transition: all 0.4s ease; }
-        .thumbnail { transition: all 0.3s ease; cursor: pointer; }
-        .thumbnail:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .thumbnail.active { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3); }
-        .color-swatch { transition: all 0.3s ease; cursor: pointer; position: relative; }
-        .color-swatch:hover { transform: scale(1.15); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-        .color-swatch.selected::after { 
-            content: '✓'; 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            color: white; 
-            font-weight: bold; 
-            font-size: 14px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-        }
-        .volume-option { transition: all 0.3s ease; cursor: pointer; }
-        .volume-option:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        .volume-option.selected { background: linear-gradient(135deg, #ec4899, #f472b6); color: white; box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4); }
-        .feature-card { transition: all 0.3s ease; }
-        .feature-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .section-card { transition: all 0.3s ease; }
-        .section-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+      .cart-button {
+        background-color: #2563eb;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+      }
 
-         .cart-button {
-            background-color: #2563eb;
-            color: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-        }
+      .cart-button:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.05);
+      }
 
-        .cart-button:hover {
-            background-color: #1d4ed8;
-            transform: scale(1.05);
-        }
+      .cart-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+      }
 
-        .cart-button:focus {
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
-        }
+      .cart-button.success {
+        background-color: #16a34a;
+      }
 
-        .cart-button.success {
-            background-color: #16a34a;
-        }
+      .cart-button.success:hover {
+        background-color: #15803d;
+      }
 
-        .cart-button.success:hover {
-            background-color: #15803d;
-        }
+      .icon {
+        width: 2rem;
+        height: 2rem;
+      }
 
-        .icon {
-            width: 2rem;
-            height: 2rem;
-        }
+      .hidden {
+        display: none;
+      }
 
-        .hidden {
-            display: none;
-        }
+      svg {
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
 
-        svg {
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-        }
+      .logo-container {
+        --logo-size: 2.5rem;
+      }
 
-        .logo-container {
-            --logo-size: 2.5rem;
-        }
+      .logo {
+        width: var(--logo-size);
+        height: var(--logo-size);
+      }
 
-        .logo {
-            width: var(--logo-size);
-            height: var(--logo-size);
-        }
+      .nav-link {
+        transition: all 0.3s ease;
+        position: relative;
+      }
 
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
-        }
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        right: 50%;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        transition: all 0.3s ease;
+      }
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -4px;
-            right: 50%;
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-            transition: all 0.3s ease;
-        }
+      .nav-link:hover::after {
+        width: 100%;
+        right: 0;
+      }
 
-        .nav-link:hover::after {
-            width: 100%;
-            right: 0;
-        }
+      .icon-btn {
+        transition: all 0.3s ease;
+      }
 
-        .icon-btn {
-            transition: all 0.3s ease;
-        }
+      .icon-btn:hover {
+        transform: translateY(-2px);
+      }
 
-        .icon-btn:hover {
-            transform: translateY(-2px);
-        }
+      .mobile-menu {
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        opacity: 0;
+      }
 
-        .mobile-menu {
-            transition: all 0.3s ease;
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        .mobile-menu.active {
-            transform: translateX(0);
-            opacity: 1;
-        }
+      .mobile-menu.active {
+        transform: translateX(0);
+        opacity: 1;
+      }
     </style>
-</head>
-<body class="bg-white min-h-screen">
+  </head>
+  <body class="bg-white min-h-screen">
     <!-- Header -->
- <nav class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <!-- Logo -->
-            <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
-                <div class="h-full overflow-hidden flex items-center">
-                    <img src="/logo.png" alt="لوگوی اودور" class="h-full w-auto object-contain">
-                </div>
-            </a>
+    <nav
+      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
+          <div class="h-full overflow-hidden flex items-center">
+            <img
+              src="/logo.png"
+              alt="لوگوی اودور"
+              class="h-full w-auto object-contain"
+            />
+          </div>
+        </a>
 
-
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2">
-                <a href="/" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
-                <a href="/shop" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
-                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
-                <a href="/weblog" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
-                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
-                <a href="#" class="nav-link text-gray-800 hover:text-pink-500 transition-colors">تماس با ما</a>
-            </div>
-
-            <!-- Icons -->
-            <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
-                <div class="relative">
-                    <button onclick="window.location.href='/cart';"
-                        class="relative text-gray-700 hover:text-pink-500 transition-colors">
-                        <i class="fas fa-shopping-bag text-xl"></i>
-                        <% if(user) { %>
-                        <span id="cartCount" style="top: -8px;left: 8px;"
-                            class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                            <%= toPersianDigits(cartCount) %>
-                        </span>
-                        <% } %>
-                   </button>
-                </div>
-                <button id="user-auth-button" class="text-gray-700 hover:text-pink-500 transition-colors">
-                    <i class="fas fa-user text-xl"></i>
-                </button>
-
-            </div>
+        <!-- Desktop Menu -->
+        <div
+          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
+        >
+          <a
+            href="/"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="/shop"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="/weblog"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
         </div>
 
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md">
-            <div class="flex flex-col px-4 py-2">
-                <a href="/" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">خانه</a>
-                <a href="/shop" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">فروشگاه</a>
-                <a href="" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">دسته‌بندی‌ها</a>
-                <a href="/weblog" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">وبلاگ</a>
-                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">درباره ما</a>
-                <a href="#" class="py-2 text-gray-800 hover:text-pink-500 transition-colors">تماس با ما</a>
-            </div>
+        <!-- Icons -->
+        <div
+          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
+        >
+          <div class="relative">
+            <button
+              onclick="window.location.href='/cart';"
+              class="relative text-gray-700 hover:text-pink-500 transition-colors"
+            >
+              <i class="fas fa-shopping-bag text-xl"></i>
+              <% if(user) { %>
+              <span
+                id="cartCount"
+                style="top: -8px; left: 8px"
+                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+              >
+                <%= toPersianDigits(cartCount) %>
+              </span>
+              <% } %>
+            </button>
+          </div>
+          <button
+            id="user-auth-button"
+            class="text-gray-700 hover:text-pink-500 transition-colors"
+          >
+            <i class="fas fa-user text-xl"></i>
+          </button>
         </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
+      >
+        <div class="flex flex-col px-4 py-2">
+          <a
+            href="/"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="/shop"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href=""
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="/weblog"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+      </div>
     </nav>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
 
-            mobileMenuButton.addEventListener('click', function () {
-                mobileMenu.classList.toggle('hidden');
-            });
-
-            // بستن منو هنگام کلیک خارج از آن
-            document.addEventListener('click', function (event) {
-                if (!mobileMenu.contains(event.target) && event.target !== mobileMenuButton) {
-                    mobileMenu.classList.add('hidden');
-                }
-            });
+        mobileMenuButton.addEventListener("click", function () {
+          mobileMenu.classList.toggle("hidden");
         });
-    </script>
-    <header class="bg-white/90 backdrop-blur-md shadow-lg border-b border-pink-100 rounded-b-3xl">
-        <div class="max-w-7xl mx-auto px-6 py-5">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4 space-x-reverse">
-                    <button class="text-pink-600 hover:text-pink-800 transition-colors p-2 rounded-2xl hover:bg-pink-50">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </button>
-                    <h1 class="text-lg font-semibold text-gray-800">بازگشت به فروشگاه</h1>
-                </div>
-                <div class="flex items-center space-x-4 space-x-reverse">
-                    <button class="text-pink-600 hover:text-pink-800 transition-colors p-2 rounded-2xl hover:bg-pink-50">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                    </button>
 
-                </div>
-            </div>
+        // بستن منو هنگام کلیک خارج از آن
+        document.addEventListener("click", function (event) {
+          if (
+            !mobileMenu.contains(event.target) &&
+            event.target !== mobileMenuButton
+          ) {
+            mobileMenu.classList.add("hidden");
+          }
+        });
+      });
+    </script>
+    <header
+      class="bg-white/90 backdrop-blur-md shadow-lg border-b border-pink-100 rounded-b-3xl"
+    >
+      <div class="max-w-7xl mx-auto px-6 py-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4 space-x-reverse">
+            <button
+              class="text-pink-600 hover:text-pink-800 transition-colors p-2 rounded-2xl hover:bg-pink-50"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                ></path>
+              </svg>
+            </button>
+            <h1 class="text-lg font-semibold text-gray-800">
+              بازگشت به فروشگاه
+            </h1>
+          </div>
+          <div class="flex items-center space-x-4 space-x-reverse">
+            <button
+              class="text-pink-600 hover:text-pink-800 transition-colors p-2 rounded-2xl hover:bg-pink-50"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                ></path>
+              </svg>
+            </button>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-6 py-10">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <!-- Product Images (Right Side) -->
-            <div class="order-1 lg:order-2">
-                <!-- Main Image -->
-                <div class="mb-8">
-                    <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                        <img id="main-image" src="<%= product.images[0].url %>" alt="<%= product.name %>" class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl">
-                    </div>
-                </div>
-                
-                <!-- Thumbnail Gallery -->
-                <div class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1">
-                    <% for (let image of product.images) {%>
-                    <div class="thumbnail active bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0">
-                        <img src="<%= image.url %>" alt="<%= product.name %>" class="w-16 h-16 object-contain rounded-xl">
-                    </div>
-                    <% } %>
-                </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Product Images (Right Side) -->
+        <div class="order-1 lg:order-2">
+          <!-- Main Image -->
+          <div class="mb-8">
+            <div
+              class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+            >
+              <img
+                id="main-image"
+                src="<%= product.images[0].url %>"
+                alt="<%= product.name %>"
+                class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl"
+              />
             </div>
+          </div>
 
-            <!-- Product Details (Left Side) -->
-            <div class="order-2 lg:order-1 space-y-8">
-                <!-- Product Title & Price -->
-                <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4"><%= product?.name %></h1>
-                    <p class="text-gray-600 mb-5 text-lg">برند: <%= product?.brandName %></p>
-                    <div class="flex items-center space-x-4 space-x-reverse mb-6">
-                    <% if (product?.offerPrice) { %>
-                    <span class="text-3xl font-bold text-pink-600"><%= toPersianDigits(product?.offerPrice) %> تومان</span>
-                    <span class="text-lg text-gray-400 line-through"><%= toPersianDigits(product?.price) %> تومان</span>
-                    <span class="bg-pink-100 text-pink-800 text-sm font-medium px-4 py-2 rounded-full">
-                        <%= toPersianDigits(product?.discount) %>% تخفیف
-                    </span>
-                    <% } else { %>
-                    <span class="text-3xl font-bold text-pink-600"><%= toPersianDigits(product?.price) %> تومان</span>
-                    <% } %>
-                    </div>
-                    <div class="flex items-center space-x-3 space-x-reverse">
-                        <% const fullStars = Math.floor(product?.rating); %>
-                        <% const halfStar = product?.rating % 1 >= 0.5; %>
-                        <% const emptyStars = 5 - fullStars - (halfStar ? 1 : 0); %>
-                        <div class="flex text-yellow-400">
-                        <% for (let i = 0; i < fullStars; i++) { %>
-                            <!-- Full Star -->
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                            </svg>
-                        <% } %>
-
-                        <% if (halfStar) { %>
-                            <!-- Half Star (custom SVG or CSS) -->
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                            <defs>
-                                <linearGradient id="halfGrad">
-                                <stop offset="50%" stop-color="currentColor"/>
-                                <stop offset="50%" stop-color="transparent"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill="url(#halfGrad)"/>
-                            </svg>
-                        <% } %>
-
-                        <% for (let i = 0; i < emptyStars; i++) { %>
-                            <!-- Empty Star -->
-                            <svg class="w-5 h-5 text-gray-300 fill-current" viewBox="0 0 20 20">
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                            </svg>
-                        <% } %>
-                        </div>
-                        <span class="text-gray-600 text-sm font-medium">(<%= product?.reviewsNum %> نظر)</span>
-                    </div>
-                </div>
-
-                <!-- Color Selector -->
-                <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-6">انتخاب رنگ:</h3>
-                    <div class="grid grid-cols-4 gap-6 mb-6">
-                        <% product.colors.forEach((color, index) => { %>
-                            <div class="text-center">
-                                <div style="background-color:<%= color.rgb %>;"
-                                    class="color-swatch w-14 h-14 rounded-full mx-auto mb-3 shadow-lg border-2 border-white <%= index === 0 ? 'selected' : '' %>"
-                                    data-color="<%= color.name %>">
-                                </div>
-                                <span class="text-sm text-gray-600 font-medium"><%= color.name %></span>
-                            </div>
-                        <% }) %>
-                    </div>
-                    <p class="text-sm text-gray-600">
-                        رنگ انتخابی:
-                        <span id="selected-color" class="font-semibold text-pink-600"><%= product.colors[0].name %></span>
-                    </p>
-                </div>
-
-                <!-- Volume Selector -->
-                <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-6">انتخاب حجم:</h3>
-                    <div class="grid grid-cols-3 gap-4 mb-6">
-                        <% product.sizes.forEach((size, index) => { %>
-                        <button class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent 
-                            <%= (index === 0 || product.sizes.length === 1) ? 'selected bg-gradient-to-r from-pink-500 to-rose-500 text-white' : '' %>" 
-                            data-volume="<%= toPersianDigitsForSizes(size.size) %>">
-                            <div class="text-lg font-bold"><%= toPersianDigitsForSizes(size.size) %></div>
-                            <div class="volume-usage text-xs <%= (index === 0 || product.sizes.length === 1) ? 'text-white' : 'text-gray-500' %> mt-1">
-                                <%= size.usage %>
-                            </div>
-                        </button>
-                        <% }) %>
-                    </div>
-                    <p class="text-sm text-gray-600">حجم انتخابی: <span id="selected-volume" class="font-semibold text-pink-600"><%= toPersianDigitsForSizes(product.sizes[0].size) %></span></p>
-                </div>
-
-                <!-- Key Features -->
-                <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-6">ویژگی‌های کلیدی:</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div class="feature-card bg-gradient-to-r from-pink-50 to-rose-50 p-5 rounded-2xl border border-pink-100">
-                            <div class="flex items-center space-x-4 space-x-reverse">
-                                <div class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 2L3 7v11a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V7l-7-5z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 text-lg">ماندگاری بالا</h4>
-                                    <p class="text-sm text-gray-600">تا ۱۲ ساعت</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="feature-card bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-2xl border border-green-100">
-                            <div class="flex items-center space-x-4 space-x-reverse">
-                                <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 text-lg">فینیش مات</h4>
-                                    <p class="text-sm text-gray-600">بدون براق شدن</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="feature-card bg-gradient-to-r from-purple-50 to-violet-50 p-5 rounded-2xl border border-purple-100">
-                            <div class="flex items-center space-x-4 space-x-reverse">
-                                <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 text-lg">وگان فرندلی</h4>
-                                    <p class="text-sm text-gray-600">بدون مواد حیوانی</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="feature-card bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-2xl border border-blue-100">
-                            <div class="flex items-center space-x-4 space-x-reverse">
-                                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 text-lg">مرطوب کننده</h4>
-                                    <p class="text-sm text-gray-600">حاوی ویتامین E</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add to Cart Button -->
-                <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <button onclick="addToCart('<%= product.name %>', '<%= product._id %>')"  id="add-to-cart" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-5 px-8 rounded-2xl font-semibold text-lg hover:from-pink-600 hover:to-rose-600 transition duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105">
-                        افزودن به سبد خرید
-                    </button>
-                </div>
-
-                <!-- Product Description -->
-                <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-6">توضیحات محصول</h3>
-                    <div class="prose prose-gray max-w-none">
-                        <p class="text-gray-700 leading-relaxed mb-5 text-base">
-                            <%= product.description %>
-                        </p>
-                    </div>
-                </div>
+          <!-- Thumbnail Gallery -->
+          <div
+            class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1"
+          >
+            <% for (let image of product.images) {%>
+            <div
+              class="thumbnail active bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0"
+            >
+              <img
+                src="<%= image.url %>"
+                alt="<%= product.name %>"
+                class="w-16 h-16 object-contain rounded-xl"
+              />
             </div>
-            
+            <% } %>
+          </div>
         </div>
+
+        <!-- Product Details (Left Side) -->
+        <div class="order-2 lg:order-1 space-y-8">
+          <!-- Product Title & Price -->
+          <div
+            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+          >
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">
+              <%= product?.name %>
+            </h1>
+            <p class="text-gray-600 mb-5 text-lg">
+              برند: <%= product?.brandName %>
+            </p>
+            <div class="flex items-center space-x-4 space-x-reverse mb-6">
+              <% if (product?.offerPrice) { %>
+              <span class="text-3xl font-bold text-pink-600"
+                ><%= toPersianDigits(product?.offerPrice) %> تومان</span
+              >
+              <span class="text-lg text-gray-400 line-through"
+                ><%= toPersianDigits(product?.price) %> تومان</span
+              >
+              <span
+                class="bg-pink-100 text-pink-800 text-sm font-medium px-4 py-2 rounded-full"
+              >
+                <%= toPersianDigits(product?.discount) %>% تخفیف
+              </span>
+              <% } else { %>
+              <span class="text-3xl font-bold text-pink-600"
+                ><%= toPersianDigits(product?.price) %> تومان</span
+              >
+              <% } %>
+            </div>
+            <div class="flex items-center space-x-3 space-x-reverse">
+              <% const fullStars = Math.floor(product?.rating); %> <% const
+              halfStar = product?.rating % 1 >= 0.5; %> <% const emptyStars = 5
+              - fullStars - (halfStar ? 1 : 0); %>
+              <div class="flex text-yellow-400">
+                <% for (let i = 0; i < fullStars; i++) { %>
+                <!-- Full Star -->
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                  <path
+                    d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
+                  />
+                </svg>
+                <% } %> <% if (halfStar) { %>
+                <!-- Half Star (custom SVG or CSS) -->
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                  <defs>
+                    <linearGradient id="halfGrad">
+                      <stop offset="50%" stop-color="currentColor" />
+                      <stop offset="50%" stop-color="transparent" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
+                    fill="url(#halfGrad)"
+                  />
+                </svg>
+                <% } %> <% for (let i = 0; i < emptyStars; i++) { %>
+                <!-- Empty Star -->
+                <svg
+                  class="w-5 h-5 text-gray-300 fill-current"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
+                  />
+                </svg>
+                <% } %>
+              </div>
+              <span class="text-gray-600 text-sm font-medium"
+                >(<%= product?.reviewsNum %> نظر)</span
+              >
+            </div>
+          </div>
+
+          <!-- Color Selector -->
+          <div
+            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+          >
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">
+              انتخاب رنگ:
+            </h3>
+            <div class="grid grid-cols-4 gap-6 mb-6">
+              <% product.colors.forEach((color, index) => { %>
+              <div class="text-center">
+                <div
+                  style="background-color: <%= color.rgb %>"
+                  class="color-swatch w-14 h-14 rounded-full mx-auto mb-3 shadow-lg border-2 border-white <%= index === 0 ? 'selected' : '' %>"
+                  data-color="<%= color.name %>"
+                ></div>
+                <span class="text-sm text-gray-600 font-medium"
+                  ><%= color.name %></span
+                >
+              </div>
+              <% }) %>
+            </div>
+            <p class="text-sm text-gray-600">
+              رنگ انتخابی:
+              <span id="selected-color" class="font-semibold text-pink-600"
+                ><%= product.colors[0].name %></span
+              >
+            </p>
+          </div>
+
+          <!-- Volume Selector -->
+          <div
+            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+          >
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">
+              انتخاب حجم:
+            </h3>
+            <div class="grid grid-cols-3 gap-4 mb-6">
+              <% product.sizes.forEach((size, index) => { %>
+              <button
+                class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent <%= (index === 0 || product.sizes.length === 1) ? 'selected bg-gradient-to-r from-pink-500 to-rose-500 text-white' : '' %>"
+                data-volume="<%= toPersianDigitsForSizes(size.size) %>"
+              >
+                <div class="text-lg font-bold">
+                  <%= toPersianDigitsForSizes(size.size) %>
+                </div>
+                <div
+                  class="volume-usage text-xs <%= (index === 0 || product.sizes.length === 1) ? 'text-white' : 'text-gray-500' %> mt-1"
+                >
+                  <%= size.usage %>
+                </div>
+              </button>
+              <% }) %>
+            </div>
+            <p class="text-sm text-gray-600">
+              حجم انتخابی:
+              <span id="selected-volume" class="font-semibold text-pink-600"
+                ><%= toPersianDigitsForSizes(product.sizes[0].size) %></span
+              >
+            </p>
+          </div>
+
+          <!-- Key Features -->
+          <div
+            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+          >
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">
+              ویژگی‌های کلیدی:
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div
+                class="feature-card bg-gradient-to-r from-pink-50 to-rose-50 p-5 rounded-2xl border border-pink-100"
+              >
+                <div class="flex items-center space-x-4 space-x-reverse">
+                  <div
+                    class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center"
+                  >
+                    <svg
+                      class="w-6 h-6 text-pink-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M10 2L3 7v11a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V7l-7-5z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800 text-lg">
+                      ماندگاری بالا
+                    </h4>
+                    <p class="text-sm text-gray-600">تا ۱۲ ساعت</p>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="feature-card bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-2xl border border-green-100"
+              >
+                <div class="flex items-center space-x-4 space-x-reverse">
+                  <div
+                    class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center"
+                  >
+                    <svg
+                      class="w-6 h-6 text-green-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800 text-lg">
+                      فینیش مات
+                    </h4>
+                    <p class="text-sm text-gray-600">بدون براق شدن</p>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="feature-card bg-gradient-to-r from-purple-50 to-violet-50 p-5 rounded-2xl border border-purple-100"
+              >
+                <div class="flex items-center space-x-4 space-x-reverse">
+                  <div
+                    class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center"
+                  >
+                    <svg
+                      class="w-6 h-6 text-purple-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800 text-lg">
+                      وگان فرندلی
+                    </h4>
+                    <p class="text-sm text-gray-600">بدون مواد حیوانی</p>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="feature-card bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-2xl border border-blue-100"
+              >
+                <div class="flex items-center space-x-4 space-x-reverse">
+                  <div
+                    class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center"
+                  >
+                    <svg
+                      class="w-6 h-6 text-blue-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-800 text-lg">
+                      مرطوب کننده
+                    </h4>
+                    <p class="text-sm text-gray-600">حاوی ویتامین E</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add to Cart Button -->
+          <div
+            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+          >
+            <button
+              onclick="addToCart('<%= product.name %>', '<%= product._id %>')"
+              id="add-to-cart"
+              class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-5 px-8 rounded-2xl font-semibold text-lg hover:from-pink-600 hover:to-rose-600 transition duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105"
+            >
+              افزودن به سبد خرید
+            </button>
+          </div>
+
+          <!-- Product Description -->
+          <div
+            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+          >
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">
+              توضیحات محصول
+            </h3>
+            <div class="prose prose-gray max-w-none">
+              <p class="text-gray-700 leading-relaxed mb-5 text-base">
+                <%= product.description %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
     <footer class="bg-gray-900 text-white py-12">
       <div class="container mx-auto px-4">
@@ -456,7 +721,9 @@
             <p class="text-gray-400 text-sm leading-relaxed">
               مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
             </p>
-            <p class="text-gray-400 text-sm leading-relaxed mt-2">شماره تلفن: ۰۹۰۵۴۲۴۳۴۶۴</p>
+            <p class="text-gray-400 text-sm leading-relaxed mt-2">
+              شماره تلفن: ۰۹۰۵۴۲۴۳۴۶۴
+            </p>
           </div>
           <div>
             <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
@@ -551,154 +818,153 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Image gallery functionality
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            const mainImage = document.getElementById('main-image');
+      document.addEventListener('DOMContentLoaded', function() {
+          // Image gallery functionality
+          const thumbnails = document.querySelectorAll('.thumbnail');
+          const mainImage = document.getElementById('main-image');
 
-            const productImages = <%- JSON.stringify(product.images) %>;
-            
-            thumbnails.forEach((thumb, index) => {
-                thumb.addEventListener('click', () => {
-                    thumbnails.forEach(t => t.classList.remove('active'));
-                    thumb.classList.add('active');
-                    mainImage.src = productImages[index];
-                });
-            });
+          const productImages = <%- JSON.stringify(product.images) %>;
 
-            // Color selector functionality
-            const colorSwatches = document.querySelectorAll('.color-swatch');
-            const selectedColorSpan = document.getElementById('selected-color');
-            
-            colorSwatches.forEach(swatch => {
-                swatch.addEventListener('click', () => {
-                    colorSwatches.forEach(s => s.classList.remove('selected'));
-                    swatch.classList.add('selected');
-                    selectedColorSpan.textContent = swatch.dataset.color;
-                });
-            });
+          thumbnails.forEach((thumb, index) => {
+              thumb.addEventListener('click', () => {
+                  thumbnails.forEach(t => t.classList.remove('active'));
+                  thumb.classList.add('active');
+                  mainImage.src = productImages[index];
+              });
+          });
 
-            // Volume selector functionality
-            const volumeOptions = document.querySelectorAll('.volume-option');
-            const selectedVolumeSpan = document.getElementById('selected-volume');
-            const volumeUsages = document.querySelectorAll('.volume-usage');
+          // Color selector functionality
+          const colorSwatches = document.querySelectorAll('.color-swatch');
+          const selectedColorSpan = document.getElementById('selected-color');
 
-            // اگر فقط یک گزینه وجود دارد، آن را به صورت خودکار انتخاب کنید
-            if (volumeOptions.length === 1) {
-                const singleOption = volumeOptions[0];
-                singleOption.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
-                singleOption.classList.remove('bg-gray-50', 'hover:bg-gray-100');
-                
-                const singleUsage = singleOption.querySelector('.volume-usage');
-                singleUsage.classList.add('text-white');
-                singleUsage.classList.remove('text-gray-500');
-                
-                selectedVolumeSpan.textContent = singleOption.dataset.volume;
-            }
+          colorSwatches.forEach(swatch => {
+              swatch.addEventListener('click', () => {
+                  colorSwatches.forEach(s => s.classList.remove('selected'));
+                  swatch.classList.add('selected');
+                  selectedColorSpan.textContent = swatch.dataset.color;
+              });
+          });
 
-            volumeOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    volumeOptions.forEach(opt => {
-                        opt.classList.remove('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
-                        if(!opt.classList.contains('bg-gray-50')) {
-                            opt.classList.add('bg-gray-50', 'hover:bg-gray-100');
-                        }
-                    });
-                    
-                    volumeUsages.forEach(usage => {
-                        usage.classList.remove('text-white');
-                        usage.classList.add('text-gray-500');
-                    });
-                    
-                    option.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
-                    option.classList.remove('bg-gray-50', 'hover:bg-gray-100');
-                    
-                    const selectedUsage = option.querySelector('.volume-usage');
-                    selectedUsage.classList.add('text-white');
-                    selectedUsage.classList.remove('text-gray-500');
-                    
-                    selectedVolumeSpan.textContent = option.dataset.volume;
-                });
-            });
-        });
+          // Volume selector functionality
+          const volumeOptions = document.querySelectorAll('.volume-option');
+          const selectedVolumeSpan = document.getElementById('selected-volume');
+          const volumeUsages = document.querySelectorAll('.volume-usage');
 
-        function toEnglishDigits(str) {
-        const persianNumbers = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
-        const arabicNumbers = [/٠/g, /١/g, /٢/g, /٣/g, /٤/g, /٥/g, /٦/g, /٧/g, /٨/g, /٩/g];
-        
-        if(typeof str === 'string') {
-            for(let i=0; i<10; i++) {
-            str = str.replace(persianNumbers[i], i).replace(arabicNumbers[i], i);
-            }
-        }
-        return str;
-        }
+          // اگر فقط یک گزینه وجود دارد، آن را به صورت خودکار انتخاب کنید
+          if (volumeOptions.length === 1) {
+              const singleOption = volumeOptions[0];
+              singleOption.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+              singleOption.classList.remove('bg-gray-50', 'hover:bg-gray-100');
 
-        function addToCart(productName, id) {
-            const selectedColor = document.querySelector('.color-swatch.selected').dataset.color;
-            const selectedSize = toEnglishDigits(document.querySelector('.volume-option.selected').dataset.volume);
+              const singleUsage = singleOption.querySelector('.volume-usage');
+              singleUsage.classList.add('text-white');
+              singleUsage.classList.remove('text-gray-500');
 
-            fetch("/api/cart/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    productId: id,
-                    quantity: 1,
-                    selectedColor: selectedColor.trim(),
-                    selectedSize: selectedSize.trim()
-                }),
-            })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.success) {
-                    showNotification(`محصول ${productName} با رنگ ${selectedColor} و سایز ${selectedSize} به سبد خرید اضافه شد`, 'success');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
-                } else {
-                    showNotification(data.message, 'error');
-                }
-            })
-            .catch((err) => {
-                console.error("Error:", err);
-                showNotification('مشکلی در ارتباط با سرور به وجود آمده است', 'error');
-            });
-        }
+              selectedVolumeSpan.textContent = singleOption.dataset.volume;
+          }
 
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-                type === 'success' ? 'bg-green-500' : 
-                type === 'error' ? 'bg-red-500' : 
-                'bg-blue-500'
-            }`;
-            
-            // Mobile: centered at top, Desktop: top-right
-            notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
-            
-            // Width control
-            notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
-            
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            // Animation in
-            notification.classList.add('transform', 'transition-all', 'duration-300');
-            notification.classList.add('translate-y-2', 'opacity-0');
-            
-            setTimeout(() => {
-                notification.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-            
-            setTimeout(() => {
-                notification.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => notification.remove(), 300);
-            }, 2000);
-        }
+          volumeOptions.forEach(option => {
+              option.addEventListener('click', () => {
+                  volumeOptions.forEach(opt => {
+                      opt.classList.remove('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+                      if(!opt.classList.contains('bg-gray-50')) {
+                          opt.classList.add('bg-gray-50', 'hover:bg-gray-100');
+                      }
+                  });
 
+                  volumeUsages.forEach(usage => {
+                      usage.classList.remove('text-white');
+                      usage.classList.add('text-gray-500');
+                  });
+
+                  option.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+                  option.classList.remove('bg-gray-50', 'hover:bg-gray-100');
+
+                  const selectedUsage = option.querySelector('.volume-usage');
+                  selectedUsage.classList.add('text-white');
+                  selectedUsage.classList.remove('text-gray-500');
+
+                  selectedVolumeSpan.textContent = option.dataset.volume;
+              });
+          });
+      });
+
+      function toEnglishDigits(str) {
+      const persianNumbers = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
+      const arabicNumbers = [/٠/g, /١/g, /٢/g, /٣/g, /٤/g, /٥/g, /٦/g, /٧/g, /٨/g, /٩/g];
+
+      if(typeof str === 'string') {
+          for(let i=0; i<10; i++) {
+          str = str.replace(persianNumbers[i], i).replace(arabicNumbers[i], i);
+          }
+      }
+      return str;
+      }
+
+      function addToCart(productName, id) {
+          const selectedColor = document.querySelector('.color-swatch.selected').dataset.color;
+          const selectedSize = toEnglishDigits(document.querySelector('.volume-option.selected').dataset.volume);
+
+          fetch("/api/cart/add", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  productId: id,
+                  quantity: 1,
+                  selectedColor: selectedColor.trim(),
+                  selectedSize: selectedSize.trim()
+              }),
+          })
+          .then((res) => res.json())
+          .then((data) => {
+              if (data.success) {
+                  showNotification(`محصول ${productName} با رنگ ${selectedColor} و سایز ${selectedSize} به سبد خرید اضافه شد`, 'success');
+                  setTimeout(() => {
+                      location.reload();
+                  }, 2000);
+              } else {
+                  showNotification(data.message, 'error');
+              }
+          })
+          .catch((err) => {
+              console.error("Error:", err);
+              showNotification('مشکلی در ارتباط با سرور به وجود آمده است', 'error');
+          });
+      }
+
+      function showNotification(message, type = 'info') {
+          const notification = document.createElement('div');
+          notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+              type === 'success' ? 'bg-green-500' :
+              type === 'error' ? 'bg-red-500' :
+              'bg-blue-500'
+          }`;
+
+          // Mobile: centered at top, Desktop: top-right
+          notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+
+          // Width control
+          notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+
+          notification.textContent = message;
+
+          document.body.appendChild(notification);
+
+          // Animation in
+          notification.classList.add('transform', 'transition-all', 'duration-300');
+          notification.classList.add('translate-y-2', 'opacity-0');
+
+          setTimeout(() => {
+              notification.classList.remove('translate-y-2', 'opacity-0');
+          }, 10);
+
+          setTimeout(() => {
+              notification.classList.add('opacity-0', 'translate-y-2');
+              setTimeout(() => notification.remove(), 300);
+          }, 2000);
+      }
     </script>
-</body>
+  </body>
 </html>

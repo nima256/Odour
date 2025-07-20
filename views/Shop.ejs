@@ -3,7 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>فروشگاه زیبایی مدرن</title>
+    <title>فروشگاه</title>
+    <meta
+      name="description"
+      content="فروشگاه اینترنتی اودور منبع فروش محصولات شیگلم و فروش محصولات آرایشی"
+    />
+    <meta
+      name="keywords"
+      content="محصولات شیگلم, خرید فروش محصولات شیگلم , خرید محصولات شیگلم , محصولات آرایشی"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -405,21 +413,25 @@
               <span
                 style="bottom: 15px; right: 7px"
                 class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                ><%= toPersianDigitsForSizes(cartCount) %></span>
+                ><%= toPersianDigitsForSizes(cartCount) %></span
+              >
               <% } else {%><% } %>
             </button>
           </div>
-        <% if (!user) {%>
-          <button id="user-auth-button" class="text-gray-700 hover:text-pink-500 transition-colors">
+          <% if (!user) {%>
+          <button
+            id="user-auth-button"
+            class="text-gray-700 hover:text-pink-500 transition-colors"
+          >
             <i class="fas fa-user text-xl"></i>
           </button>
           <% } else { %>
-            <a href="/userProfile">
-              <button class="text-gray-700 hover:text-pink-500 transition-colors">
-                <i class="fas fa-user text-xl"></i>
-              </button>
-            </a>
-            <% } %>
+          <a href="/userProfile">
+            <button class="text-gray-700 hover:text-pink-500 transition-colors">
+              <i class="fas fa-user text-xl"></i>
+            </button>
+          </a>
+          <% } %>
         </div>
       </div>
 
@@ -1067,13 +1079,13 @@
           </div>
 
           <!-- Premium Pagination -->
-        <div class="flex justify-center mt-12">
-          <div class="glass-effect rounded-2xl p-4 shadow-xl">
-            <div class="pagination-container flex items-center gap-2">
-              <!-- Pagination buttons will be inserted here by JavaScript -->
+          <div class="flex justify-center mt-12">
+            <div class="glass-effect rounded-2xl p-4 shadow-xl">
+              <div class="pagination-container flex items-center gap-2">
+                <!-- Pagination buttons will be inserted here by JavaScript -->
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
@@ -1106,7 +1118,9 @@
             <p class="text-gray-400 text-sm leading-relaxed">
               مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
             </p>
-            <p class="text-gray-400 text-sm leading-relaxed mt-2">شماره تلفن: ۰۹۰۵۴۲۴۳۴۶۴</p>
+            <p class="text-gray-400 text-sm leading-relaxed mt-2">
+              شماره تلفن: ۰۹۰۵۴۲۴۳۴۶۴
+            </p>
           </div>
           <div>
             <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
@@ -1201,867 +1215,867 @@
     </footer>
 
     <script>
-      function showNotificationInPopUp(message, type = 'info') {
-          const authPopup = document.getElementById('auth-popup');
-          const notification = document.createElement('div'); // Create element on document, not authPopup
+        function showNotificationInPopUp(message, type = 'info') {
+            const authPopup = document.getElementById('auth-popup');
+            const notification = document.createElement('div'); // Create element on document, not authPopup
+            notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
+            }`;
+
+            notification.textContent = message;
+
+            // Animation in
+            notification.classList.add('transform', 'transition-all', 'duration-300');
+            notification.classList.add('-translate-y-[100px]', 'opacity-0');
+
+            // Append the notification to the authPopup
+            authPopup.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        function showNotification(message, type = 'info') {
+          const notification = document.createElement('div');
           notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-              type === 'success' ? 'bg-green-500' : 
-              type === 'error' ? 'bg-red-500' : 
+              type === 'success' ? 'bg-green-500' :
+              type === 'error' ? 'bg-red-500' :
               'bg-blue-500'
           }`;
-          
+
+          // Mobile: centered at top, Desktop: top-right
+          notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+
+          // Width control
+          notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+
           notification.textContent = message;
-          
+
+          document.body.appendChild(notification);
+
           // Animation in
           notification.classList.add('transform', 'transition-all', 'duration-300');
-          notification.classList.add('-translate-y-[100px]', 'opacity-0');
-          
-          // Append the notification to the authPopup
-          authPopup.appendChild(notification);
-          
+          notification.classList.add('translate-y-2', 'opacity-0');
+
           setTimeout(() => {
               notification.classList.remove('translate-y-2', 'opacity-0');
           }, 10);
-          
+
           setTimeout(() => {
               notification.classList.add('opacity-0', 'translate-y-2');
               setTimeout(() => notification.remove(), 300);
           }, 2000);
       }
-      function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-            type === 'success' ? 'bg-green-500' : 
-            type === 'error' ? 'bg-red-500' : 
-            'bg-blue-500'
-        }`;
-        
-        // Mobile: centered at top, Desktop: top-right
-        notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
-        
-        // Width control
-        notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
-        
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // Animation in
-        notification.classList.add('transform', 'transition-all', 'duration-300');
-        notification.classList.add('translate-y-2', 'opacity-0');
-        
-        setTimeout(() => {
-            notification.classList.remove('translate-y-2', 'opacity-0');
-        }, 10);
-        
-        setTimeout(() => {
-            notification.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => notification.remove(), 300);
-        }, 2000);
-    }
 
-        // State
-        const productFromServer = <%- JSON.stringify(products) %>;
-        let currentView = "grid";
-        let allProducts = [...productFromServer];
-        let filteredProducts = [...productFromServer]; // ابتدا همه محصولات را در filteredProducts قرار دهید
-        let displayedProducts = []; // اینجا خالی می‌ماند تا در init پر شود
-        let selectedCategories = [];
-        let selectedBrands = [];
-        let maxPrice = 2000000;
-        let searchQuery = "";
-        let sortBy = "default";
-        let currentPage = 1;
-        const productsPerPage = 12;
+          // State
+          const productFromServer = <%- JSON.stringify(products) %>;
+          let currentView = "grid";
+          let allProducts = [...productFromServer];
+          let filteredProducts = [...productFromServer]; // ابتدا همه محصولات را در filteredProducts قرار دهید
+          let displayedProducts = []; // اینجا خالی می‌ماند تا در init پر شود
+          let selectedCategories = [];
+          let selectedBrands = [];
+          let maxPrice = 2000000;
+          let searchQuery = "";
+          let sortBy = "default";
+          let currentPage = 1;
+          const productsPerPage = 12;
 
-        function initializeProducts() {
-          // در ابتدا همه محصولات را نمایش دهید
-          filteredProducts = [...allProducts];
-          paginateProducts();
-          renderProducts();
-        }
-
-        function updatePaginationControls() {
-          const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-          const paginationContainer = document.querySelector('.pagination-container');
-          
-          let paginationHTML = `
-            <div class="flex items-center gap-2">
-              <button onclick="changePage(${currentPage - 1})" 
-                class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                ${currentPage === 1 ? 'disabled' : ''}>
-                قبلی
-              </button>`;
-          
-          for (let i = 1; i <= totalPages; i++) {
-            paginationHTML += `
-              <button onclick="changePage(${i})" 
-                class="px-4 py-2 ${i === currentPage ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/50'} rounded-xl hover:bg-white transition-all">
-                ${toPersianDigits(i)}
-              </button>`;
-          }
-          
-          paginationHTML += `
-              <button onclick="changePage(${currentPage + 1})" 
-                class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                ${currentPage === totalPages ? 'disabled' : ''}>
-                بعدی
-              </button>
-            </div>`;
-          
-          paginationContainer.innerHTML = paginationHTML;
-        }
-
-        async function fetchFilteredProducts() {
-          try {
-            const response = await fetch(`/api/products/filtered?${new URLSearchParams({
-              categories: selectedCategories.join(','),
-              brands: selectedBrands.join(','),
-              maxPrice,
-              searchQuery,
-              sortBy,
-              page: currentPage
-            })}`);
-            
-            const data = await response.json();
-            
-            if (data.success) {
-              filteredProducts = data.products;
-              totalProducts = data.total;
-              currentPage = data.page;
-              totalPages = data.pages;
-              
-              renderProducts();
-            } else {
-              console.error('Error fetching filtered products:', data.error);
-            }
-          } catch (err) {
-            console.error('Failed to fetch filtered products:', err);
-          }
-        }
-
-        function changePage(page) {
-          const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-          if (page < 1 || page > totalPages) return;
-          
-          currentPage = page;
-          
-          // اگر از API back-end استفاده می‌کنید:
-          // fetchFilteredProducts();
-          
-          // اگر pagination در front-end انجام می‌شود:
-          paginateProducts();
-          renderProducts();
-          
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetFilters() {
-          selectedCategories = [];
-          selectedBrands = [];
-          maxPrice = 2000000;
-          searchQuery = "";
-          sortBy = "default";
-          currentPage = 1;
-          
-          // بازنشانی فیلدهای UI
-          document.getElementById("search-input").value = "";
-          document.getElementById("price-range").value = maxPrice;
-          document.getElementById("current-price").textContent = `تا ${formatPrice(maxPrice)} تومان`;
-          document.getElementById("sort-select").value = "default";
-          
-          // حذف حالت active از دسته‌بندی‌ها و برندها
-          document.querySelectorAll(".category-chip").forEach(chip => {
-            chip.classList.remove("active");
-          });
-          
-          document.querySelectorAll(".brand-filter").forEach(filter => {
-            filter.classList.remove("bg-purple-100");
-            filter.classList.add("bg-white/70");
-          });
-          
-          // اعمال فیلترهای بازنشانی شده
-          filterProducts();
-        }
-
-
-        // Utility functions
-        function formatPrice(price) {
-          // return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
-          return price.toLocaleString("fa-IR");
-        }
-
-        // Render products
-        function toPersianDigits(str) {
-          return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-        }
-        function renderProducts() {
-          const container = document.getElementById("products-container");
-          const isListView = currentView === "list";
-
-          if (displayedProducts.length === 0) {
-            container.innerHTML = `
-              <div class="col-span-full text-center py-12">
-                <div class="text-gray-500 text-lg mb-4">محصولی یافت نشد</div>
-                <button onclick="resetFilters()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                  بازنشانی فیلترها
-                </button>
-              </div>
-            `;
-            updatePaginationControls();
-            return;
-          }
-
-          container.className = isListView
-            ? "space-y-6 list-view"
-            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
-
-          container.innerHTML = displayedProducts
-            .map((product) => {
-              return `
-              <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
-
-                          ${
-                            isListView
-                              ? ""
-                              : `
-                        <div class="relative">
-                            <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
-                                <a href="/productDetails/${product.slug}">
-                                  <div class="absolute inset-0 bg-gradient-to-br"><img src=${product?.images[0]?.url} alt=${product.name}></div>
-                                </a>
-                                ${product.countInStock === 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
-                                ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
-                                <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${ toPersianDigits(product.rating)} (${toPersianDigits(product.reviewsNum)} نظر)</div>
-                            </div>
-                        </div>
-                        `
-                        }
-                        <a href="/productDetails/${product.slug}">
-                          <div class="p-6 ${isListView ? "flex-1" : ""}">
-                              <div class="flex justify-between items-start mb-3">
-                                  <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
-                                      ${product.catName}
-                                  </div>
-                                  <button class="text-gray-400 hover:text-red-500 transition-colors">
-                                      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                                      </svg>
-                                  </button>
-                              </div>
-                              <h3 class="font-bold text-xl text-gray-800 mb-2 text-right">${
-                                product.name
-                              }</h3>
-                              <p class="text-gray-600 text-sm mb-4 text-right">${
-                                product.lilDescription
-                              }</p>
-                              <div class="flex justify-between items-center mb-4">
-                                <div class="text-right">
-                                  ${
-                                    product.offerPrice
-                                      ? `
-                                        <div class="text-gray-400 line-through text-sm">${formatPrice(product.price)}</div>
-                                        <div class="price-gradient font-bold text-xl">${formatPrice(product.offerPrice)}</div>
-                                      `
-                                      : `
-                                        <div class="price-gradient font-bold text-xl">${formatPrice(product.price)}</div>
-                                      `
-                                  }
-                                </div>
-                                  ${
-                                    product.colors.length > 0
-                                      ? `
-                                  <div class="flex gap-1">
-                                      <div class="w-4 h-4 ${product.colors} rounded-full border-2 border-white shadow-sm"></div>
-                                  </div>
-                                  `
-                                      : ""
-                                  }
-                              </div>
-                              </a>
-
-                      <button onclick="location.href='/productDetails/${ product.slug }';" class="w-full bg-gradient-to-r from-blue-600 to-teal-600
-              } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
-          افزودن به سبد خرید
-      </button>
-                              </div>
-                      </div>
-
-                  `;
-            })
-            .join("");
-
-          // Update product count
-          document.getElementById(
-            "product-count"
-          ).textContent = `نمایش ${toPersianDigits(displayedProducts.length)} از ${toPersianDigits(filteredProducts.length)} محصول (صفحه ${toPersianDigits(currentPage)} از ${toPersianDigits(Math.ceil(filteredProducts.length / productsPerPage))})`;
-
-          // Update pagination controls
-          updatePaginationControls();
-        }
-        // تابع افزایش عدد سبد خرید
-        function addToCart(productName) {
-          // 1. پیدا کردن عنصر عدد سبد خرید
-          const cartCount = document.querySelector(".cart-count");
-
-          // 2. افزایش عدد فعلی + 1
-          let currentCount = parseInt(cartCount.textContent) || 0;
-          currentCount++;
-          cartCount.textContent = currentCount;
-
-          // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
-          localStorage.setItem("cartCount", currentCount);          
-        }
-
-        // بارگذاری عدد ذخیره شده هنگام لود صفحه
-        window.addEventListener("DOMContentLoaded", () => {
-          const savedCount = localStorage.getItem("cartCount");
-          if (savedCount) {
-            document.querySelector(".cart-count").textContent = savedCount;
-          }
-        });
-        // Filter products
-        function filterProducts() {
-          currentPage = 1;
-          filteredProducts = productFromServer.filter((product) => {
-            // Get the effective price (use offerPrice if available, otherwise use price)
-            const effectivePrice = product.offerPrice || product.price;
-            
-            // Category filter - now checks all categories in product.categories
-            if (selectedCategories.length > 0) {
-              const productCategories = product.category || [];
-              const hasMatchingCategory = productCategories.some(cat => 
-                selectedCategories.includes(cat.name)
-              );
-              if (!hasMatchingCategory) return false;
-            }
-
-            // Brand filter
-            if (
-              selectedBrands.length > 0 &&
-              !selectedBrands.includes(product.brandName)
-            ) {
-              return false;
-            }
-
-            // Price filter - now uses effectivePrice
-            if (effectivePrice > maxPrice) {
-              return false;
-            }
-
-            // Search filter
-            if (
-              searchQuery &&
-              !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-              !product.lilDescription.toLowerCase().includes(searchQuery.toLowerCase())
-            ) {
-              return false;
-            }
-
-            return true;
-          });
-
-          // Update sorting to use effectivePrice
-          switch (sortBy) {
-            case "price-low":
-              filteredProducts.sort((a, b) => {
-                const aPrice = a.offerPrice || a.price;
-                const bPrice = b.offerPrice || b.price;
-                return aPrice - bPrice;
-              });
-              break;
-            case "price-high":
-              filteredProducts.sort((a, b) => {
-                const aPrice = a.offerPrice || a.price;
-                const bPrice = b.offerPrice || b.price;
-                return bPrice - aPrice;
-              });
-              break;
-            case "newest":
-              filteredProducts.sort((a, b) => b.isNew - a.isNew);
-              break;
-            case "rating":
-              filteredProducts.sort((a, b) => b.rating - a.rating);
-              break;
-            default:
-              filteredProducts.sort(
-                (a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum
-              );
-          }
-
-          paginateProducts();
-          renderProducts();
-        }
-
-        function paginateProducts() {
-          const startIndex = (currentPage - 1) * productsPerPage;
-          const endIndex = startIndex + productsPerPage;
-          displayedProducts = filteredProducts.slice(startIndex, endIndex);
-          
-          const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-          if (currentPage > totalPages && totalPages > 0) {
-            currentPage = totalPages;
+          function initializeProducts() {
+            // در ابتدا همه محصولات را نمایش دهید
+            filteredProducts = [...allProducts];
             paginateProducts();
+            renderProducts();
           }
-        }
 
-        // Event listeners
-        document.addEventListener("DOMContentLoaded", function () {
-          initializeProducts();
-          // Initial render
-          renderProducts();
+          function updatePaginationControls() {
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            const paginationContainer = document.querySelector('.pagination-container');
 
-          // View toggle buttons
-          document
-            .getElementById("grid-view")
-            .addEventListener("click", function () {
-              currentView = "grid";
-              this.classList.add("bg-purple-100");
-              this.classList.remove("bg-gray-100");
-              document.getElementById("list-view").classList.add("bg-gray-100");
-              document
-                .getElementById("list-view")
-                .classList.remove("bg-purple-100");
-              renderProducts();
+            let paginationHTML = `
+              <div class="flex items-center gap-2">
+                <button onclick="changePage(${currentPage - 1})"
+                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                  ${currentPage === 1 ? 'disabled' : ''}>
+                  قبلی
+                </button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+              paginationHTML += `
+                <button onclick="changePage(${i})"
+                  class="px-4 py-2 ${i === currentPage ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/50'} rounded-xl hover:bg-white transition-all">
+                  ${toPersianDigits(i)}
+                </button>`;
+            }
+
+            paginationHTML += `
+                <button onclick="changePage(${currentPage + 1})"
+                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
+                  ${currentPage === totalPages ? 'disabled' : ''}>
+                  بعدی
+                </button>
+              </div>`;
+
+            paginationContainer.innerHTML = paginationHTML;
+          }
+
+          async function fetchFilteredProducts() {
+            try {
+              const response = await fetch(`/api/products/filtered?${new URLSearchParams({
+                categories: selectedCategories.join(','),
+                brands: selectedBrands.join(','),
+                maxPrice,
+                searchQuery,
+                sortBy,
+                page: currentPage
+              })}`);
+
+              const data = await response.json();
+
+              if (data.success) {
+                filteredProducts = data.products;
+                totalProducts = data.total;
+                currentPage = data.page;
+                totalPages = data.pages;
+
+                renderProducts();
+              } else {
+                console.error('Error fetching filtered products:', data.error);
+              }
+            } catch (err) {
+              console.error('Failed to fetch filtered products:', err);
+            }
+          }
+
+          function changePage(page) {
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            if (page < 1 || page > totalPages) return;
+
+            currentPage = page;
+
+            // اگر از API back-end استفاده می‌کنید:
+            // fetchFilteredProducts();
+
+            // اگر pagination در front-end انجام می‌شود:
+            paginateProducts();
+            renderProducts();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+
+          function resetFilters() {
+            selectedCategories = [];
+            selectedBrands = [];
+            maxPrice = 2000000;
+            searchQuery = "";
+            sortBy = "default";
+            currentPage = 1;
+
+            // بازنشانی فیلدهای UI
+            document.getElementById("search-input").value = "";
+            document.getElementById("price-range").value = maxPrice;
+            document.getElementById("current-price").textContent = `تا ${formatPrice(maxPrice)} تومان`;
+            document.getElementById("sort-select").value = "default";
+
+            // حذف حالت active از دسته‌بندی‌ها و برندها
+            document.querySelectorAll(".category-chip").forEach(chip => {
+              chip.classList.remove("active");
             });
 
-          document
-            .getElementById("list-view")
-            .addEventListener("click", function () {
-              currentView = "list";
-              this.classList.add("bg-purple-100");
-              this.classList.remove("bg-gray-100");
-              document.getElementById("grid-view").classList.add("bg-gray-100");
-              document
-                .getElementById("grid-view")
-                .classList.remove("bg-purple-100");
-              renderProducts();
+            document.querySelectorAll(".brand-filter").forEach(filter => {
+              filter.classList.remove("bg-purple-100");
+              filter.classList.add("bg-white/70");
             });
 
-          // Sort dropdown
-          document
-            .getElementById("sort-select")
-            .addEventListener("change", function () {
-              sortBy = this.value;
-              filterProducts();
-              showNotification("محصولات مرتب شدند!");
-            });
-
-          // Search input
-          document
-            .getElementById("search-input")
-            .addEventListener("input", function () {
-              searchQuery = this.value;
-              filterProducts();
-            });
-
-          // Price range slider
-          const priceRange = document.getElementById("price-range");
-          const currentPriceDisplay = document.getElementById("current-price");
-
-          priceRange.addEventListener("input", function () {
-            maxPrice = parseInt(this.value);
-            currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)} تومان`;
+            // اعمال فیلترهای بازنشانی شده
             filterProducts();
-          });
+          }
 
-          // Category filters
-          document.querySelectorAll(".category-chip").forEach((chip) => {
-            chip.addEventListener("click", function () {
-              const category = this.dataset.category;
-              if (selectedCategories.includes(category)) {
-                selectedCategories = selectedCategories.filter(
-                  (c) => c !== category
+
+          // Utility functions
+          function formatPrice(price) {
+            // return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+            return price.toLocaleString("fa-IR");
+          }
+
+          // Render products
+          function toPersianDigits(str) {
+            return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+          }
+          function renderProducts() {
+            const container = document.getElementById("products-container");
+            const isListView = currentView === "list";
+
+            if (displayedProducts.length === 0) {
+              container.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                  <div class="text-gray-500 text-lg mb-4">محصولی یافت نشد</div>
+                  <button onclick="resetFilters()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                    بازنشانی فیلترها
+                  </button>
+                </div>
+              `;
+              updatePaginationControls();
+              return;
+            }
+
+            container.className = isListView
+              ? "space-y-6 list-view"
+              : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
+
+            container.innerHTML = displayedProducts
+              .map((product) => {
+                return `
+                <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
+
+                            ${
+                              isListView
+                                ? ""
+                                : `
+                          <div class="relative">
+                              <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
+                                  <a href="/productDetails/${product.slug}">
+                                    <div class="absolute inset-0 bg-gradient-to-br"><img src=${product?.images[0]?.url} alt=${product.name}></div>
+                                  </a>
+                                  ${product.countInStock === 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
+                                  ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
+                                  <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${ toPersianDigits(product.rating)} (${toPersianDigits(product.reviewsNum)} نظر)</div>
+                              </div>
+                          </div>
+                          `
+                          }
+                          <a href="/productDetails/${product.slug}">
+                            <div class="p-6 ${isListView ? "flex-1" : ""}">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
+                                        ${product.catName}
+                                    </div>
+                                    <button class="text-gray-400 hover:text-red-500 transition-colors">
+                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <h3 class="font-bold text-xl text-gray-800 mb-2 text-right">${
+                                  product.name
+                                }</h3>
+                                <p class="text-gray-600 text-sm mb-4 text-right">${
+                                  product.lilDescription
+                                }</p>
+                                <div class="flex justify-between items-center mb-4">
+                                  <div class="text-right">
+                                    ${
+                                      product.offerPrice
+                                        ? `
+                                          <div class="text-gray-400 line-through text-sm">${formatPrice(product.price)}</div>
+                                          <div class="price-gradient font-bold text-xl">${formatPrice(product.offerPrice)}</div>
+                                        `
+                                        : `
+                                          <div class="price-gradient font-bold text-xl">${formatPrice(product.price)}</div>
+                                        `
+                                    }
+                                  </div>
+                                    ${
+                                      product.colors.length > 0
+                                        ? `
+                                    <div class="flex gap-1">
+                                        <div class="w-4 h-4 ${product.colors} rounded-full border-2 border-white shadow-sm"></div>
+                                    </div>
+                                    `
+                                        : ""
+                                    }
+                                </div>
+                                </a>
+
+                        <button onclick="location.href='/productDetails/${ product.slug }';" class="w-full bg-gradient-to-r from-blue-600 to-teal-600
+                } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
+            افزودن به سبد خرید
+        </button>
+                                </div>
+                        </div>
+
+                    `;
+              })
+              .join("");
+
+            // Update product count
+            document.getElementById(
+              "product-count"
+            ).textContent = `نمایش ${toPersianDigits(displayedProducts.length)} از ${toPersianDigits(filteredProducts.length)} محصول (صفحه ${toPersianDigits(currentPage)} از ${toPersianDigits(Math.ceil(filteredProducts.length / productsPerPage))})`;
+
+            // Update pagination controls
+            updatePaginationControls();
+          }
+          // تابع افزایش عدد سبد خرید
+          function addToCart(productName) {
+            // 1. پیدا کردن عنصر عدد سبد خرید
+            const cartCount = document.querySelector(".cart-count");
+
+            // 2. افزایش عدد فعلی + 1
+            let currentCount = parseInt(cartCount.textContent) || 0;
+            currentCount++;
+            cartCount.textContent = currentCount;
+
+            // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
+            localStorage.setItem("cartCount", currentCount);
+          }
+
+          // بارگذاری عدد ذخیره شده هنگام لود صفحه
+          window.addEventListener("DOMContentLoaded", () => {
+            const savedCount = localStorage.getItem("cartCount");
+            if (savedCount) {
+              document.querySelector(".cart-count").textContent = savedCount;
+            }
+          });
+          // Filter products
+          function filterProducts() {
+            currentPage = 1;
+            filteredProducts = productFromServer.filter((product) => {
+              // Get the effective price (use offerPrice if available, otherwise use price)
+              const effectivePrice = product.offerPrice || product.price;
+
+              // Category filter - now checks all categories in product.categories
+              if (selectedCategories.length > 0) {
+                const productCategories = product.category || [];
+                const hasMatchingCategory = productCategories.some(cat =>
+                  selectedCategories.includes(cat.name)
                 );
-                this.classList.remove("active");
-              } else {
-                selectedCategories.push(category);
-                this.classList.add("active");
+                if (!hasMatchingCategory) return false;
               }
-              filterProducts();
-            });
-          });
 
-          // Brand filters
-          document.querySelectorAll(".brand-filter").forEach((filter) => {
-            filter.addEventListener("click", function () {
-              const brand = this.dataset.brand;
-              if (selectedBrands.includes(brand)) {
-                selectedBrands = selectedBrands.filter((b) => b !== brand);
-                this.classList.remove("bg-purple-100");
-                this.classList.add("bg-white/70");
-              } else {
-                selectedBrands.push(brand);
+              // Brand filter
+              if (
+                selectedBrands.length > 0 &&
+                !selectedBrands.includes(product.brandName)
+              ) {
+                return false;
+              }
+
+              // Price filter - now uses effectivePrice
+              if (effectivePrice > maxPrice) {
+                return false;
+              }
+
+              // Search filter
+              if (
+                searchQuery &&
+                !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                !product.lilDescription.toLowerCase().includes(searchQuery.toLowerCase())
+              ) {
+                return false;
+              }
+
+              return true;
+            });
+
+            // Update sorting to use effectivePrice
+            switch (sortBy) {
+              case "price-low":
+                filteredProducts.sort((a, b) => {
+                  const aPrice = a.offerPrice || a.price;
+                  const bPrice = b.offerPrice || b.price;
+                  return aPrice - bPrice;
+                });
+                break;
+              case "price-high":
+                filteredProducts.sort((a, b) => {
+                  const aPrice = a.offerPrice || a.price;
+                  const bPrice = b.offerPrice || b.price;
+                  return bPrice - aPrice;
+                });
+                break;
+              case "newest":
+                filteredProducts.sort((a, b) => b.isNew - a.isNew);
+                break;
+              case "rating":
+                filteredProducts.sort((a, b) => b.rating - a.rating);
+                break;
+              default:
+                filteredProducts.sort(
+                  (a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum
+                );
+            }
+
+            paginateProducts();
+            renderProducts();
+          }
+
+          function paginateProducts() {
+            const startIndex = (currentPage - 1) * productsPerPage;
+            const endIndex = startIndex + productsPerPage;
+            displayedProducts = filteredProducts.slice(startIndex, endIndex);
+
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+            if (currentPage > totalPages && totalPages > 0) {
+              currentPage = totalPages;
+              paginateProducts();
+            }
+          }
+
+          // Event listeners
+          document.addEventListener("DOMContentLoaded", function () {
+            initializeProducts();
+            // Initial render
+            renderProducts();
+
+            // View toggle buttons
+            document
+              .getElementById("grid-view")
+              .addEventListener("click", function () {
+                currentView = "grid";
                 this.classList.add("bg-purple-100");
-                this.classList.remove("bg-white/70");
-              }
-              filterProducts();
-            });
-          });
-
-          // Apply filters button
-          document
-            .getElementById("apply-filters")
-            .addEventListener("click", function () {
-              filterProducts();
-              showNotification("فیلترها با موفقیت اعمال شدند!");
-            });
-        });
-        // مدیریت پاپ‌آپ احراز هویت
-              const authButton = document.getElementById("user-auth-button");
-              const authPopup = document.getElementById("auth-popup");
-
-              authButton.addEventListener("click", function (e) {
-                e.preventDefault();
-                authPopup.classList.remove("hidden");
-                switchTab("login");
+                this.classList.remove("bg-gray-100");
+                document.getElementById("list-view").classList.add("bg-gray-100");
+                document
+                  .getElementById("list-view")
+                  .classList.remove("bg-purple-100");
+                renderProducts();
               });
 
-              authPopup.addEventListener("click", function (e) {
-                if (e.target === authPopup) {
-                  authPopup.classList.add("hidden");
+            document
+              .getElementById("list-view")
+              .addEventListener("click", function () {
+                currentView = "list";
+                this.classList.add("bg-purple-100");
+                this.classList.remove("bg-gray-100");
+                document.getElementById("grid-view").classList.add("bg-gray-100");
+                document
+                  .getElementById("grid-view")
+                  .classList.remove("bg-purple-100");
+                renderProducts();
+              });
+
+            // Sort dropdown
+            document
+              .getElementById("sort-select")
+              .addEventListener("change", function () {
+                sortBy = this.value;
+                filterProducts();
+                showNotification("محصولات مرتب شدند!");
+              });
+
+            // Search input
+            document
+              .getElementById("search-input")
+              .addEventListener("input", function () {
+                searchQuery = this.value;
+                filterProducts();
+              });
+
+            // Price range slider
+            const priceRange = document.getElementById("price-range");
+            const currentPriceDisplay = document.getElementById("current-price");
+
+            priceRange.addEventListener("input", function () {
+              maxPrice = parseInt(this.value);
+              currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)} تومان`;
+              filterProducts();
+            });
+
+            // Category filters
+            document.querySelectorAll(".category-chip").forEach((chip) => {
+              chip.addEventListener("click", function () {
+                const category = this.dataset.category;
+                if (selectedCategories.includes(category)) {
+                  selectedCategories = selectedCategories.filter(
+                    (c) => c !== category
+                  );
+                  this.classList.remove("active");
+                } else {
+                  selectedCategories.push(category);
+                  this.classList.add("active");
                 }
+                filterProducts();
               });
+            });
 
-              // Tab Switching
-              const tabs = {
-                login: document.getElementById("login-tab"),
-                register: document.getElementById("register-tab"),
-                forgot: document.getElementById("forgot-tab"),
-              };
+            // Brand filters
+            document.querySelectorAll(".brand-filter").forEach((filter) => {
+              filter.addEventListener("click", function () {
+                const brand = this.dataset.brand;
+                if (selectedBrands.includes(brand)) {
+                  selectedBrands = selectedBrands.filter((b) => b !== brand);
+                  this.classList.remove("bg-purple-100");
+                  this.classList.add("bg-white/70");
+                } else {
+                  selectedBrands.push(brand);
+                  this.classList.add("bg-purple-100");
+                  this.classList.remove("bg-white/70");
+                }
+                filterProducts();
+              });
+            });
 
-              const contents = {
-                login: document.getElementById("login-content"),
-                register: document.getElementById("register-content"),
-                forgot: document.getElementById("forgot-content"),
-              };
+            // Apply filters button
+            document
+              .getElementById("apply-filters")
+              .addEventListener("click", function () {
+                filterProducts();
+                showNotification("فیلترها با موفقیت اعمال شدند!");
+              });
+          });
+          // مدیریت پاپ‌آپ احراز هویت
+                const authButton = document.getElementById("user-auth-button");
+                const authPopup = document.getElementById("auth-popup");
 
-              function switchTab(activeTab) {
-                Object.values(tabs).forEach((tab) => {
-                  tab.classList.remove("border-pink-500", "text-pink-500");
-                  tab.classList.add("text-gray-500");
-                });
-
-                Object.values(contents).forEach((content) => {
-                  content.classList.remove("active");
-                });
-
-                tabs[activeTab].classList.add(
-                  "border-pink-500",
-                  "text-pink-500"
-                );
-                tabs[activeTab].classList.remove("text-gray-500");
-                contents[activeTab].classList.add("active");
-              }
-
-              tabs.login.addEventListener("click", () => switchTab("login"));
-              tabs.register.addEventListener("click", () =>
-                switchTab("register")
-              );
-              tabs.forgot.addEventListener("click", () => switchTab("forgot"));
-
-              // Improved OTP input handling (LTR focus movement)
-              function getOtpValue(containerSelector) {
-                const inputs = Array.from(
-                  document.querySelectorAll(`${containerSelector} .otp-input`)
-                );
-                return inputs.map((input) => input.value).join("");
-              }
-
-              // Registration Process
-              const registerForm = document.getElementById("register-form");
-              const registerStep1 = document.getElementById("register-step-1");
-              const registerStep2 = document.getElementById("register-step-2");
-              const registerPhoneDisplay = document.getElementById(
-                "register-phone-display"
-              );
-
-              
-                registerForm.addEventListener("submit", function (e) {
+                authButton.addEventListener("click", function (e) {
                   e.preventDefault();
+                  authPopup.classList.remove("hidden");
+                  switchTab("login");
+                });
 
-                  const fullName = document.getElementById("register-name").value
-                  const mobile = document.getElementById("register-phone").value.trim();
-                  const email = document.getElementById("register-email").value.trim();
-                  const password = document.getElementById("register-password").value;
-                  const confirmPassword = document.getElementById("register-confirm-password").value;
+                authPopup.addEventListener("click", function (e) {
+                  if (e.target === authPopup) {
+                    authPopup.classList.add("hidden");
+                  }
+                });
 
-                  
-                  const iranMobileRegex = /^09\d{9}$/;
-                  const emailRegex = /^\S+@\S+\.\S+$/;
+                // Tab Switching
+                const tabs = {
+                  login: document.getElementById("login-tab"),
+                  register: document.getElementById("register-tab"),
+                  forgot: document.getElementById("forgot-tab"),
+                };
+
+                const contents = {
+                  login: document.getElementById("login-content"),
+                  register: document.getElementById("register-content"),
+                  forgot: document.getElementById("forgot-content"),
+                };
+
+                function switchTab(activeTab) {
+                  Object.values(tabs).forEach((tab) => {
+                    tab.classList.remove("border-pink-500", "text-pink-500");
+                    tab.classList.add("text-gray-500");
+                  });
+
+                  Object.values(contents).forEach((content) => {
+                    content.classList.remove("active");
+                  });
+
+                  tabs[activeTab].classList.add(
+                    "border-pink-500",
+                    "text-pink-500"
+                  );
+                  tabs[activeTab].classList.remove("text-gray-500");
+                  contents[activeTab].classList.add("active");
+                }
+
+                tabs.login.addEventListener("click", () => switchTab("login"));
+                tabs.register.addEventListener("click", () =>
+                  switchTab("register")
+                );
+                tabs.forgot.addEventListener("click", () => switchTab("forgot"));
+
+                // Improved OTP input handling (LTR focus movement)
+                function getOtpValue(containerSelector) {
+                  const inputs = Array.from(
+                    document.querySelectorAll(`${containerSelector} .otp-input`)
+                  );
+                  return inputs.map((input) => input.value).join("");
+                }
+
+                // Registration Process
+                const registerForm = document.getElementById("register-form");
+                const registerStep1 = document.getElementById("register-step-1");
+                const registerStep2 = document.getElementById("register-step-2");
+                const registerPhoneDisplay = document.getElementById(
+                  "register-phone-display"
+                );
 
 
-                      if (fullName.length < 3) {
-                      showNotificationInPopUp("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
-                      return;
-                    }
+                  registerForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
 
-                    // ✅ Mobile number format
-                    if (!iranMobileRegex.test(mobile)) {
-                      showNotificationInPopUp("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
-                      return;
-                    }
-
-                    // ✅ Email (if entered)
-                    if (email && !emailRegex.test(email)) {
-                      showNotificationInPopUp("ایمیل وارد شده معتبر نیست", 'error');
-                      return;
-                    }
-
-                    // ✅ Password rules
-                    if (password.length < 8) {
-                      showNotificationInPopUp("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
-                      return;
-                    }
-
-                    if (password !== confirmPassword) {
-                      showNotificationInPopUp("رمز عبور و تکرار آن یکسان نیستند", 'error');
-                      return;
-                    }
+                    const fullName = document.getElementById("register-name").value
+                    const mobile = document.getElementById("register-phone").value.trim();
+                    const email = document.getElementById("register-email").value.trim();
+                    const password = document.getElementById("register-password").value;
+                    const confirmPassword = document.getElementById("register-confirm-password").value;
 
 
-                  const formDataRegister = new FormData(registerForm);
-                  const phone = document.getElementById("register-phone").value;
-                  registerPhoneDisplay.textContent = phone;
-                  registerStep1.classList.remove("active");
-                  registerStep2.classList.add("active");
-                  startCountdown("register-resend-timer", 120);
-                  setupOtpInputs("#register-step-2");
+                    const iranMobileRegex = /^09\d{9}$/;
+                    const emailRegex = /^\S+@\S+\.\S+$/;
 
-                  fetch("/api/mobile/sendOtp", {
+
+                        if (fullName.length < 3) {
+                        showNotificationInPopUp("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
+                        return;
+                      }
+
+                      // ✅ Mobile number format
+                      if (!iranMobileRegex.test(mobile)) {
+                        showNotificationInPopUp("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
+                        return;
+                      }
+
+                      // ✅ Email (if entered)
+                      if (email && !emailRegex.test(email)) {
+                        showNotificationInPopUp("ایمیل وارد شده معتبر نیست", 'error');
+                        return;
+                      }
+
+                      // ✅ Password rules
+                      if (password.length < 8) {
+                        showNotificationInPopUp("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
+                        return;
+                      }
+
+                      if (password !== confirmPassword) {
+                        showNotificationInPopUp("رمز عبور و تکرار آن یکسان نیستند", 'error');
+                        return;
+                      }
+
+
+                    const formDataRegister = new FormData(registerForm);
+                    const phone = document.getElementById("register-phone").value;
+                    registerPhoneDisplay.textContent = phone;
+                    registerStep1.classList.remove("active");
+                    registerStep2.classList.add("active");
+                    startCountdown("register-resend-timer", 120);
+                    setupOtpInputs("#register-step-2");
+
+                    fetch("/api/mobile/sendOtp", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ mobile: phone }),
+                    })
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data.success) {
+                          // Only run this if otp was successful
+                          // otp verification form
+                          const registerVerificationForm = document.getElementById(
+                            "register-verification-form"
+                          );
+
+                          registerVerificationForm.addEventListener(
+                            "submit",
+                            function (e) {
+                              e.preventDefault();
+                              const otpValue = getOtpValue("#register-step-2");
+                              const reversedOtpValue = otpValue
+                                .split("")
+                                .reverse()
+                                .join("");
+                              fetch("/api/mobile/verifyOtp", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  mobile: phone,
+                                  otp: reversedOtpValue,
+                                }),
+                              })
+                                .then((res) => res.json())
+                                .then((data) => {
+                                  if (data.success) {
+                                    fetch("/api/authentication/signUp", {
+                                      method: "POST",
+                                      body: formDataRegister,
+                                    })
+                                      .then((res) => res.json())
+                                      .then((data) => {
+                                        if (data.success) {
+                                          // Only run this if registration was successful
+                                          showNotification(data.message, 'success');
+                                          setTimeout(() => {
+                                            location.reload();
+                                          }, 2000);
+                                        } else {
+                                          // Show error message
+                                          showNotificationInPopUp(data.message, 'error');
+                                        }
+                                      })
+                                      .catch((err) => {
+                                        console.error("Error:", err);
+                                        showNotificationInPopUp(data.message, 'error');
+                                      });
+                                    authPopup.classList.add("hidden");
+                                  } else {
+                                    showNotificationInPopUp(data.message, 'error');
+                                  }
+                                })
+                                .catch((err) => {
+                                  console.error("Error:", err);
+                                  showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                                });
+                            }
+                          );
+                        } else {
+                          // Show error message
+                          showNotificationInPopUp(data.message, 'error')
+                        }
+                      })
+                      .catch((err) => {
+                        console.error("Error:", err);
+                        showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
+                      });
+                  });
+
+                document
+                  .getElementById("register-back-btn")
+                  .addEventListener("click", function () {
+                    registerStep2.classList.remove("active");
+                    registerStep1.classList.add("active");
+                  });
+
+                // Forgot Password Process
+                const forgotForm = document.getElementById("forgot-form");
+                const forgotStep1 = document.getElementById("forgot-step-1");
+                const forgotStep2 = document.getElementById("forgot-step-2");
+                const forgotStep3 = document.getElementById("forgot-step-3");
+                const forgotPhoneDisplay = document.getElementById(
+                  "forgot-phone-display"
+                );
+
+                forgotForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  const phone = document.getElementById("forgot-phone").value;
+                  forgotPhoneDisplay.textContent = phone;
+                  forgotStep1.classList.remove("active");
+                  forgotStep2.classList.add("active");
+                  startCountdown("forgot-resend-timer", 120);
+                  setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
+                });
+
+                document
+                  .getElementById("forgot-back-btn")
+                  .addEventListener("click", function () {
+                    forgotStep2.classList.remove("active");
+                    forgotStep1.classList.add("active");
+                  });
+                function setupOtpInputs(containerSelector) {
+                  const inputs = Array.from(
+                    document.querySelectorAll(`${containerSelector} .otp-input`)
+                  );
+
+                  // فوکوس روی آخرین اینپوت (راست‌ترین)
+                  inputs[inputs.length - 1].focus();
+
+                  inputs.forEach((input, index) => {
+                    // حرکت به چپ هنگام وارد کردن عدد
+                    input.addEventListener("input", function () {
+                      if (this.value.length === 1) {
+                        if (index > 0) {
+                          inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
+                        }
+                      }
+                    });
+
+                    // حرکت به راست هنگام پاک کردن
+                    input.addEventListener("keydown", function (e) {
+                      if (e.key === "Backspace" && this.value.length === 0) {
+                        if (index < inputs.length - 1) {
+                          inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
+                        }
+                      }
+                    });
+                  });
+                }
+
+                // Initialize OTP inputs for both forms
+                setupOtpInputs("#register-step-2");
+                setupOtpInputs("#forgot-step-2");
+
+                // Forgot password verification form
+                const forgotVerificationForm = document.getElementById(
+                  "forgot-verification-form"
+                );
+                forgotVerificationForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  forgotStep2.classList.remove("active");
+                  forgotStep3.classList.add("active");
+                });
+
+                // Login form submission
+                const loginForm = document.getElementById("login-form");
+
+                loginForm.addEventListener("submit", function (e) {
+                  const formDataLogin = new FormData(loginForm);
+                  e.preventDefault();
+                  fetch("/api/authentication/signIn", {
                     method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ mobile: phone }),
+                    body: formDataLogin,
                   })
                     .then((res) => res.json())
                     .then((data) => {
                       if (data.success) {
-                        // Only run this if otp was successful
-                        // otp verification form
-                        const registerVerificationForm = document.getElementById(
-                          "register-verification-form"
-                        );
-
-                        registerVerificationForm.addEventListener(
-                          "submit",
-                          function (e) {
-                            e.preventDefault();
-                            const otpValue = getOtpValue("#register-step-2");
-                            const reversedOtpValue = otpValue
-                              .split("")
-                              .reverse()
-                              .join("");
-                            fetch("/api/mobile/verifyOtp", {
-                              method: "POST",
-                              headers: {
-                                "Content-Type": "application/json",
-                              },
-                              body: JSON.stringify({
-                                mobile: phone,
-                                otp: reversedOtpValue,
-                              }),
-                            })
-                              .then((res) => res.json())
-                              .then((data) => {
-                                if (data.success) {
-                                  fetch("/api/authentication/signUp", {
-                                    method: "POST",
-                                    body: formDataRegister,
-                                  })
-                                    .then((res) => res.json())
-                                    .then((data) => {
-                                      if (data.success) {
-                                        // Only run this if registration was successful
-                                        showNotification(data.message, 'success');
-                                        setTimeout(() => {
-                                          location.reload();
-                                        }, 2000);
-                                      } else {
-                                        // Show error message
-                                        showNotificationInPopUp(data.message, 'error');
-                                      }
-                                    })
-                                    .catch((err) => {
-                                      console.error("Error:", err);
-                                      showNotificationInPopUp(data.message, 'error');
-                                    });
-                                  authPopup.classList.add("hidden");
-                                } else {
-                                  showNotificationInPopUp(data.message, 'error');
-                                }
-                              })
-                              .catch((err) => {
-                                console.error("Error:", err);
-                                showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-                              });
-                          }
-                        );
+                      // Only run this if registration was successful
+                      showNotification(data.message, 'success');
+                      setTimeout(() => {
+                        location.reload();
+                      }, 2000);
+                      authPopup.classList.add("hidden");
                       } else {
                         // Show error message
-                        showNotificationInPopUp(data.message, 'error')
+                        showNotificationInPopUp(data.message, 'error');
                       }
                     })
                     .catch((err) => {
                       console.error("Error:", err);
-                      showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
+                      showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
                     });
                 });
 
-              document
-                .getElementById("register-back-btn")
-                .addEventListener("click", function () {
-                  registerStep2.classList.remove("active");
-                  registerStep1.classList.add("active");
+                // New password form submission
+                const newPasswordForm =
+                  document.getElementById("new-password-form");
+                newPasswordForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  showNotification("رمز عبور با موفقیت تغییر یافت!", 'success')
+                  authPopup.classList.add("hidden");
                 });
 
-              // Forgot Password Process
-              const forgotForm = document.getElementById("forgot-form");
-              const forgotStep1 = document.getElementById("forgot-step-1");
-              const forgotStep2 = document.getElementById("forgot-step-2");
-              const forgotStep3 = document.getElementById("forgot-step-3");
-              const forgotPhoneDisplay = document.getElementById(
-                "forgot-phone-display"
-              );
+                // Countdown timer function
+                function startCountdown(elementId, seconds) {
+                  const timerElement = document.getElementById(elementId);
+                  const timerSpan = timerElement.querySelector("span");
 
-              forgotForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                const phone = document.getElementById("forgot-phone").value;
-                forgotPhoneDisplay.textContent = phone;
-                forgotStep1.classList.remove("active");
-                forgotStep2.classList.add("active");
-                startCountdown("forgot-resend-timer", 120);
-                setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
-              });
+                  let remaining = seconds;
 
-              document
-                .getElementById("forgot-back-btn")
-                .addEventListener("click", function () {
-                  forgotStep2.classList.remove("active");
-                  forgotStep1.classList.add("active");
-                });
-              function setupOtpInputs(containerSelector) {
-                const inputs = Array.from(
-                  document.querySelectorAll(`${containerSelector} .otp-input`)
-                );
+                  const interval = setInterval(() => {
+                    const minutes = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
 
-                // فوکوس روی آخرین اینپوت (راست‌ترین)
-                inputs[inputs.length - 1].focus();
+                    timerSpan.textContent = `${minutes
+                      .toString()
+                      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 
-                inputs.forEach((input, index) => {
-                  // حرکت به چپ هنگام وارد کردن عدد
-                  input.addEventListener("input", function () {
-                    if (this.value.length === 1) {
-                      if (index > 0) {
-                        inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
-                      }
+                    if (remaining <= 0) {
+                      clearInterval(interval);
+                      timerElement.innerHTML =
+                        '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
                     }
+
+                    remaining--;
+                  }, 1000);
+                }
+
+                // Phone number input validation
+                const phoneInputs =
+                  document.querySelectorAll('input[type="tel"]');
+                phoneInputs.forEach((input) => {
+                  input.addEventListener("input", function (e) {
+                    this.value = this.value.replace(/\D/g, "");
                   });
 
-                  // حرکت به راست هنگام پاک کردن
-                  input.addEventListener("keydown", function (e) {
-                    if (e.key === "Backspace" && this.value.length === 0) {
-                      if (index < inputs.length - 1) {
-                        inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
-                      }
+                  input.addEventListener("blur", function () {
+                    if (!this.value.startsWith("0") && this.value.length > 0) {
+                      this.value = "0" + this.value;
                     }
                   });
                 });
-              }
-
-              // Initialize OTP inputs for both forms
-              setupOtpInputs("#register-step-2");
-              setupOtpInputs("#forgot-step-2");
-
-              // Forgot password verification form
-              const forgotVerificationForm = document.getElementById(
-                "forgot-verification-form"
-              );
-              forgotVerificationForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                forgotStep2.classList.remove("active");
-                forgotStep3.classList.add("active");
-              });
-
-              // Login form submission
-              const loginForm = document.getElementById("login-form");
-
-              loginForm.addEventListener("submit", function (e) {
-                const formDataLogin = new FormData(loginForm);
-                e.preventDefault();
-                fetch("/api/authentication/signIn", {
-                  method: "POST",
-                  body: formDataLogin,
-                })
-                  .then((res) => res.json())
-                  .then((data) => {
-                    if (data.success) {
-                    // Only run this if registration was successful
-                    showNotification(data.message, 'success');
-                    setTimeout(() => {
-                      location.reload();
-                    }, 2000);
-                    authPopup.classList.add("hidden");
-                    } else {
-                      // Show error message
-                      showNotificationInPopUp(data.message, 'error');
-                    }
-                  })
-                  .catch((err) => {
-                    console.error("Error:", err);
-                    showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-                  });
-              });
-
-              // New password form submission
-              const newPasswordForm =
-                document.getElementById("new-password-form");
-              newPasswordForm.addEventListener("submit", function (e) {
-                e.preventDefault();
-                showNotification("رمز عبور با موفقیت تغییر یافت!", 'success')
-                authPopup.classList.add("hidden");
-              });
-
-              // Countdown timer function
-              function startCountdown(elementId, seconds) {
-                const timerElement = document.getElementById(elementId);
-                const timerSpan = timerElement.querySelector("span");
-
-                let remaining = seconds;
-
-                const interval = setInterval(() => {
-                  const minutes = Math.floor(remaining / 60);
-                  const secs = remaining % 60;
-
-                  timerSpan.textContent = `${minutes
-                    .toString()
-                    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-
-                  if (remaining <= 0) {
-                    clearInterval(interval);
-                    timerElement.innerHTML =
-                      '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
-                  }
-
-                  remaining--;
-                }, 1000);
-              }
-
-              // Phone number input validation
-              const phoneInputs =
-                document.querySelectorAll('input[type="tel"]');
-              phoneInputs.forEach((input) => {
-                input.addEventListener("input", function (e) {
-                  this.value = this.value.replace(/\D/g, "");
-                });
-
-                input.addEventListener("blur", function () {
-                  if (!this.value.startsWith("0") && this.value.length > 0) {
-                    this.value = "0" + this.value;
-                  }
-                });
-              });
     </script>
   </body>
 </html>
