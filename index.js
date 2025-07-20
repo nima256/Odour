@@ -167,7 +167,12 @@ function generateOrderNumber() {
 
 app.get("/", async (req, res) => {
   const categories = await Category.find({ categoryType: "product" });
-  const products = await Product.find({ isPopular: true }).limit(4);
+  const products = await Product.find({ isPopular: true })
+    .sort({ createdAt: -1 })
+    .limit(4);
+  const isFeaturedProducts = await Product.find({ isFeatured: true })
+    .sort({ createdAt: -1 })
+    .limit(6);
   const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
   const user = await User.findById(req.session.userId);
 
@@ -189,6 +194,7 @@ app.get("/", async (req, res) => {
     weblogs,
     user,
     cartCount,
+    isFeaturedProducts,
   });
 });
 
@@ -328,10 +334,9 @@ app.get("/productDetails/:slug", async (req, res) => {
       throw error;
     }
 
-     const cartCount = user?.cart?.length || 0;
+    const cartCount = user?.cart?.length || 0;
 
-
-    res.render("ProductDetails", { product, user , cartCount });
+    res.render("ProductDetails", { product, user, cartCount });
   } catch (err) {
     next(err);
   }

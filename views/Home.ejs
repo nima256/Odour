@@ -709,184 +709,36 @@
         <!-- اسلایدر محصولات -->
         <div class="slider-container">
             <div class="slider-track">
-                <!-- محصول 1 -->
+              <% for (let product of isFeaturedProducts) {%>
                 <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="relative">
-                        <div class="special-tag absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                            پیشنهاد ویژه
-                        </div>
-                        <div class="w-full h-48 bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">کرم مرطوب کننده پریمیوم</h3>
-                        <p class="text-gray-600 text-sm mb-4">کرم مرطوب کننده با فرمول پیشرفته برای پوست حساس</p>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-green-600">۱۲۰,۰۰۰ تومان</span>
-                                <span class="price-old text-sm text-gray-400">۱۸۰,۰۰۰</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">۳۳٪ تخفیف</span>
-                        </div>
-                        <button class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
-                            مشاهده
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- محصول 2 -->
-                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="relative">
-                        <div class="special-tag absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                            پیشنهاد ویژه
-                        </div>
-                        <div class="w-full h-48 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">سرم ویتامین C</h3>
-                        <p class="text-gray-600 text-sm mb-4">سرم روشن کننده و ضد پیری با ویتامین C طبیعی</p>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-green-600">۹۵,۰۰۰ تومان</span>
-                                <span class="price-old text-sm text-gray-400">۱۵۰,۰۰۰</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">۳۷٪ تخفیف</span>
-                        </div>
-                        <button class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
-                            مشاهده
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- محصول 3 -->
-                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="relative">
-                        <div class="special-tag absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                            پیشنهاد ویژه
-                        </div>
-                        <div class="w-full h-48 bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-1.82.62-3.49 1.64-4.83 1.43-1.87 4.39-2.3 6.36-2.17 2.23.15 4.42 1.02 5.65 2.87C18.88 8.85 20 10.34 20 12c0 4.41-3.59 8-8 8z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">ماسک صورت هیالورونیک</h3>
-                        <p class="text-gray-600 text-sm mb-4">ماسک آبرسان فوق العاده با اسید هیالورونیک</p>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-green-600">۷۵,۰۰۰ تومان</span>
-                                <span class="price-old text-sm text-gray-400">۱۲۰,۰۰۰</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">۳۸٪ تخفیف</span>
-                        </div>
-                        <button class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
-                            مشاهده
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- محصول 4 -->
-                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="relative">
-                        <div class="special-tag absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                            پیشنهاد ویژه
-                        </div>
-                        <div class="w-full h-48 bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">کرم ضد آفتاب SPF50</h3>
-                        <p class="text-gray-600 text-sm mb-4">محافظت کامل در برابر اشعه UV با فرمول سبک</p>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-green-600">۸۵,۰۰۰ تومان</span>
-                                <span class="price-old text-sm text-gray-400">۱۳۰,۰۰۰</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">۳۵٪ تخفیف</span>
-                        </div>
-                        <button class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
-                            مشاهده
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- محصول 5 -->
-                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <a href="/productDetails/<%= product.slug %>">
                     <div class="relative">
                         <div class="special-tag absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
                             پیشنهاد ویژه
                         </div>
                         <div class="w-full h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">لوسیون پاک کننده ملایم</h3>
-                        <p class="text-gray-600 text-sm mb-4">پاک کننده ملایم مناسب برای تمام انواع پوست</p>
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-green-600">۶۵,۰۰۰ تومان</span>
-                                <span class="price-old text-sm text-gray-400">۱۰۰,۰۰۰</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">۳۵٪ تخفیف</span>
-                        </div>
-                        <button class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
-                            مشاهده
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
 
-                <!-- محصولات اضافی -->
-                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div class="relative">
-                        <div class="special-tag absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
-                            پیشنهاد ویژه
-                        </div>
-                        <div class="w-full h-48 bg-gradient-to-br from-yellow-100 to-orange-100 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                            </svg>
+                              <img src="<%= product.images[0].url %>" alt="" style="height: 100%; width: 100%">
                         </div>
                     </div>
+                    </a>
                     <div class="p-5">
-                        <h3 class="font-semibold text-lg text-gray-800 mb-2">تونر آبرسان طبیعی</h3>
-                        <p class="text-gray-600 text-sm mb-4">تونر طبیعی برای تعادل pH پوست</p>
+                        <h3 class="font-semibold text-lg text-gray-800 mb-2"><%= product.name %></h3>
+                        <p class="text-gray-600 text-sm mb-4"><%= product.lilDescription %></p>
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold text-green-600">۵۵,۰۰۰ تومان</span>
-                                <span class="price-old text-sm text-gray-400">۸۵,۰۰۰</span>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">۳۵٪ تخفیف</span>
+                                <% if (product.offerPrice) {%>
+                                <span class="text-lg font-bold text-green-600"><%= toPersianDigits(product.offerPrice) %></span>
+                                <span class="price-old text-sm text-gray-400"><%= toPersianDigits(product.price) %></span>
+                                <% } else {%>
+                                <span class="text-lg font-bold text-green-600"><%= toPersianDigits(product.price) %></span>
+                                <% } %>
+                              </div>
+                              <% if(product.discount) {%>
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"><%= toPersianDigitsForSizes(product.discount) %>٪ تخفیف</span>
+                              <% } %>
                         </div>
-                        <button class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <button onclick="location.href='/productDetails/<%= product.slug %>';" class="view-btn w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2">
                             مشاهده
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8"/>
@@ -894,6 +746,7 @@
                         </button>
                     </div>
                 </div>
+              <% } %>
 
                 <!-- دکمه ادامه محصولات -->
                 <div class="product-card flex items-center justify-center">
