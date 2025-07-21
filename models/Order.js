@@ -157,6 +157,12 @@ const orderSchema = new Schema(
       enum: ["پرداخت نشده", "پرداخت شده", "لغو شده"],
       default: "پرداخت نشده",
     },
+    paymentInfo: {
+      authority: String,
+      refId: String,
+      cardPan: String,
+      paymentDate: Date,
+    },
     createTarikh: {
       type: String,
       default: () => getPersianDate(),

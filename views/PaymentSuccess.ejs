@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سبد خرید</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/vazir-font/30.1.0/font-face.css"
+    />
+    <style>
+      body {
+        font-family: "Vazir", sans-serif;
+        background-color: #eef2ff var(--tw-gradient-to-position);
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0; /* حذف padding-bottom اگر وجود دارد */
+      }
+
+      .main-content {
+        flex: 1;
+      }
+
+      footer {
+        position: relative; /* تغییر از absolute به relative */
+        margin-top: auto;
+        width: 100%;
+      }
+      .cart-button {
+        background-color: #2563eb;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+      }
+
+      .cart-button:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.05);
+      }
+
+      .cart-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+      }
+
+      .cart-button.success {
+        background-color: #16a34a;
+      }
+
+      .cart-button.success:hover {
+        background-color: #15803d;
+      }
+
+      .icon {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      svg {
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .logo-container {
+        --logo-size: 2.5rem;
+      }
+
+      .logo {
+        width: var(--logo-size);
+        height: var(--logo-size);
+      }
+
+      .nav-link {
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        right: 50%;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+        right: 0;
+      }
+
+      .icon-btn {
+        transition: all 0.3s ease;
+      }
+
+      .icon-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .mobile-menu {
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      .page {
+        display: none;
+      }
+
+      .active-page {
+        display: block;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+
+      .product-image {
+        width: 80px;
+        height: 80px;
+        background-color: #f3f4f6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .product-image svg {
+        width: 60px;
+        height: 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav
+      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
+          <div class="h-full overflow-hidden flex items-center">
+            <img
+              src="/logo.png"
+              alt="لوگوی اودور"
+              class="h-full w-auto object-contain"
+            />
+          </div>
+        </a>
+
+        <!-- Desktop Menu -->
+        <div
+          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
+        >
+          <a
+            href="/"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="/shop"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="/weblog"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+
+        <!-- Icons -->
+        <div
+          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
+        >
+          <div class="relative">
+            <button
+              onclick="window.location.href='/cart';"
+              class="relative text-gray-700 hover:text-pink-500 transition-colors"
+            >
+              <i class="fas fa-shopping-bag text-xl"></i>
+            </button>
+          </div>
+          <button
+            id="user-auth-button"
+            class="text-gray-700 hover:text-pink-500 transition-colors"
+          >
+            <i class="fas fa-user text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
+      >
+        <div class="flex flex-col px-4 py-2">
+          <a
+            href="/"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >خانه</a
+          >
+          <a
+            href="/shop"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >فروشگاه</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >دسته‌بندی‌ها</a
+          >
+          <a
+            href="/weblog"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >وبلاگ</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >درباره ما</a
+          >
+          <a
+            href="#"
+            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
+            >تماس با ما</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-6 text-center mt-20">
+      <div
+        class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-12 w-12 text-green-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-4">
+        سفارش شما با موفقیت ثبت شد
+      </h1>
+      <p class="text-gray-600 mb-6">
+        از خرید شما متشکریم. جزئیات سفارش به ایمیل شما ارسال خواهد شد.
+      </p>
+      <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <p class="text-gray-700 font-bold">
+          شماره سفارش:
+          <span class="font-normal" id="order-number"><%= OrderNum %></span>
+        </p>
+      </div>
+      <a href="/userProfile">
+        <button
+          id="back-to-shop"
+          class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition text-lg"
+        >
+          رهگیری سفارش
+        </button>
+      </a>
+    </div>
+  </body>
+</html>

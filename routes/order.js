@@ -9,6 +9,8 @@ const upload = multer();
 const Product = require("../models/Product");
 const { body, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
+const ZarinPal = require("zarinpal-checkout");
+const zarinpal = ZarinPal.create("4da16f0c-eb42-4064-bf75-22a4b53e2b74", false);
 
 // For access to req.body
 router.use(express.json());
@@ -64,7 +66,7 @@ router.post(
           if (!product || product.stock < item.quantity) {
             unavailableProducts.push({
               productId: item.productId,
-              name: product?.name || 'نامعلوم',
+              name: product?.name || "نامعلوم",
               requested: item.quantity,
               available: product?.stock || 0,
             });
@@ -80,7 +82,7 @@ router.post(
             priceAtPurchase: price,
             nameAtPurchase: product.name,
             selectedColor: item.selectedColor, // اضافه کردن رنگ انتخاب شده
-            selectedSize: item.selectedSize    // اضافه کردن سایز انتخاب شده
+            selectedSize: item.selectedSize, // اضافه کردن سایز انتخاب شده
           };
         })
       );
@@ -175,14 +177,35 @@ router.post(
           delete req.session.OrderNum;
         }
 
+        const payment = await zarinpal.PaymentRequest({
+          Amount: order.totalPrice,
+          CallbackURL: "http://localhost:7000/api/order/verify",
+          Description: `سفارش ${order.OrderNum}`,
+          Email: user.email,
+          Mobile: user.mobile,
+        });
+
+        // ذخیره اطلاعات پرداخت
+        order.paymentInfo = {
+          authority: payment.authority,
+          paymentUrl: payment.url,
+        };
+        await order.save();
+
+        // ریدایرکت به درگاه پرداخت
         return res.json({
           success: true,
-          message: "سفارش با موفقیت ثبت شد",
-          orderId: order._id,
-          orderNumber: order.OrderNum,
-          total: finalPrice,
-          discount: discountAmount,
+          paymentUrl: payment.url,
         });
+
+        // return res.json({
+        //   success: true,
+        //   message: "سفارش با موفقیت ثبت شد",
+        //   orderId: order._id,
+        //   orderNumber: order.OrderNum,
+        //   total: finalPrice,
+        //   discount: discountAmount,
+        // });
       } catch (error) {
         console.error("Order processing error:", error);
         if (order._id) {
@@ -205,5 +228,86 @@ router.post(
     }
   }
 );
+
+router.get("/verify", async (req, res) => {
+  try {
+    const { Authority, Status } = req.query;
+
+    if (!Authority) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Authority is required" });
+    }
+
+    // Log the incoming request for debugging
+    console.log("Verification request received:", { Authority, Status });
+
+    // Find the order
+    const order = await Order.findOne({ "paymentInfo.authority": Authority });
+
+    if (!order) {
+      console.error("Order not found for authority:", Authority);
+      return res
+        .status(404)
+        .json({ success: false, message: "سفارش یافت نشد" });
+    }
+
+    if (Status !== "OK") {
+      // Payment failed
+      order.status = "لغو شده";
+      await order.save();
+      console.log("Payment failed - Status not OK");
+      return res.redirect("/api/order/payment-failed");
+    }
+
+    // Verify payment
+    console.log(
+      "Verifying payment for order:",
+      order._id,
+      "Amount:",
+      order.totalPrice
+    );
+    const verification = await zarinpal.PaymentVerification({
+      Amount: order.totalPrice, // Convert to Rials if needed
+      Authority,
+    });
+
+    console.log("Verification response:", verification);
+
+    if (verification.status === 100) {
+      // Successful payment
+      order.paymentStatus = "پرداخت شده";
+      order.status = "در حال پردازش";
+      order.paymentInfo.refId = verification.refId;
+      order.paymentInfo.cardPan = verification.cardPan;
+      order.paymentInfo.paymentDate = new Date();
+      await order.save();
+
+      console.log("Payment successful for order:", order._id);
+      return res.redirect("/api/order/payment-success");
+    } else {
+      // Payment verification failed
+      console.error("Payment verification failed:", verification.status);
+      order.status = "لغو شده";
+      await order.save();
+      return res.redirect("/api/order/payment-failed");
+    }
+  } catch (error) {
+    console.error("Error in verify endpoint:", error);
+    return res.status(500).json({
+      success: false,
+      message: "خطای سرور",
+      error: error.message,
+    });
+  }
+});
+
+router.get("/payment-success", async (req, res) => {
+  res.render("PaymentSuccess", { OrderNum: req.session.OrderNum });
+});
+
+router.get("/payment-failed", async (req, res) => {
+  res.render("PaymentFailed", { OrderNum: req.session.OrderNum });
+});
 
 module.exports = router;

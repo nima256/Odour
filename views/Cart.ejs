@@ -542,49 +542,6 @@
           </button>
         </div>
       </div>
-
-      <!-- Confirmation Page -->
-      <div id="confirmation-page" class="page">
-        <div class="bg-white rounded-lg shadow-lg p-8 mb-6 text-center">
-          <div
-            class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h1 class="text-2xl font-bold text-gray-800 mb-4">
-            سفارش شما با موفقیت ثبت شد
-          </h1>
-          <p class="text-gray-600 mb-6">
-            از خرید شما متشکریم. جزئیات سفارش به ایمیل شما ارسال خواهد شد.
-          </p>
-          <div class="bg-gray-50 p-4 rounded-lg mb-6">
-            <p class="text-gray-700 font-bold">
-              شماره سفارش: <span class="font-normal" id="order-number"></span>
-            </p>
-          </div>
-          <a href="/userProfile">
-            <button
-              id="back-to-shop"
-              class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition text-lg"
-            >
-              رهگیری سفارش
-            </button>
-          </a>
-        </div>
-      </div>
     </div>
     <footer class="bg-gray-900 text-white py-12">
       <div class="container mx-auto px-4">
@@ -1235,7 +1192,10 @@
                 .then((data) => {
                   if (data.success) {
                     // Only run this if registration was successful
-                    showPage("confirmation-page")
+                    if (data.success && data.paymentUrl) {
+                      showNotification("درحال انتقال به درگاه پرداخت...");
+                      window.location.href = data.paymentUrl;
+                    }
                   } else {
                     // Show error message
                     showNotification(data.message, 'error');

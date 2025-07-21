@@ -138,10 +138,14 @@
             }
         }
     </style>
+
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Mobile Overlay -->
     <div id="mobileOverlay" class="mobile-overlay" onclick="closeMobileSidebar()"></div>
+
     
     <!-- Top Navbar -->
     <nav class="glass-card fixed top-0 right-0 left-0 z-50 border-b border-gray-200">
@@ -551,10 +555,13 @@
                     </div>
 
                     <!-- توضیحات کامل -->
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="editDescription" class="block text-sm font-semibold text-gray-700 mb-2">توضیحات کامل</label>
-                        <textarea name="description" id="editDescription" rows="4" required
-                            class="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        <div id="editor-container" class="border border-gray-300 rounded-lg">
+                            <div id="editor" class="min-h-[200px]"></div>
+                            <textarea name="description" id="editDescription" rows="4" required
+                                class="hidden w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        </div>
                     </div>
 
                     <!-- بخش دوم - قیمت و موجودی -->
@@ -757,77 +764,143 @@
     </div>
 
     <script>
-        // Data Storage
-        let productshardcoded = [
-            {
-                id: '001',
-                name: 'رژ لب مات شانل',
-                category: 'آرایش لب',
-                brand: 'شانل',
-                stock: 25,
-                price: 850000,
-                description: 'رژ لب مات با کیفیت عالی و ماندگاری بالا',
-                tags: 'رژ لب، مات، شانل، آرایش'
-            },
-            {
-                id: '002',
-                name: 'کرم مرطوب کننده',
-                category: 'مراقبت پوست',
-                brand: 'لورآل',
-                stock: 18,
-                price: 450000,
-                description: 'کرم مرطوب کننده مناسب برای انواع پوست',
-                tags: 'کرم، مرطوب کننده، لورآل، پوست'
-            },
-            {
-                id: '003',
-                name: 'پالت سایه چشم',
-                category: 'آرایش چشم',
-                brand: 'میبلین',
-                stock: 12,
-                price: 680000,
-                description: 'پالت سایه چشم با رنگ‌های متنوع و زیبا',
-                tags: 'سایه چشم، پالت، میبلین، آرایش'
+        function setupModalCleanup() {
+            const editModal = document.getElementById('editModal');
+            if (editModal) {
+                // وقتی مودال بسته میشه
+                editModal.addEventListener('hidden.bs.modal', function() {
+                    // فقط محتوای ویرایشگر رو پاک کن، نمونه رو از بین نبر
+                    if (window.quillInstance) {
+                        window.quillInstance.root.innerHTML = '';
+                        document.getElementById('editDescription').value = '';
+                    }
+                });
             }
-        ];
+        }
 
-        let categorieshardcoded = ['آرایش لب', 'مراقبت پوست', 'آرایش چشم', 'عطر و ادکلن'];
-        let brandshardcoded = ['شانل', 'لورآل', 'میبلین', 'دیور'];
+        // در ابتدای اسکریپت این رو فراخوانی کنید
+        setupModalCleanup();
 
-        let ordershardcoded = [
-            {
-                id: '#1001',
-                customerName: 'مریم احمدی',
-                amount: 1250000,
-                status: 'pending',
-                date: '1402/08/15',
-                products: [
-                    { name: 'رژ لب مات شانل', quantity: 1, price: 850000 },
-                    { name: 'کرم مرطوب کننده', quantity: 1, price: 450000 }
-                ]
-            },
-            {
-                id: '#1002',
-                customerName: 'فاطمه رضایی',
-                amount: 890000,
-                status: 'processing',
-                date: '1402/08/14',
-                products: [
-                    { name: 'پالت سایه چشم', quantity: 1, price: 680000 }
-                ]
-            },
-            {
-                id: '#1003',
-                customerName: 'زهرا محمدی',
-                amount: 2100000,
-                status: 'delivered',
-                date: '1402/08/13',
-                products: [
-                    { name: 'رژ لب مات شانل', quantity: 2, price: 850000 },
-                    { name: 'کرم مرطوب کننده', quantity: 1, price: 450000 }
-                ]
+         function imageHandler() {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+            
+            input.onchange = async function() {
+                const file = input.files[0];
+                if (!file) return;
+                
+                try {
+                    // Show loading state
+                    const range = window.quillInstance.getSelection();
+                    const placeholderIndex = range.index;
+                    window.quillInstance.insertEmbed(placeholderIndex, 'image', '/loading.gif');
+                    
+                    // Upload image
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    
+                    const response = await fetch('/admin/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.url) {
+                        // Replace placeholder with actual image
+                        window.quillInstance.deleteText(placeholderIndex, 1);
+                        window.quillInstance.insertEmbed(placeholderIndex, 'image', result.url);
+                    } else {
+                        window.quillInstance.deleteText(placeholderIndex, 1);
+                        console.error('Image upload failed:', result.error);
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    if (window.quillInstance && placeholderIndex !== undefined) {
+                        window.quillInstance.deleteText(placeholderIndex, 1);
+                    }
+                }
+            };
+        }
+
+
+        // تابع راه‌اندازی ویرایشگر
+        function initQuillEditor(initialContent = '') {
+            // اگر ویرایشگر از قبل وجود دارد، فقط محتوا رو آپدیت کن
+            if (window.quillInstance) {
+                if (initialContent) {
+                    window.quillInstance.root.innerHTML = initialContent;
+                }
+                return;
             }
-        ];
+
+            // ایجاد ویرایشگر جدید فقط اگر وجود ندارد
+            const editorElement = document.getElementById('editor');
+            if (!editorElement) {
+                console.error('Editor element not found!');
+                return;
+            }
+
+            // ایجاد ویرایشگر جدید
+            window.quillInstance = new Quill('#editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: {
+                        container: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            ['blockquote', 'code-block'],
+                            [{ 'header': 1 }, { 'header': 2 }],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'script': 'sub'}, { 'script': 'super' }],
+                            [{ 'indent': '-1'}, { 'indent': '+1' }],
+                            [{ 'direction': 'rtl' }],
+                            [{ 'size': ['small', false, 'large', 'huge'] }],
+                            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'font': [] }],
+                            [{ 'align': [] }],
+                            ['clean'],
+                            ['link', 'image', 'video']
+                        ],
+                        handlers: {
+                            image: imageHandler
+                        }
+                    }
+                },
+                placeholder: 'توضیحات محصول را اینجا بنویسید...'
+            });
+
+            // تنظیم محتوای اولیه
+            if (initialContent) {
+                window.quillInstance.root.innerHTML = initialContent;
+            }
+
+            // اتصال به فیلد مخفی برای فرم
+            const descriptionField = document.getElementById('editDescription');
+            if (descriptionField) {
+                window.quillInstance.on('text-change', function() {
+                    descriptionField.value = window.quillInstance.root.innerHTML;
+                });
+            }
+        }
+        // راه‌اندازی ویرایشگر هنگام بارگذاری صفحه
+        document.addEventListener('DOMContentLoaded', initQuillEditor);
+
+        // راه‌اندازی مجدد ویرایشگر هنگام باز کردن مودال
+        function setupEditModal() {
+            const editModal = document.getElementById('editModal');
+            if (editModal) {
+                editModal.addEventListener('shown.bs.modal', function() {
+                    setTimeout(initQuillEditor, 300);
+                });
+            }
+        }
+
+        // فراخوانی تابع تنظیم مودال
+        setupEditModal();
+
 
         // Initialize chart
         let salesChart;
@@ -1112,9 +1185,10 @@
             const product = products.find(p => p._id === id);
             currentProduct = product;
 
+            document.getElementById('editModal').classList.remove('hidden');
+
             document.querySelector('#editModal h3').textContent = 'ویرایش محصول';
             document.querySelector('#form-button').textContent = 'ذخیره تغییرات';
-
 
             // Populate form fields
             document.getElementById('editName').value = product.name || '';
@@ -1125,6 +1199,14 @@
             document.getElementById('editRating').value = product.rating || 0;
             document.getElementById('editWeight').value = product.weight || '';
             document.getElementById('editTags').value = product.tags ? product.tags.join(', ') : '';
+
+            setTimeout(() => {
+                initQuillEditor(product.description || '');
+            }, 100);
+
+
+            // راه‌اندازی ویرایشگر
+            initQuillEditor();
 
             if (product.offerPrice) {
                 document.getElementById('hasDiscount').checked = true;
@@ -1791,7 +1873,6 @@
 
         function viewOrder(id) {
             const order = orders.find(p => p._id === id);
-            console.log(order.products)
             
             const statusClasses = {
                 'در حال پردازش': 'bg-yellow-100 text-yellow-800',
@@ -1961,128 +2042,133 @@
             }
         }
 
-        function validateProductInputs(data) {
-        const errors = [];
+        // function validateProductInputs(data) {
+        //     const errors = [];
 
-        // Name validation
-        if (!data.name || data.name.trim().length === 0) {
-            errors.push('نام محصول الزامی است');
-        } else if (data.name.trim().length < 3) {
-            errors.push('نام محصول نمی‌تواند کمتر از ۳ کاراکتر باشد');
-        } else if (data.name.trim().length > 100) {
-            errors.push('نام محصول نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد');
-        }
+        //     // Name validation
+        //     if (!data.name || data.name.trim().length === 0) {
+        //         errors.push('نام محصول الزامی است');
+        //     } else if (data.name.trim().length < 3) {
+        //         errors.push('نام محصول نمی‌تواند کمتر از ۳ کاراکتر باشد');
+        //     } else if (data.name.trim().length > 100) {
+        //         errors.push('نام محصول نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد');
+        //     }
 
-        // Description validation
-        if (!data.description || data.description.trim().length === 0) {
-            errors.push('توضیحات محصول الزامی است');
-        } else if (data.description.trim().length < 20) {
-            errors.push('توضیحات محصول نمی‌تواند کمتر از ۲۰ کاراکتر باشد');
-        }
+        //     // Description validation
+        //     if (!data.description || data.description.trim().length === 0) {
+        //         errors.push('توضیحات محصول الزامی است');
+        //     } else if (data.description.trim().length < 20) {
+        //         errors.push('توضیحات محصول نمی‌تواند کمتر از ۲۰ کاراکتر باشد');
+        //     }
 
-        // LilDescription validation
-        if (data.lilDescription && data.lilDescription.trim().length > 160) {
-            errors.push('توضیح کوتاه نمی‌تواند بیشتر از ۱۶۰ کاراکتر باشد');
-        }
+        //     // LilDescription validation
+        //     if (data.lilDescription && data.lilDescription.trim().length > 160) {
+        //         errors.push('توضیح کوتاه نمی‌تواند بیشتر از ۱۶۰ کاراکتر باشد');
+        //     }
 
-        // Price validation
-        if (data.price === undefined || data.price === null) {
-            errors.push('قیمت محصول الزامی است');
-        } else if (data.price < 0) {
-            errors.push('قیمت محصول نمی‌تواند منفی باشد');
-        }
+        //     // Price validation
+        //     if (data.price === undefined || data.price === null) {
+        //         errors.push('قیمت محصول الزامی است');
+        //     } else if (data.price < 0) {
+        //         errors.push('قیمت محصول نمی‌تواند منفی باشد');
+        //     }
 
-        // Offer price validation
-        if (data.offerPrice !== null && data.offerPrice !== undefined) {
-            if (data.offerPrice < 0) {
-            errors.push('قیمت ویژه نمی‌تواند منفی باشد');
-            }
-            if (data.price && data.offerPrice >= data.price) {
-            errors.push('قیمت ویژه باید کمتر از قیمت اصلی باشد');
-            }
-        }
+        //     // Offer price validation
+        //     if (data.offerPrice !== null && data.offerPrice !== undefined) {
+        //         if (data.offerPrice < 0) {
+        //         errors.push('قیمت ویژه نمی‌تواند منفی باشد');
+        //         }
+        //         if (data.price && data.offerPrice >= data.price) {
+        //         errors.push('قیمت ویژه باید کمتر از قیمت اصلی باشد');
+        //         }
+        //     }
 
-        // Count in stock validation
-        if (data.countInStock === undefined || data.countInStock === null) {
-            errors.push('موجودی محصول الزامی است');
-        } else if (data.countInStock < 0) {
-            errors.push('موجودی نمی‌تواند منفی باشد');
-        }
+        //     // Count in stock validation
+        //     if (data.countInStock === undefined || data.countInStock === null) {
+        //         errors.push('موجودی محصول الزامی است');
+        //     } else if (data.countInStock < 0) {
+        //         errors.push('موجودی نمی‌تواند منفی باشد');
+        //     }
 
-        // Rating validation
-        if (data.rating !== undefined && data.rating !== null) {
-            if (data.rating < 0) {
-            errors.push('امتیاز نمی‌تواند کمتر از ۰ باشد');
-            } else if (data.rating > 5) {
-            errors.push('امتیاز نمی‌تواند بیشتر از ۵ باشد');
-            }
-        }
+        //     // Rating validation
+        //     if (data.rating !== undefined && data.rating !== null) {
+        //         if (data.rating < 0) {
+        //         errors.push('امتیاز نمی‌تواند کمتر از ۰ باشد');
+        //         } else if (data.rating > 5) {
+        //         errors.push('امتیاز نمی‌تواند بیشتر از ۵ باشد');
+        //         }
+        //     }
 
-        // Weight validation
-        if (data.weight !== undefined && data.weight !== null && data.weight < 0) {
-            errors.push('وزن نمی‌تواند منفی باشد');
-        }
+        //     // Weight validation
+        //     if (data.weight !== undefined && data.weight !== null && data.weight < 0) {
+        //         errors.push('وزن نمی‌تواند منفی باشد');
+        //     }
 
-        // Images validation
-        if (!data.images || data.images.length === 0) {
-            errors.push('حداقل یک تصویر برای محصول الزامی است');
-        } else {
-            data.images.forEach(img => {
-            if (!img.url.startsWith('/uploads/') && !/^https?:\/\//.test(img.url)) {
-                errors.push('آدرس تصویر باید با /uploads/ شروع شود یا یک URL معتبر باشد');
-            }
-            });
-        }
+        //     // Images validation
+        //     if (!data.images || data.images.length === 0) {
+        //         errors.push('حداقل یک تصویر برای محصول الزامی است');
+        //     } else {
+        //         data.images.forEach(img => {
+        //         if (!img.url.startsWith('/uploads/') && !/^https?:\/\//.test(img.url)) {
+        //             errors.push('آدرس تصویر باید با /uploads/ شروع شود یا یک URL معتبر باشد');
+        //         }
+        //         });
+        //     }
 
-        // Category validation
-        if (!data.category || data.category.length === 0) {
-            errors.push('دسته‌بندی الزامی است');
-        }
+        //     // Category validation
+        //     if (!data.category || data.category.length === 0) {
+        //         errors.push('دسته‌بندی الزامی است');
+        //     }
 
-        // Brand validation
-        if (!data.brand) {
-            errors.push('برند الزامی است');
-        }
+        //     // Brand validation
+        //     if (!data.brand) {
+        //         errors.push('برند الزامی است');
+        //     }
 
-        // Colors validation
-        if (data.colors && data.colors.length > 0) {
-            data.colors.forEach(color => {
-            if (!color.rgb) {
-                errors.push('کد رنگ برای تمام رنگ‌ها الزامی است');
-            }
-            });
-        }
+        //     // Colors validation
+        //     if (data.colors && data.colors.length > 0) {
+        //         data.colors.forEach(color => {
+        //         if (!color.rgb) {
+        //             errors.push('کد رنگ برای تمام رنگ‌ها الزامی است');
+        //         }
+        //         });
+        //     }
 
-        // Sizes validation
-        if (data.sizes && data.sizes.length > 0) {
-            data.sizes.forEach(size => {
-            if (!size.size) {
-                errors.push('سایز الزامی است');
-            }
-            if (!size.usage) {
-                errors.push('کاربرد سایز الزامی است');
-            }
-            });
-        }
+        //     // Sizes validation
+        //     if (data.sizes && data.sizes.length > 0) {
+        //         data.sizes.forEach(size => {
+        //         if (!size.size) {
+        //             errors.push('سایز الزامی است');
+        //         }
+        //         if (!size.usage) {
+        //             errors.push('کاربرد سایز الزامی است');
+        //         }
+        //         });
+        //     }
 
-        // Specifications validation
-        if (data.specifications && data.specifications.length > 0) {
-            data.specifications.forEach(spec => {
-            if (!spec.key) {
-                errors.push('کلید مشخصه فنی الزامی است');
-            }
-            if (!spec.value) {
-                errors.push('مقدار مشخصه فنی الزامی است');
-            }
-            });
-        }
+        //     // Specifications validation
+        //     if (data.specifications && data.specifications.length > 0) {
+        //         data.specifications.forEach(spec => {
+        //         if (!spec.key) {
+        //             errors.push('کلید مشخصه فنی الزامی است');
+        //         }
+        //         if (!spec.value) {
+        //             errors.push('مقدار مشخصه فنی الزامی است');
+        //         }
+        //         });
+        //     }
 
-        return errors;
-        }
+        //     return errors;
+        // }
 
         // Form Handlers
         document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            if (window.quillInstance) {
+                const descriptionField = document.getElementById('editDescription');
+                descriptionField.value = window.quillInstance.root.innerHTML;
+            }
 
             try {
                 const formData = new FormData(this);
@@ -2146,11 +2232,11 @@
                     }
                 });
 
-                const validationErrors = validateProductInputs(data);
-                if (validationErrors.length > 0) {
-                validationErrors.forEach(error => showNotification(error, 'error'));
-                return;
-                }
+                // const validationErrors = validateProductInputs(data);
+                // if (validationErrors.length > 0) {
+                // validationErrors.forEach(error => showNotification(error, 'error'));
+                // return;
+                // }
 
                 const imageInput = document.getElementById('editImages');
                 if (imageInput.files.length > 0) {

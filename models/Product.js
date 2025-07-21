@@ -34,6 +34,7 @@ const productSchema = mongoose.Schema(
       type: String,
       required: [true, "توضیحات محصول الزامی است"],
       minlength: [20, "توضیحات محصول نمی‌تواند کمتر از ۲۰ کاراکتر باشد"],
+      maxlength: 1000000
     },
     images: [
       {

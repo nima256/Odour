@@ -10,6 +10,8 @@ const fs = require("fs");
 const MongoStore = require("connect-mongo");
 const { SitemapStream, streamToPromise } = require("sitemap");
 const { createGzip } = require("zlib");
+const ZarinPal = require("zarinpal-checkout");
+const zarinpal = ZarinPal.create("ZP.1722858", false);
 
 require("dotenv").config();
 
@@ -20,6 +22,14 @@ app.set("views", path.join(__dirname, "views"));
 // Public folder for css js font and etc.
 app.use(express.static("public/"));
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// For file uploads using multer or similar
+app.use(express.raw({ limit: "50mb" }));
+
+process.env.BSON_BUFFER_SIZE = 1024 * 1024 * 50; // 50MB
 
 // Middlewares
 
@@ -76,37 +86,39 @@ app.use(
         scriptSrc: [
           "'self'",
           "https://cdn.tailwindcss.com",
-          "'unsafe-inline'", // Allow inline scripts (if needed)
+          "https://cdn.quilljs.com",
+          "https://cdn.jsdelivr.net",
+          "'unsafe-inline'",
         ],
         styleSrc: [
           "'self'",
           "https://cdn.tailwindcss.com",
-          "https://cdnjs.cloudflare.com", // Font Awesome CSS
-          "https://fonts.googleapis.com", // Google Fonts
-          "'unsafe-inline'", // Allow inline styles
+          "https://cdnjs.cloudflare.com",
+          "https://fonts.googleapis.com",
+          "https://cdn.quilljs.com",
+          "'unsafe-inline'",
         ],
         fontSrc: [
           "'self'",
           "data:",
-          "https://cdnjs.cloudflare.com", // Font Awesome fonts
-          "https://fonts.gstatic.com", // Google Fonts
+          "https://cdnjs.cloudflare.com",
+          "https://fonts.gstatic.com",
         ],
-        imgSrc: ["'self'", "data:", "https:"], // Allow all images
-        connectSrc: ["'self'"],
-        scriptSrc: [
+        formAction: ["'self'", "https://www.zarinpal.com"],
+        frameSrc: ["https://www.zarinpal.com"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: [
           "'self'",
-          "https://cdn.tailwindcss.com",
-          "'unsafe-inline'", // Allows inline scripts
+          "https://www.zarinpal.com", // اضافه کردن زرین‌پال
+          "https://sandbox.zarinpal.com", // برای محیط تست
+          "https://payment.zarinpal.com", // برای API پرداخت
         ],
-        scriptSrcAttr: [
-          "'self'",
-          "'unsafe-inline'", // Allows inline event handlers
-          "'unsafe-hashes'", // Needed for some cases
-        ],
+        scriptSrcAttr: ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
       },
     },
   })
 );
+
 app.use(flash());
 
 const apiLimiter = rateLimit({
@@ -121,7 +133,6 @@ const initDirectories = () => {
   dirs.forEach((dir) => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
-      console.log(`Created directory: ${dir}`);
     }
   });
 };

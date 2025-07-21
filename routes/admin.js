@@ -6,6 +6,8 @@ const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const User = require("../models/User");
 const Product = require("../models/Product");
@@ -102,6 +104,40 @@ const processImages = async (req, res, next) => {
     next(err);
   }
 };
+
+
+router.post(
+  "/upload-image",
+  upload.single("image"),  // Multer first to process the upload
+  async (req, res, next) => {
+    // Convert single file to array format that processImages expects
+    if (req.file) {
+      req.files = [req.file];
+    }
+    next();
+  },
+  processImages,  // Then process the image
+  async (req, res) => {
+    try {
+      if (!req.processedImages || req.processedImages.length === 0) {
+        return res.status(400).json({ error: "No image processed" });
+      }
+
+      const processedImage = req.processedImages[0];
+      res.json({
+        success: true,
+        url: processedImage.url,
+        filename: processedImage.filename
+      });
+    } catch (error) {
+      console.error("Image upload error:", error);
+      res.status(500).json({
+        error: "Error processing image",
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  }
+);
 
 router.post(
   "/upload-images",
@@ -208,8 +244,6 @@ router.post("/products/add", async (req, res) => {
         ((req.body.price - req.body.offerPrice) / req.body.price) * 100
       );
     }
-
-    console.log(req.body.category);
 
     const productData = {
       ...req.body,
@@ -340,7 +374,6 @@ const validateProductUpdate = [
 
 router.put("/products/edit/:id", validateProductUpdate, async (req, res) => {
   try {
-    console.log(req.body);
     // بررسی خطاهای اعتبارسنجی
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

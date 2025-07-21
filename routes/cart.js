@@ -41,7 +41,6 @@ router.post(
   validateQuantity,
   async (req, res) => {
     try {
-      console.log(req.body)
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return errorResponse(res, 400, "خطا در اعتبارسنجی", {
