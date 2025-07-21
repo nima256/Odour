@@ -1961,6 +1961,125 @@
             }
         }
 
+        function validateProductInputs(data) {
+        const errors = [];
+
+        // Name validation
+        if (!data.name || data.name.trim().length === 0) {
+            errors.push('نام محصول الزامی است');
+        } else if (data.name.trim().length < 3) {
+            errors.push('نام محصول نمی‌تواند کمتر از ۳ کاراکتر باشد');
+        } else if (data.name.trim().length > 100) {
+            errors.push('نام محصول نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد');
+        }
+
+        // Description validation
+        if (!data.description || data.description.trim().length === 0) {
+            errors.push('توضیحات محصول الزامی است');
+        } else if (data.description.trim().length < 20) {
+            errors.push('توضیحات محصول نمی‌تواند کمتر از ۲۰ کاراکتر باشد');
+        }
+
+        // LilDescription validation
+        if (data.lilDescription && data.lilDescription.trim().length > 160) {
+            errors.push('توضیح کوتاه نمی‌تواند بیشتر از ۱۶۰ کاراکتر باشد');
+        }
+
+        // Price validation
+        if (data.price === undefined || data.price === null) {
+            errors.push('قیمت محصول الزامی است');
+        } else if (data.price < 0) {
+            errors.push('قیمت محصول نمی‌تواند منفی باشد');
+        }
+
+        // Offer price validation
+        if (data.offerPrice !== null && data.offerPrice !== undefined) {
+            if (data.offerPrice < 0) {
+            errors.push('قیمت ویژه نمی‌تواند منفی باشد');
+            }
+            if (data.price && data.offerPrice >= data.price) {
+            errors.push('قیمت ویژه باید کمتر از قیمت اصلی باشد');
+            }
+        }
+
+        // Count in stock validation
+        if (data.countInStock === undefined || data.countInStock === null) {
+            errors.push('موجودی محصول الزامی است');
+        } else if (data.countInStock < 0) {
+            errors.push('موجودی نمی‌تواند منفی باشد');
+        }
+
+        // Rating validation
+        if (data.rating !== undefined && data.rating !== null) {
+            if (data.rating < 0) {
+            errors.push('امتیاز نمی‌تواند کمتر از ۰ باشد');
+            } else if (data.rating > 5) {
+            errors.push('امتیاز نمی‌تواند بیشتر از ۵ باشد');
+            }
+        }
+
+        // Weight validation
+        if (data.weight !== undefined && data.weight !== null && data.weight < 0) {
+            errors.push('وزن نمی‌تواند منفی باشد');
+        }
+
+        // Images validation
+        if (!data.images || data.images.length === 0) {
+            errors.push('حداقل یک تصویر برای محصول الزامی است');
+        } else {
+            data.images.forEach(img => {
+            if (!img.url.startsWith('/uploads/') && !/^https?:\/\//.test(img.url)) {
+                errors.push('آدرس تصویر باید با /uploads/ شروع شود یا یک URL معتبر باشد');
+            }
+            });
+        }
+
+        // Category validation
+        if (!data.category || data.category.length === 0) {
+            errors.push('دسته‌بندی الزامی است');
+        }
+
+        // Brand validation
+        if (!data.brand) {
+            errors.push('برند الزامی است');
+        }
+
+        // Colors validation
+        if (data.colors && data.colors.length > 0) {
+            data.colors.forEach(color => {
+            if (!color.rgb) {
+                errors.push('کد رنگ برای تمام رنگ‌ها الزامی است');
+            }
+            });
+        }
+
+        // Sizes validation
+        if (data.sizes && data.sizes.length > 0) {
+            data.sizes.forEach(size => {
+            if (!size.size) {
+                errors.push('سایز الزامی است');
+            }
+            if (!size.usage) {
+                errors.push('کاربرد سایز الزامی است');
+            }
+            });
+        }
+
+        // Specifications validation
+        if (data.specifications && data.specifications.length > 0) {
+            data.specifications.forEach(spec => {
+            if (!spec.key) {
+                errors.push('کلید مشخصه فنی الزامی است');
+            }
+            if (!spec.value) {
+                errors.push('مقدار مشخصه فنی الزامی است');
+            }
+            });
+        }
+
+        return errors;
+        }
+
         // Form Handlers
         document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -2026,6 +2145,12 @@
                         data.specifications.push({ key, value });
                     }
                 });
+
+                const validationErrors = validateProductInputs(data);
+                if (validationErrors.length > 0) {
+                validationErrors.forEach(error => showNotification(error, 'error'));
+                return;
+                }
 
                 const imageInput = document.getElementById('editImages');
                 if (imageInput.files.length > 0) {
