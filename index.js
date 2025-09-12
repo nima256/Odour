@@ -67,7 +67,7 @@ const User = require("./models/User");
 // Basic Setup
 app.use(
   session({
-    secret: "randomShitguys",
+    secret: "randomguys",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -554,14 +554,14 @@ app.use((err, req, res, next) => {
 // DB
 const connectWithRetry = async () => {
   try {
-    await mongoose.connect(process.env.DB_URL, {
+    await mongoose.connect(process.env.DB_URL || "mongodb://localhost:27017/odour", {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 30000,
     });
     console.log("Connected To DB");
 
-    app.listen(process.env.PORT, () => {
+    app.listen(process.env.PORT || 8000, () => {
       console.log(`Server running on http://localhost:${process.env.PORT}`);
     });
   } catch (err) {
