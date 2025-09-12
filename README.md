@@ -29,7 +29,7 @@ Built with **Node.js, Express, and MongoDB**, Odour is an online shop featuring 
 ## 📸 Demo
 👉 odour.ir
 
-![Odour Demo](./demo.gif)
+![Odour Demo](./public/logo.png)
 
 ---
 
