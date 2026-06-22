@@ -59,18 +59,18 @@ router.post("/sendOtp", otpLimiter, validateMobile, async (req, res) => {
     const now = new Date();
 
     // Check if there's an existing OTP and if we can resend
-    const existingOtp = await Otp.findOne({ mobile });
-    if (existingOtp) {
-      const lastSentSeconds = Math.floor((now - existingOtp.lastSentAt) / 1000);
-      const minResendInterval = 60; // 60 seconds minimum between resends
+    // const existingOtp = await Otp.findOne({ mobile });
+    // if (existingOtp) {
+    //   const lastSentSeconds = Math.floor((now - existingOtp.lastSentAt) / 1000);
+    //   const minResendInterval = 60; // 60 seconds minimum between resends
 
-      if (lastSentSeconds < minResendInterval) {
-        const waitTime = minResendInterval - lastSentSeconds;
-        return errorResponse(res, 429, "لطفاً قبل از ارسال مجدد کمی صبر کنید", {
-          retryAfter: waitTime,
-        });
-      }
-    }
+    //   if (lastSentSeconds < minResendInterval) {
+    //     const waitTime = minResendInterval - lastSentSeconds;
+    //     return errorResponse(res, 429, "لطفاً قبل از ارسال مجدد کمی صبر کنید", {
+    //       retryAfter: waitTime,
+    //     });
+    //   }
+    // }
 
     const otp = Math.floor(10000 + Math.random() * 90000).toString();
 

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const DiscountCode = require("./models/DiscountCode");
 
 mongoose
-  .connect("mongodb://localhost:27017/odour")
+  .connect("mongodb://odourir1_nima:pKyF61Enz8NK@localhost:27017/odourir1_odourDB")
   .then(async () => {
     console.log("Connected to Mongo");
 
@@ -14,7 +14,7 @@ mongoose
         usageLimit: 100,
         usedCount: 15,
         isActive: true,
-        expireDate: new Date("2025-09-01"),
+        expireDate: new Date("2027-09-01"),
         minOrderAmount: 300000,
         maxDiscountAmount: 50000,
       },
@@ -25,7 +25,7 @@ mongoose
         usageLimit: 100,
         usedCount: 15,
         isActive: true,
-        expireDate: new Date("2025-09-01"),
+        expireDate: new Date("2027-09-01"),
         minOrderAmount: 200000,
         maxDiscountAmount: 40000,
       },
@@ -36,7 +36,7 @@ mongoose
         usageLimit: 50,
         usedCount: 5,
         isActive: true,
-        expireDate: new Date("2025-12-31"),
+        expireDate: new Date("2027-12-31"),
       },
       {
         code: "EXPIRED10",
@@ -46,7 +46,7 @@ mongoose
         usedCount: 10,
         isActive: true,
         maxDiscountAmount: 40000,
-        expireDate: new Date("2023-01-01"),
+        expireDate: new Date("2027-01-01"),
       },
       {
         code: "USED10",
@@ -56,7 +56,7 @@ mongoose
         usedCount: 10,
         isActive: true,
         maxDiscountAmount: 40000,
-        expireDate: new Date("2025-12-31"),
+        expireDate: new Date("2027-12-31"),
       },
       {
         code: "DISABLED2025",
@@ -65,7 +65,7 @@ mongoose
         isActive: false,
         usageLimit: 100,
         usedCount: 0,
-        expireDate: new Date("2025-08-01"),
+        expireDate: new Date("2027-08-01"),
       },
     ];
 

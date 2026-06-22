@@ -1,0 +1,454 @@
+<style>    .navbar-main {
+            background: #FFF1DB;
+            box-shadow: 0 2px 10px rgba(99, 99, 55, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        /* بخش بالایی (لوگو وسط) */
+        .navbar-top {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* لوگو در وسط مطلق روی موبایل و دسکتاپ */
+        .logo-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-center img {
+            height: 45px;
+            width: width: 140px;
+            object-fit: contain;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-text .brand {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #636337;
+            line-height: 1.2;
+        }
+        .logo-text .sub {
+            font-size: 0.7rem;
+            color: #8a8a5a;
+        }
+
+        /* فضای خالی سمت چپ و راست برای همبرگر و آیکون‌ها */
+        .nav-left-icons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-left-icons button, .nav-left-icons a {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #636337;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+            text-decoration: none;
+        }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background-color: #636337;
+            color: white;
+            font-size: 0.65rem;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* سکشن پایینی (منوی فروشگاه + دکمه‌های ثانویه) */
+        .navbar-bottom {
+            background-color: #FFF1DB;
+            border-top: 1px solid #e6ddc4;
+            border-bottom: 1px solid #e6ddc4;
+        }
+        .bottom-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        /* منوی لینک‌های فروشگاه و صفحات */
+        .shop-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .shop-links a {
+            text-decoration: none;
+            color: #636337;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+        .shop-links a:hover {
+            color: #4a4a2a;
+        }
+        /* دسته بندی با دراپ داون (Desktop) */
+        .dropdown {
+            position: relative;
+        }
+        .dropdown > a {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(99, 99, 55, 0.15);
+            border-radius: 8px;
+            min-width: 220px;
+            display: none;
+            z-index: 200;
+        }
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+        .submenu-item {
+            position: relative;
+        }
+        .submenu-item > a {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            color: #636337;
+            text-decoration: none;
+            border-bottom: 1px solid #eee;
+        }
+        .submenu-level2 {
+            position: absolute;
+            right: 100%;
+            top: 0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(99, 99, 55, 0.15);
+            border-radius: 8px;
+            min-width: 200px;
+            display: none;
+        }
+        .submenu-item:hover .submenu-level2 {
+            display: block;
+        }
+        /* دکمه‌های حساب و سبد خرید در بخش پایین (برای دسکتاپ) */
+        .bottom-icons {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .bottom-icons a, .bottom-icons button {
+            background: none;
+            border: none;
+            color: #636337;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        /* موبایل: منوی همبرگر */
+        #mobile-menu {
+
+            padding: 10px 20px 20px;
+            border-top: 1px solid #e6ddc4;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #mobile-menu a {
+            display: block;
+            padding: 8px;
+            color: #636337;
+            text-decoration: none;
+        }
+        .mobile-dropdown-trigger, .mobile-submenu-trigger {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            color: #636337;
+        }
+        .mobile-dropdown-menu, .mobile-submenu-level2 {
+            padding-right: 20px;
+        }
+        /* ابزار کمکی */
+        .hidden-mobile {
+            display: flex;
+        }
+        @media (max-width: 768px) {
+
+            .shop-links {
+                display: none;
+            }
+            .bottom-icons {
+                display: none;
+            }
+            .navbar-bottom .bottom-container {
+                justify-content: center;
+            }
+            /* در موبایل آیکون سبد و کاربر در بخش بالایی سمت چپ نمایش داده میشه */
+            .bottom-icons-mobile-fallback {
+                display: flex;
+            }
+        }
+        @media (min-width: 769px) {
+            .bottom-icons-mobile-fallback {
+                display: none;
+            }
+            .hamburger {
+                display: none !important;
+            }
+            .navbar-top .nav-left-icons .mobile-only-icon {
+                display: none;
+            }
+        }
+        /* برای نمایش در دسکتاپ آیکون‌های سبد و کاربر در بخش پایین است */
+        .bottom-icons-mobile-fallback {
+            gap: 16px;
+            align-items: center;
+        }
+        .bottom-icons-mobile-fallback a, .bottom-icons-mobile-fallback button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #636337;
+            cursor: pointer;
+        }
+        /* تنظیمات موبایل */
+@media (max-width: 768px) {
+
+  nav > div {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* لوگو وسط */
+  #logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+  }
+
+  /* لوگو */
+  #logo img {
+    width: 42px;
+    height: 42px;
+  }
+
+  /* منوی دسکتاپ مخفی */
+  .desktop-menu {
+    display: none !important;
+  }
+
+  /* بخش آیکون‌ها */
+  .flex.items-center.space-x-4 {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    direction: rtl;
+  }
+
+  /* همبرگر سمت راست */
+  #menu-btn {
+    order: 1;
+    margin-left: auto;
+  }
+
+  /* پروفایل و سبد سمت چپ */
+  .flex.items-center.space-x-4 > div,
+  .flex.items-center.space-x-4 > a,
+  .flex.items-center.space-x-4 > button:not(#menu-btn) {
+    order: 2;
+  }
+
+}
+.mobile-nav-icons {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-icons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+}
+    </style>
+<nav style="    background: #eee5da ; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 12px 20px;">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+    
+    <a href="/" id="logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+        <div class="h-full overflow-hidden flex items-center">
+          <img style="height: 45px; width: 140px;" src="/logo.png" alt="لوگوی اودور" class="h-full w-auto object-contain" />
+        </div>
+      <div>
+        <!--<span class="block text-xl font-extrabold text-rose-800">اودر</span>-->
+        <span class="block text-xs text-rose-600"> </span>
+      </div>
+    </a>
+
+    <!-- منوی دسکتاپ با ساب‌منو -->
+    <div style="display: none; gap: 24px;" class="desktop-menu">
+      <a href="/" style="color: #333; text-decoration: none;">خانه</a>
+      
+      <!-- فروشگاه با ساب‌منو -->
+    <div style="position: relative;" class="dropdown">
+        <a style="color: #333; text-decoration: none; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            دسته بندی <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+        </a>
+        <div class="dropdown-menu" style="position: absolute; top: 100%; right: 0; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; min-width: 220px; display: none; z-index: 100;">
+            <% for(let category of menuCategories) { %>
+                <% if(category.children && category.children.length > 0) { %>
+                    <div class="submenu-item" style="position: relative;">
+                        <a href="/category/<%= category.slug %>" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
+                            <%= category.name %> 
+                            <i class="fas fa-chevron-left" style="font-size: 10px;"></i>
+                        </a>
+                        <div class="submenu-level2" style="position: absolute; right: 100%; top: 0; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; min-width: 200px; display: none;">
+                            <% for(let child of category.children) { %>
+                                <a href="/category/<%= child.slug %>" style="display: block; padding: 10px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
+                                    <%= child.name %>
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/category/<%= category.slug %>" style="display: block; padding: 10px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
+                        <%= category.name %>
+                    </a>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+
+      <a href="/shop" style="color: #333; text-decoration: none;">فروشگاه</a>
+      <a href="/weblog" style="color: #333; text-decoration: none;">وبلاگ</a>
+      <a href="/about-us" style="color: #333; text-decoration: none;">درباره ما</a>
+      <a href="/contact-us" style="color: #333; text-decoration: none;">تماس با ما</a>
+      <a href="/terms-and-conditions" style="color: #333; text-decoration: none;">قوانین و مقررات</a>
+    </div>
+
+    <!-- آیکون‌ها و همبرگر -->
+    <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
+      <div class="relative">
+        <button class="relative text-gray-700 hover:text-[#FFF1DB] transition-colors">
+          <a href="/cart">
+            <i style="color: #364150;" class="fas fa-shopping-bag text-xl"></i>
+          </a>
+          <% if(user) { %>
+            <span id="cartCount" class="absolute cart-count bg-[#636337] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <%= toPersianDigitsForSizes(cartCount) %>
+            </span>
+          <% } %>
+        </button>
+      </div>
+      <% if (!user) {%>
+        <!-- مهم: این دکمه باید آیدی صحیح داشته باشه -->
+        <button id="user-auth-button" class="text-gray-700 hover:text-[#FFF1DB] transition-colors">
+          <i class="fas fa-user text-xl"></i>
+        </button>
+      <% } else { %>
+        <a href="/userProfile">
+          <button class="text-gray-700 hover:text-[#FFF1DB] transition-colors">
+            <i class="fas fa-user text-xl"></i>
+          </button>
+        </a>
+      <% } %>
+      <button id="menu-btn" style="color: #333; font-size: 24px; background: none; border: none; cursor: pointer; display: block;" class="hamburger">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- منوی موبایل با ساب‌منو -->
+  <div id="mobile-menu" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; flex-direction: column; gap: 10px;">
+    <a href="/" style="display: block; padding: 8px; color: #333; text-decoration: none;">خانه</a>
+    
+    <div class="mobile-dropdown">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; cursor: pointer;" class="mobile-dropdown-trigger">
+            <span style="color: #333;">دسته بندی</span>
+            <i class="fas fa-chevron-down" style="font-size: 12px; transition: transform 0.3s;"></i>
+        </div>
+        <div class="mobile-dropdown-menu" style="display: none; padding-right: 15px;">
+            <% for(let category of menuCategories) { %>
+                <% if(category.children && category.children.length > 0) { %>
+                    <!-- دسته‌بندی با زیرمجموعه -->
+                    <div class="mobile-submenu">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; cursor: pointer;" class="mobile-submenu-trigger">
+                            <span style="color: #555;"><%= category.name %></span>
+                            <i class="fas fa-chevron-left" style="font-size: 10px; transition: transform 0.3s;"></i>
+                        </div>
+                        <div class="mobile-submenu-level2" style="display: none; padding-right: 15px;">
+                            <% for(let child of category.children) { %>
+                                <a href="/category/<%= child.slug %>" style="display: block; padding: 8px; color: #666; text-decoration: none;">
+                                    <%= child.name %>
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <!-- دسته‌بندی بدون زیرمجموعه -->
+                    <a href="/category/<%= category.slug %>" style="display: block; padding: 8px; color: #555; text-decoration: none;">
+                        <%= category.name %>
+                    </a>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+    
+    <a href="/shop" style="display: block; padding: 8px; color: #333; text-decoration: none;">فروشگاه</a>
+    <a href="/weblog" style="display: block; padding: 8px; color: #333; text-decoration: none;">وبلاگ</a>
+    <a href="/about-us" style="display: block; padding: 8px; color: #333; text-decoration: none;">درباره ما</a>
+    <a href="/contact-us" style="display: block; padding: 8px; color: #333; text-decoration: none;">تماس با ما</a>
+</div>
+
+</nav>

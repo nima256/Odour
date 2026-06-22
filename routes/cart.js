@@ -34,101 +34,127 @@ const validateQuantity = [
     .toInt(),
 ];
 
-router.post(
-  "/add",
-  isLoggedIn,
-  validateProductId,
-  validateQuantity,
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return errorResponse(res, 400, "خطا در اعتبارسنجی", {
-          errors: errors.array(),
-        });
-      }
+router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req, res) => {
+  try {
+    const { productId, quantity, selectedColor, selectedSize } = req.body;
 
-      const { productId, quantity, selectedColor, selectedSize } = req.body;
+    // تغییر: فقط بررسی کن اگر سایز ارسال شده باشد
+    if (selectedSize === undefined || selectedSize === null) {
+      // سایز اختیاری است، فقط اگر محصول سایز داشته باشد نیاز است
+      // می‌تونیم این چک رو حذف کنیم یا بستگی به منطق business داره
+    }
 
-      if (!selectedColor || !selectedSize) {
-        return errorResponse(res, 400, "لطفا رنگ و سایز محصول را انتخاب کنید");
-      }
+    const user = await User.findById(req.session.userId);
+    const product = await Product.findById(productId);
 
-      const user = await User.findById(req.session.userId);
-      const product = await Product.findById(productId);
+    if (!product) {
+      return errorResponse(res, 404, "محصول یافت نشد");
+    }
 
-      if (!product) {
-        return errorResponse(res, 404, "محصول یافت نشد");
-      }
+    if (product.countInStock < quantity) {
+      return errorResponse(res, 400, `موجودی محصول کافی نیست (موجودی: ${product.countInStock})`);
+    }
 
-      if (product.countInStock < quantity) {
-        return errorResponse(
-          res,
-          400,
-          `موجودی محصول کافی نیست (موجودی: ${product.countInStock})`
-        );
-      }
+    const normalizeString = (str) => {
+      if (!str) return '';
+      return str
+        .replace(/[\u0660-\u0669\u06F0-\u06F9]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x0660))
+        .trim()
+        .toLowerCase();
+    };
 
-      const normalizeString = (str) => {
-        return str
-          .replace(/[\u0660-\u0669\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x0660) // تبدیل اعداد فارسی/عربی به انگلیسی
-          .trim()
-          .toLowerCase();
-      };
-
-      const isValidColor = product.colors.some(c => 
+    // بررسی رنگ (اختیاری)
+    let isValidColor = true;
+    if (selectedColor) {
+      isValidColor = product.colors && product.colors.some(c => 
         normalizeString(c.name) === normalizeString(selectedColor)
       );
+      
+      if (!isValidColor) {
+        return errorResponse(res, 400, "رنگ انتخاب شده معتبر نیست");
+      }
+    }
 
-      const isValidSize = product.sizes.some(s => 
+    // بررسی سایز (اختیاری)
+    let isValidSize = true;
+    if (selectedSize && product.sizes && product.sizes.length > 0) {
+      isValidSize = product.sizes.some(s => 
         normalizeString(s.size) === normalizeString(selectedSize)
       );
-
-      if (!isValidColor || !isValidSize) {
-        return errorResponse(res, 400, "رنگ یا سایز انتخاب شده معتبر نیست");
+      
+      if (!isValidSize) {
+        return errorResponse(res, 400, "سایز انتخاب شده معتبر نیست");
       }
-
-      // جستجوی آیتم در سبد خرید با همان محصول، رنگ و سایز
-      const existingItem = user.cart.find(
-        (item) =>
-          item.productId.toString() === productId &&
-          item.selectedColor === selectedColor &&
-          item.selectedSize === selectedSize
-      );
-
-      if (existingItem) {
-        const newQuantity = existingItem.quantity + quantity;
-        if (product.countInStock < newQuantity) {
-          return errorResponse(
-            res,
-            400,
-            `تعداد درخواستی بیشتر از موجودی است (موجودی: ${product.countInStock})`
-          );
-        }
-        existingItem.quantity = newQuantity;
-      } else {
-        user.cart.push({
-          productId,
-          quantity,
-          selectedColor,
-          selectedSize,
-        });
-      }
-
-      await user.save();
-
-      return res.json({
-        success: true,
-        message: "محصول به سبد خرید اضافه شد",
-        cart: user.cart,
-        cartCount: user.cart.length,
-      });
-    } catch (error) {
-      console.error("Add to cart error:", error);
-      return errorResponse(res, 500, "خطا در اضافه کردن به سبد خرید");
+    } else if (selectedSize && (!product.sizes || product.sizes.length === 0)) {
+      // اگر محصول سایز ندارد ولی کاربر سایز ارسال کرده
+      return errorResponse(res, 400, "این محصول سایز ندارد");
     }
+
+    // جستجوی آیتم تکراری در سبد خرید
+    const existingItem = user.cart.find((item) => {
+      const isSameProduct = item.productId.toString() === productId;
+      
+      // مقایسه سایز (اگر وجود داشته باشد)
+      let isSameSize = true;
+      if (selectedSize && item.selectedSize) {
+        isSameSize = item.selectedSize === selectedSize;
+      } else if (!selectedSize && !item.selectedSize) {
+        isSameSize = true;
+      } else {
+        isSameSize = false;
+      }
+      
+      // مقایسه رنگ (اگر وجود داشته باشد)
+      let isSameColor = true;
+      if (selectedColor && item.selectedColor) {
+        isSameColor = item.selectedColor === selectedColor;
+      } else if (!selectedColor && !item.selectedColor) {
+        isSameColor = true;
+      } else {
+        isSameColor = false;
+      }
+      
+      return isSameProduct && isSameSize && isSameColor;
+    });
+
+    if (existingItem) {
+      const newQuantity = existingItem.quantity + quantity;
+      if (product.countInStock < newQuantity) {
+        return errorResponse(res, 400, `تعداد درخواستی بیشتر از موجودی است (موجودی: ${product.countInStock})`);
+      }
+      existingItem.quantity = newQuantity;
+    } else {
+      const newCartItem = {
+        productId,
+        quantity,
+      };
+      
+      // فقط اگر رنگ وجود داشت اضافه کن
+      if (selectedColor) {
+        newCartItem.selectedColor = selectedColor;
+      }
+      
+      // فقط اگر سایز وجود داشت اضافه کن
+      if (selectedSize) {
+        newCartItem.selectedSize = selectedSize;
+      }
+      
+      user.cart.push(newCartItem);
+    }
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "محصول به سبد خرید اضافه شد",
+      cart: user.cart,
+      cartCount: user.cart.length,
+    });
+  } catch (error) {
+    console.error("Add to cart error:", error);
+    return errorResponse(res, 500, "خطا در اضافه کردن به سبد خرید");
   }
-);
+});
 
 router.delete(
   "/remove/:productId",
@@ -190,7 +216,7 @@ router.put(
         });
       }
 
-      const { productId, quantity } = req.body;
+      const { productId, quantity, selectedColor, selectedSize } = req.body;
       const user = await User.findById(req.session.userId);
 
       const product = await Product.findById(productId);
@@ -198,17 +224,27 @@ router.put(
         return errorResponse(res, 404, "محصول یافت نشد");
       }
 
-      if (product.stock < quantity) {
+      if (product.countInStock < quantity) { //注意: 使用 countInStock 而不是 stock
         return errorResponse(
           res,
           400,
-          `موجودی محصول کافی نیست (موجودی: ${product.stock})`
+          `موجودی محصول کافی نیست (موجودی: ${product.countInStock})`
         );
       }
 
-      const item = user.cart.find(
-        (item) => item.productId.toString() === productId
-      );
+      // جستجوی آیتم با در نظر گرفتن رنگ (اختیاری)
+      const item = user.cart.find((item) => {
+        const isSameProduct = item.productId.toString() === productId;
+        
+        if (selectedColor && item.selectedColor) {
+          return isSameProduct && 
+                 item.selectedSize === selectedSize && 
+                 item.selectedColor === selectedColor;
+        } else if (!selectedColor && !item.selectedColor) {
+          return isSameProduct && item.selectedSize === selectedSize;
+        }
+        return false;
+      });
 
       if (!item) {
         return errorResponse(res, 404, "محصول در سبد خرید یافت نشد");

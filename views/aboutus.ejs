@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="fa" dir="rtl" class="h-full w-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحات اطلاعاتی | اودر</title>
+  <link rel="stylesheet" href="/tailwind.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="canonical" href="https://odour.ir/about-us" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "درباره ما | اودر",
+  "description": "معرفی فروشگاه اودر، تخصص در زمینه لوازم آرایشی و بهداشتی با کیفیت و قیمت مناسب",
+  "url": "https://odour.ir/about-us",
+  "mainEntity": {
+    "@type": "Organization",
+    "name": "اودر",
+    "foundingDate": "2026",
+    "description": "فروشگاه آنلاین تخصصی لوازم آرایشی و بهداشتی"
+  }
+}
+</script>
+  <style>
+    @font-face {
+      font-family: "MyFont";
+      src: url("/fonts/Vazirmatn-Light.ttf");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      font-family: "MyFont", sans-serif;
+    }
+
+    body {
+      font-family: "MyFont", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "MyFont", sans-serif;
+    }
+
+    /* استایل‌های نوبار */
+    .cart-count {
+      top: -8px;
+      left: -8px;
+    }
+
+    .nav-link {
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+      right: 0;
+    }
+
+    .dropdown:hover .dropdown-menu {
+      display: block !important;
+    }
+    
+    .submenu-item:hover .submenu-level2 {
+      display: block !important;
+    }
+    
+    .dropdown-menu a:hover,
+    .submenu-level2 a:hover {
+      background-color: #f5f5f5;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-menu {
+        display: flex !important;
+      }
+      .hamburger {
+        display: none !important;
+      }
+    }
+
+    body.menu-open {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* استایل‌های اصلی صفحه */
+    .soft-grid {
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(99, 99, 55, 0.15) 0, transparent 28%),
+        radial-gradient(circle at 82% 14%, rgba(255, 241, 219, 0.92) 0, transparent 30%),
+        radial-gradient(circle at 54% 88%, rgba(99, 99, 55, 0.12) 0, transparent 34%),
+        linear-gradient(135deg, #FFF1DB 0%, #fff7ef 48%, #FFF1DB 100%);
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(1px);
+      opacity: 0.85;
+      animation: floaty 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .orb-one {
+      width: 118px;
+      height: 118px;
+      background: rgba(99, 99, 55, 0.15);
+      top: 8%;
+      right: 8%;
+      animation-delay: 0s;
+    }
+
+    .orb-two {
+      width: 78px;
+      height: 78px;
+      background: rgba(255, 241, 219, 0.48);
+      bottom: 12%;
+      left: 12%;
+      animation-delay: 1.3s;
+    }
+
+    .orb-three {
+      width: 42px;
+      height: 42px;
+      background: rgba(99, 99, 55, 0.1);
+      top: 58%;
+      right: 18%;
+      animation-delay: 2.1s;
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0%) scale(1); }
+      50% { transform: translateY(-16%) scale(1.04); }
+    }
+
+    .glass-card {
+      background: rgba(255, 241, 219, 0.68);
+      border: 1px solid rgba(99, 99, 55, 0.2);
+      box-shadow: 0 28px 80px rgba(99, 99, 55, 0.12);
+      backdrop-filter: blur(22px);
+    }
+
+    .nav-button {
+      transition: transform 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .nav-button:hover {
+      transform: translateY(-2px);
+    }
+
+    .nav-button.active {
+      background: #636337;
+      color: #FFF1DB;
+      box-shadow: 0 14px 32px rgba(99, 99, 55, 0.28);
+    }
+
+    .page-panel {
+      display: none;
+      animation: riseIn 420ms ease both;
+    }
+
+    .page-panel.active {
+      display: block;
+    }
+
+    @keyframes riseIn {
+      from {
+        opacity: 0;
+        transform: translateY(4%);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0%);
+      }
+    }
+
+    .mini-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99, 99, 55, 0.42), transparent);
+    }
+
+    .focus-ring:focus-visible {
+      outline: 3px solid rgba(99, 99, 55, 0.45);
+      outline-offset: 3px;
+    }
+
+    /* استایل‌های پاپ‌آپ احراز هویت */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .form-step {
+      display: none;
+    }
+    .form-step.active {
+      display: block;
+    }
+    .otp-input {
+      width: 3rem;
+      height: 3.5rem;
+      font-size: 1.5rem;
+      text-align: center;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+    }
+    .otp-input:focus {
+      outline: none;
+      border-color: #636337;
+      box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
+    }
+    .modal-content {
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* استایل ریسپانسیو برای نوبار موبایل */
+    @media (max-width: 768px) {
+      .flex.items-center.space-x-4 {
+        gap: 12px;
+      }
+    }
+
+    .cart-count {
+      top: -8px;
+      left: -8px;
+    }
+  </style>
+ </head>
+ <body class="h-full w-full overflow-hidden">
+  <div id="app" class="soft-grid relative h-full w-full overflow-auto text-[#636337]">
+   <div class="orb orb-one"></div>
+   <div class="orb orb-two"></div>
+   <div class="orb orb-three"></div>
+
+   <!-- ==================== نوبار (Navbar) ==================== -->
+   <%- include('./partials/navbar') %>
+
+   <!-- ==================== پاپ‌آپ احراز هویت ==================== -->
+   <div id="auth-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content">
+      <!-- Tab Navigation -->
+      <div class="flex border-b">
+        <button id="login-tab" class="tab-btn flex-1 py-4 text-center font-medium transition-colors" style="color: #636337; border-bottom: 2px solid #636337;">
+          ورود
+        </button>
+        <button id="register-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent">
+          ثبت نام
+        </button>
+        <button id="forgot-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent">
+          بازیابی رمز
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-content" class="tab-content active p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">ورود به حساب کاربری</h2>
+        <form action="/api/authentication/signIn" method="post" id="login-form" class="space-y-5">
+          <div>
+            <label class="block text-gray-700 mb-2" for="login-phone">شماره موبایل</label>
+            <input type="tel" name="mobile" id="login-phone" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="09xxxxxxxxx" required />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="login-password">رمز عبور</label>
+            <input type="password" name="password" id="login-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="رمز عبور خود را وارد کنید" required />
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white; hover:background-color: #4a4a2a;">
+            ورود
+          </button>
+        </form>
+      </div>
+
+      <!-- Registration Form -->
+      <div id="register-content" class="tab-content p-6">
+        <div id="register-step-1" class="form-step active">
+          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">ایجاد حساب کاربری</h2>
+          <form id="register-form" class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-name">نام و نام خانوادگی</label>
+              <input type="text" name="fullName" id="register-name" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="نام کامل خود را وارد کنید" required />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-phone">شماره موبایل</label>
+              <input type="tel" name="mobile" id="register-phone" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="09xxxxxxxxx" required />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-email">ایمیل</label>
+              <input type="email" name="email" id="register-email" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="email@example.com" />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-password">رمز عبور</label>
+              <input type="password" name="password" id="register-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="حداقل 8 کاراکتر" required />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="register-confirm-password">تکرار رمز عبور</label>
+              <input type="password" name="confirmPassword" id="register-confirm-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="تکرار رمز عبور" required />
+            </div>
+            <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300 mt-2" style="background-color: #636337; color: white; hover:background-color: #4a4a2a;">
+              ثبت نام
+            </button>
+          </form>
+        </div>
+
+        <div id="register-step-2" class="form-step">
+          <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">تایید شماره موبایل</h2>
+          <p class="text-gray-600 text-center mb-5">
+            کد تایید به شماره <span id="register-phone-display" class="font-bold" style="color: #636337;"></span> ارسال شد
+          </p>
+          <form id="register-verification-form" class="space-y-5">
+            <div class="text-center">
+              <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
+              <div class="flex justify-center gap-2 mb-3">
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+              </div>
+              <div id="register-resend-timer" class="text-sm text-gray-500 mb-3">ارسال مجدد کد تا <span>۰۲:۰۰</span></div>
+            </div>
+            <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white; hover:background-color: #4a4a2a;">
+              تایید و ورود
+            </button>
+            <button type="button" id="register-back-btn" class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300" style="color: #636337; border-color: #636337; hover:background-color: #FFF1DB;">
+              بازگشت
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <div id="forgot-content" class="tab-content p-6">
+        <div id="forgot-step-1" class="form-step active">
+          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">بازیابی رمز عبور</h2>
+          <form id="forgot-form" class="space-y-5">
+            <div>
+              <label class="block text-gray-700 mb-2" for="forgot-phone">شماره موبایل</label>
+              <input type="tel" id="forgot-phone" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="09xxxxxxxxx" required />
+            </div>
+            <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white; hover:background-color: #4a4a2a;">
+              ارسال کد تایید
+            </button>
+          </form>
+        </div>
+
+        <div id="forgot-step-2" class="form-step">
+          <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">تایید کد</h2>
+          <p class="text-gray-600 text-center mb-5">
+            کد تایید به شماره <span id="forgot-phone-display" class="font-bold" style="color: #636337;"></span> ارسال شد
+          </p>
+          <form id="forgot-verification-form" class="space-y-5">
+            <div class="text-center">
+              <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
+              <div class="flex justify-center gap-2 mb-3">
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
+              </div>
+              <div id="forgot-resend-timer" class="text-sm text-gray-500 mb-3">ارسال مجدد کد تا <span>۰۲:۰۰</span></div>
+            </div>
+            <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white; hover:background-color: #4a4a2a;">
+              تایید
+            </button>
+            <button type="button" id="forgot-back-btn" class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300" style="color: #636337; border-color: #636337; hover:background-color: #FFF1DB;">
+              بازگشت
+            </button>
+          </form>
+        </div>
+
+        <div id="forgot-step-3" class="form-step">
+          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">تعیین رمز عبور جدید</h2>
+          <form id="new-password-form" class="space-y-5">
+            <div>
+              <label class="block text-gray-700 mb-2" for="new-password">رمز عبور جدید</label>
+              <input type="password" id="new-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="حداقل 6 کاراکتر" required />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-2" for="confirm-new-password">تکرار رمز عبور جدید</label>
+              <input type="password" id="confirm-new-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="تکرار رمز عبور جدید" required />
+            </div>
+            <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white; hover:background-color: #4a4a2a;">
+              ذخیره و ورود
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+   </div>
+
+   <!-- فاصله برای جبران نوبار fixed -->
+   <div style="height: 80px;"></div>
+
+   <!-- محتوای اصلی صفحه -->
+   <header class="relative z-10 w-full px-5 pt-7 md:px-10 md:pt-10">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-5 md:flex-row md:items-center md:justify-between">
+     <div>
+      <h2 id="siteTitle" class="text-3xl font-extrabold tracking-tight md:text-5xl" style="color: #636337;">اطلاعات و پشتیبانی</h2>
+     </div>
+     <div class="glass-card rounded-[2rem] p-3">
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4">
+        <a href="/contact-us" class="nav-button active focus-ring rounded-2xl px-4 py-3 text-sm font-bold text-center block"; text-decoration: none;" data-page="contact">
+          تماس با ما
+        </a>
+        <a href="/connect-us" class="nav-button focus-ring rounded-2xl px-4 py-3 text-sm font-bold text-center block" style="color: #636337; text-decoration: none;" data-page="connect">
+          ارتباط با ما
+        </a>
+        <a href="/terms-and-conditions" class="nav-button focus-ring rounded-2xl px-4 py-3 text-sm font-bold text-center block" style="color: #636337; text-decoration: none;" data-page="terms">
+          قوانین
+        </a>
+        <a href="/privacy-policy" class="nav-button focus-ring rounded-2xl px-4 py-3 text-sm font-bold text-center block" style="color: #636337; text-decoration: none;" data-page="privacy">
+          حریم خصوصی
+        </a>
+      </div>
+     </div>
+    </div>
+   </header>
+   <main class="relative z-10 w-full px-5 py-7 md:px-10 md:py-10">
+    <div class="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+     <aside class="glass-card rounded-[2.2rem] p-6 md:p-8">
+      <h2 class="text-2xl font-extrabold" style="color: #636337;">پشتیبانی فنی</h2>
+      <p class="mt-3 leading-8" style="color: #636337;">اگر مشکلی در فرایند سایت و سفارشات دارید با این شماره تماس بگیرید</p>
+      <p class="mt-3 leading-8 font-bold" style="color: #636337;">09017936769</p>
+      <div class="mini-line my-7"></div>
+     </aside>
+     <section class="glass-card min-h-[420px] rounded-[2.2rem] p-6 md:p-10" aria-live="polite">
+      <div id="page-contact" class="page-panel active">
+        <h3 class="text-2xl font-bold" style="color: #636337;">تماس با ما</h3>
+        <p class="mt-4 leading-8" style="color: #636337;">برای دریافت راهنمایی، ثبت درخواست یا پرسیدن سوال، از طریق ایمیل، شماره تماس یا فرم‌های ارتباطی برند با ما در تماس باشید. ما تلاش می‌کنیم پاسخ‌ها دقیق، محترمانه و سریع باشند.</p>
+      </div>
+      <div id="page-connect" class="page-panel">
+        <h3 class="text-2xl font-bold" style="color: #636337;">ارتباط با ما</h3>
+        <p class="mt-4 leading-8" style="color: #636337;">ما به گفت‌وگوهای واقعی و سازنده اهمیت می‌دهیم. پیشنهادها، همکاری‌ها، بازخوردها و ایده‌های خود را با ما به اشتراک بگذارید تا تجربه بهتری برای شما بسازیم.</p>
+      </div>
+      <div id="page-terms" class="page-panel">
+        <h3 class="text-2xl font-bold" style="color: #636337;">قوانین و مقررات</h3>
+        <p class="mt-4 leading-8" style="color: #636337;">استفاده از خدمات به معنای پذیرش قوانین، احترام به حقوق کاربران و رعایت چارچوب‌های اخلاقی و قانونی است. لطفاً پیش از استفاده، شرایط را با دقت مطالعه کنید.</p>
+      </div>
+      <div id="page-privacy" class="page-panel">
+        <h3 class="text-2xl font-bold" style="color: #636337;">سیاست حریم خصوصی</h3>
+        <p class="mt-4 leading-8" style="color: #636337;">حفظ حریم خصوصی کاربران برای ما مهم است. اطلاعاتی که با ما به اشتراک می‌گذارید فقط برای ارائه خدمات بهتر، پاسخ‌گویی و بهبود تجربه شما استفاده می‌شود.</p>
+      </div>
+     </section>
+    </div>
+   </main>
+   <%- include('./partials/footer') %>
+
+  </div>
+
+  <!-- ==================== اسکریپت‌ها ==================== -->
+  <script>
+    // توابع کمکی
+    function toPersianDigits(num) {
+      if (num === undefined || num === null) return '۰';
+      return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        'bg-blue-500'
+      } top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6 w-[calc(100%-2rem)] max-w-xs sm:max-w-sm`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      notification.classList.add('transform', 'transition-all', 'duration-300', 'translate-y-2', 'opacity-0');
+      setTimeout(() => notification.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        notification.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => notification.remove(), 300);
+      }, 800);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      // منوی همبرگری موبایل
+      var menuBtn = document.getElementById('menu-btn');
+      var mobileMenu = document.getElementById('mobile-menu');
+      
+      if (menuBtn && mobileMenu) {
+        menuBtn.onclick = function(e) {
+          e.stopPropagation();
+          if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
+            mobileMenu.style.display = 'flex';
+          } else {
+            mobileMenu.style.display = 'none';
+          }
+        };
+      }
+      
+      // ساب‌منوی موبایل
+      var mobileTriggers = document.querySelectorAll('.mobile-dropdown-trigger');
+      mobileTriggers.forEach(function(trigger) {
+        trigger.onclick = function(e) {
+          e.stopPropagation();
+          var menu = this.nextElementSibling;
+          var icon = this.querySelector('i');
+          if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+          } else {
+            menu.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+          }
+        };
+      });
+      
+      var subTriggers = document.querySelectorAll('.mobile-submenu-trigger');
+      subTriggers.forEach(function(trigger) {
+        trigger.onclick = function(e) {
+          e.stopPropagation();
+          var submenu = this.nextElementSibling;
+          var icon = this.querySelector('i');
+          if (submenu.style.display === 'none' || submenu.style.display === '') {
+            submenu.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+          } else {
+            submenu.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+          }
+        };
+      });
+
+      // ====== مدیریت پاپ‌آپ احراز هویت ======
+      var authButton = document.getElementById('user-auth-button');
+      var authPopup = document.getElementById('auth-popup');
+      
+      function switchTab(activeTab) {
+        const tabs = { login: document.getElementById('login-tab'), register: document.getElementById('register-tab'), forgot: document.getElementById('forgot-tab') };
+        const contents = { login: document.getElementById('login-content'), register: document.getElementById('register-content'), forgot: document.getElementById('forgot-content') };
+        
+        Object.values(tabs).forEach(tab => {
+          if(tab) {
+            tab.classList.remove('border-pink-500', 'text-pink-500');
+            tab.classList.add('text-gray-500');
+            tab.style.borderBottomColor = 'transparent';
+          }
+        });
+        Object.values(contents).forEach(content => {
+          if(content) content.classList.remove('active');
+        });
+        if(tabs[activeTab]) {
+          tabs[activeTab].classList.add('text-pink-500');
+          tabs[activeTab].classList.remove('text-gray-500');
+          tabs[activeTab].style.borderBottomColor = '#636337';
+          tabs[activeTab].style.color = '#636337';
+        }
+        if(contents[activeTab]) contents[activeTab].classList.add('active');
+      }
+      
+      if (authButton && authPopup) {
+        authButton.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          authPopup.classList.remove('hidden');
+          switchTab('login');
+        });
+        
+        authPopup.addEventListener('click', function(e) {
+          if (e.target === authPopup) {
+            authPopup.classList.add('hidden');
+          }
+        });
+      }
+
+      // OTP inputs setup
+      function setupOtpInputs(containerSelector) {
+        const inputs = Array.from(document.querySelectorAll(`${containerSelector} .otp-input`));
+        if (inputs.length === 0) return;
+        inputs.forEach((input, index) => {
+          input.addEventListener('input', function() {
+            if (this.value.length === 1 && index > 0) {
+              inputs[index - 1].focus();
+            }
+          });
+          input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && this.value.length === 0 && index < inputs.length - 1) {
+              inputs[index + 1].focus();
+            }
+          });
+        });
+      }
+      
+      setupOtpInputs('#register-step-2');
+      setupOtpInputs('#forgot-step-2');
+      
+      // Register form
+      const registerForm = document.getElementById('register-form');
+      const registerStep1 = document.getElementById('register-step-1');
+      const registerStep2 = document.getElementById('register-step-2');
+      const registerPhoneDisplay = document.getElementById('register-phone-display');
+      
+      if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const phone = document.getElementById('register-phone').value;
+          if(registerPhoneDisplay) registerPhoneDisplay.textContent = phone;
+          if(registerStep1) registerStep1.classList.remove('active');
+          if(registerStep2) registerStep2.classList.add('active');
+          
+          fetch('/api/mobile/sendOtp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mobile: phone })
+          }).catch(err => console.log('OTP send error:', err));
+        });
+      }
+      
+      const registerBackBtn = document.getElementById('register-back-btn');
+      if (registerBackBtn) {
+        registerBackBtn.addEventListener('click', function() {
+          if(registerStep2) registerStep2.classList.remove('active');
+          if(registerStep1) registerStep1.classList.add('active');
+        });
+      }
+      
+      // Login form
+      const loginForm = document.getElementById('login-form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const formData = new FormData(loginForm);
+          fetch('/api/authentication/signIn', {
+            method: 'POST',
+            body: formData
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              showNotification(data.message, 'success');
+              setTimeout(() => location.reload(), 800);
+              if(authPopup) authPopup.classList.add('hidden');
+            } else {
+              showNotification(data.message, 'error');
+            }
+          }).catch(err => showNotification('خطا در ارتباط با سرور', 'error'));
+        });
+      }
+
+      // صفحه‌بندی (Page navigation)
+      function setActivePage(pageName) {
+        document.querySelectorAll(".page-panel").forEach((panel) => {
+          panel.classList.remove("active");
+        });
+
+        const targetPanel = document.getElementById(`page-${pageName}`);
+        if (targetPanel) targetPanel.classList.add("active");
+
+        document.querySelectorAll(".nav-button").forEach((button) => {
+          const isActive = button.dataset.page === pageName;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-selected", isActive ? "true" : "false");
+          if(isActive) {
+            button.style.backgroundColor = "#636337";
+            button.style.color = "#FFF1DB";
+          } else {
+            button.style.backgroundColor = "transparent";
+            button.style.color = "#636337";
+          }
+        });
+      }
+
+      document.querySelectorAll(".nav-button").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          e.preventDefault();
+          const pageName = button.dataset.page;
+          if(pageName) setActivePage(pageName);
+        });
+      });
+    });
+  </script>
+
+ </body>
+</html>

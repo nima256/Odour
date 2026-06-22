@@ -1,0 +1,2718 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="keywords" content="<%= currentCategory.metaKeywords || currentCategory.name + '، خرید ' + currentCategory.name + '، قیمت ' + currentCategory.name %>" />
+    <% if(currentCategory.metaDescription) { %>
+    <meta name="description" content="<%= currentCategory.metaDescription %>">
+    <% } else { %>
+    <meta
+      name="description"
+      content="خرید <%= currentCategory.name %> از فروشگاه لباس کیدل. قیمت <%= currentCategory.name %> با کیفیت عالی و تنوع بالا. بهترین مدل‌های <%= currentCategory.name %> را اینجا ببینید و بخرید."
+    />
+    <% } %>
+     <title>محصولات <%= currentCategory.name %></title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/tailwind.min.css">
+    <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/vazir-font/30.1.0/font-face.css"
+    />
+    <link rel="canonical" href="https://odour.ir/category/<%= currentCategory.slug %>" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "<%= currentCategory.name %>",
+      "description": "خرید <%= currentCategory.name %> از فروشگاه لوازم آرایشی اودر. قیمت <%= currentCategory.name %> با کیفیت عالی و تنوع بالا. بهترین مدل‌های <%= currentCategory.name %> را اینجا ببینید و بخرید.",
+      "url": "https://odour.ir/category/<%= currentCategory.slug %>",
+      "numberOfItems": "<%= products.length %>",
+      "itemListElement": [
+        <% for(let i = 0; i < Math.min(products.length, 10); i++) { %>
+        {
+          "@type": "ListItem",
+          "position": <%= i+1 %>,
+          "url": "https://odour.ir/productDetails/<%= products[i].slug %>"
+        }<%= i < Math.min(products.length, 10)-1 ? ',' : '' %>
+        <% } %>
+      ]
+    }
+    </script>
+    <style>
+      @font-face {
+        font-family: "MyFont";
+        src: url("/fonts/Vazirmatn-Light.ttf");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+        }
+
+        body {
+        font-family: "MyFont", sans-serif;
+        scroll-behavior: smooth;
+        text-align: right;
+        background: #fffdf0;;
+        }
+
+      .glass-effect {
+        background: rgba(255, 241, 219, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(99, 99, 55, 0.18);
+      }
+      .product-card {
+        background: linear-gradient(145deg, #ffffff, #f8fafc);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .product-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(99, 99, 55, 0.25);
+      }
+      .filter-btn {
+        background: linear-gradient(135deg, #636337 0%, #8a8a5a 100%);
+        transition: all 0.3s ease;
+      }
+      .filter-btn:hover {
+        background: linear-gradient(135deg, #8a8a5a 0%, #636337 100%);
+        transform: translateY(-2px);
+      }
+      .price-gradient {
+        background: linear-gradient(135deg, #636337, #8a8a5a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .category-chip {
+        background: linear-gradient(135deg, #FFF1DB 0%, #fff7ef 100%);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 1px solid rgba(99, 99, 55, 0.1);
+      }
+      .category-chip:hover {
+        background: linear-gradient(135deg, #fff7ef 0%, #FFF1DB 100%);
+        transform: scale(1.05);
+      }
+      .category-chip.active {
+        background: linear-gradient(135deg, #636337 0%, #8a8a5a 100%);
+        color: white;
+      }
+      .floating-animation {
+        animation: float 6s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .gradient-border {
+        background: linear-gradient(45deg, #636337, #8a8a5a, #a0a06a, #b8b87a);
+        background-size: 400% 400%;
+        animation: gradientShift 3s ease infinite;
+      }
+      @keyframes gradientShift {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      .list-view .product-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+      .list-view .product-image {
+        width: 200px;
+        height: 150px;
+        flex-shrink: 0;
+      }
+      .notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+      .notification.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .price-range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 8px;
+        border-radius: 5px;
+        background: linear-gradient(to right, #636337, #8a8a5a);
+        outline: none;
+      }
+      .price-range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #636337;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+      .price-range-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #636337;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+      .cart-button {
+        background-color: #636337;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(99, 99, 55, 0.2);
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+      }
+
+      .cart-button:hover {
+        background-color: #4a4a2a;
+        transform: scale(1.05);
+      }
+
+      .cart-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(99, 99, 55, 0.5);
+      }
+
+      .cart-button.success {
+        background-color: #4a4a2a;
+      }
+
+      .cart-button.success:hover {
+        background-color: #3a3a1f;
+      }
+
+      .icon {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      svg {
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .logo-container {
+        --logo-size: 2.5rem;
+      }
+
+      .logo {
+        width: var(--logo-size);
+        height: var(--logo-size);
+      }
+
+      .nav-link {
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        right: 50%;
+        background: linear-gradient(90deg, #636337, #8a8a5a);
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+        right: 0;
+      }
+
+      .icon-btn {
+        transition: all 0.3s ease;
+      }
+
+      .icon-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .mobile-menu {
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      /* استایل‌های پاپ‌آپ احراز هویت */
+      #auth-popup {
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      }
+
+      #auth-popup:not(.hidden) {
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content,
+      .form-step {
+        display: none;
+      }
+      /* استایل اسکرول خودکار برای بخش برندها */
+.brands-scroll-auto {
+  max-height: 350px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #636337 #f0f0f0;
+}
+
+.brands-scroll-auto::-webkit-scrollbar {
+  width: 5px;
+}
+
+.brands-scroll-auto::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+.brands-scroll-auto::-webkit-scrollbar-thumb {
+  background: #636337;
+  border-radius: 10px;
+}
+
+/* اضافه کردن سایه ملایم در پایین برای نشان دادن اسکرول */
+.brands-scroll-auto {
+  position: relative;
+}
+
+.brands-scroll-auto::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+  pointer-events: none;
+  display: none;
+}
+
+.brands-scroll-auto:not(:hover)::after {
+  display: block;
+}
+@media (max-width: 640px) {
+  .brands-scroll-auto {
+    max-height: 250px;
+  }
+}
+/* استایل اسکرول برای دسته‌بندی‌ها */
+.categories-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-left: 4px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #636337 #e5e7eb;
+}
+
+/* استایل اسکرول بار برای مرورگرهای Webkit */
+.categories-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-thumb {
+  background: #636337;
+  border-radius: 10px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4a4a2a;
+}
+
+/* انیمیشن برای آیتم‌های دسته‌بندی */
+.category-chip {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.category-chip:hover {
+  transform: translateX(-5px);
+  background: linear-gradient(135deg, #fff7ef 0%, #FFF1DB 100%);
+}
+
+      .tab-content.active,
+      .form-step.active {
+        display: block;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #636337;
+        box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
+      }
+
+      /* استایل کدهای تایید */
+      .otp-input {
+        width: 3rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        direction: ltr;
+      }
+      .otp-input:focus {
+        border-color: #636337;
+        box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
+      }
+
+      /* انیمیشن پاپ‌آپ */
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal-content {
+        animation: modalFadeIn 0.3s ease-out;
+      }
+      /* استایل پایه برای آیکون‌ها */
+      .icon {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .cart-icon {
+        color: #636337;
+      }
+
+      .cart-icon:hover {
+        color: #4a4a2a;
+      }
+
+      .success-icon {
+        color: #28a745;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .icon-container {
+        width: 24px;
+        height: 24px;
+      }
+/* ترتیب المان‌ها در موبایل */
+/* جایگزین کدهای CSS که در انتهای استایل‌ها وجود دارد */
+/* ترتیب المان‌ها در موبایل */
+@media (max-width: 1280px) {
+  .responsive-filters-layout {
+    display: flex;
+    flex-direction: column !important;
+  }
+  
+  .filters-sidebar-mobile {
+    order: 2 !important;
+    width: 100% !important;
+    margin-top: 2rem !important;
+  }
+  
+  .products-grid-mobile {
+    order: 1 !important;
+    width: 100% !important;
+  }
+}
+/* استایل اسکرول برای بخش برندها */
+.brands-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #636337 #e5e7eb;
+}
+
+/* استایل اسکرول بار برای مرورگرهای Webkit (Chrome, Safari, Edge) */
+.brands-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-thumb {
+  background: #636337;
+  border-radius: 10px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4a4a2a;
+}
+/* استایل جدید برای نمایش فیلترها در موبایل به صورت آکاردئونی */
+@media (max-width: 768px) {
+  .filters-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #636337 0%, #8a8a5a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  
+  .filters-toggle-btn i {
+    transition: transform 0.3s ease;
+  }
+  
+  .filters-toggle-btn.active i {
+    transform: rotate(180deg);
+  }
+  
+  .filters-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  .filters-content.show {
+    max-height: 2000px;
+  }
+  
+  .glass-effect {
+    position: relative;
+    margin-bottom: 20px;
+  }
+}
+
+/* مخفی کردن دکمه اسکرول در موبایل */
+@media (max-width: 768px) {
+  #scrollCategoriesLeft,
+  #scrollCategoriesRight {
+    display: none !important;
+  }
+  
+  #categoriesSlider {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .category-card {
+    width: calc(33.333% - 10.66px) !important;
+  }
+}
+
+/* بهبود فاصله‌ها در موبایل */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .product-card {
+    margin-bottom: 16px;
+  }
+  
+  .glass-effect {
+    padding: 16px;
+  }
+}
+    /* استایل بخش توضیحات سئو */
+
+.seo-fade {
+  position: relative;
+}
+
+.seo-fade:not(.expanded)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 60px;
+  background: linear-gradient(to top, white, transparent);
+  pointer-events: none;
+  border-radius: 0 0 16px 16px;
+}
+
+.seo-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #636337, #8a8a5a);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.seo-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(99, 99, 55, 0.4);
+}
+
+.seo-toggle-btn i {
+  transition: transform 0.3s ease;
+}
+
+.seo-toggle-btn.active i {
+  transform: rotate(180deg);
+}
+
+.cart-count {
+    top: -8px;
+    left: -8px;
+}
+
+h2 {
+    color: #6A1B9A;
+    padding-right: 15px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+h3 {
+    color: #9C7655;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+p {
+    margin-bottom: 15px;
+    text-align: justify;
+}
+strong {
+    color: #8B4513;
+    font-weight: bold;
+}
+hr {
+    margin: 30px 0;
+    border: 0;
+    height: 1px;
+    background: #ddd;
+}
+
+    </style>
+    <script>
+      // کد مدیریت نمایش فیلترها در موبایل
+document.addEventListener('DOMContentLoaded', function() {
+  // ایجاد دکمه toggle برای فیلترها در موبایل
+  const filtersContainer = document.querySelector('.glass-effect');
+  const filtersSidebar = document.querySelector('.xl\\:w-1\\/4');
+  const productsContainer = document.querySelector('.xl\\:w-3\\/4');
+  
+  if (window.innerWidth <= 768) {
+    createMobileFiltersToggle();
+  }
+  
+  window.addEventListener('resize', function() {
+    if (window.innerWidth <= 768) {
+      if (!document.querySelector('.filters-toggle-btn')) {
+        createMobileFiltersToggle();
+      }
+    } else {
+      const toggleBtn = document.querySelector('.filters-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.remove();
+        const filtersContent = document.querySelector('.filters-content');
+        if (filtersContent) {
+          filtersContent.classList.remove('show');
+          filtersContent.style.maxHeight = null;
+        }
+      }
+    }
+  });
+  
+  function createMobileFiltersToggle() {
+    // اگه دکمه قبلاً وجود داره، دوباره ایجاد نکن
+    if (document.querySelector('.filters-toggle-btn')) return;
+    
+    // گرفتن المان فیلترها
+    const filtersContainer = document.querySelector('.glass-effect');
+    if (!filtersContainer) return;
+    
+    // ذخیره محتوای اصلی فیلترها
+    const originalContent = filtersContainer.innerHTML;
+    
+    // ایجاد دکمه toggle
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'filters-toggle-btn';
+    toggleBtn.innerHTML = `
+      <span>
+        <i class="fas fa-filter ml-2"></i>
+        فیلترهای هوشمند
+      </span>
+      <i class="fas fa-chevron-down"></i>
+    `;
+    
+    // ایجاد کانتینر برای محتوای فیلترها
+    const filtersContent = document.createElement('div');
+    filtersContent.className = 'filters-content';
+    filtersContent.innerHTML = originalContent;
+    
+    // پاک کردن محتوای قبلی و اضافه کردن دکمه و محتوای جدید
+    filtersContainer.innerHTML = '';
+    filtersContainer.appendChild(toggleBtn);
+    filtersContainer.appendChild(filtersContent);
+    
+    // رویداد کلیک برای toggle
+    toggleBtn.addEventListener('click', function() {
+      this.classList.toggle('active');
+      filtersContent.classList.toggle('show');
+      
+      if (filtersContent.classList.contains('show')) {
+        filtersContent.style.maxHeight = filtersContent.scrollHeight + 'px';
+      } else {
+        filtersContent.style.maxHeight = null;
+      }
+    });
+    
+    // باز کردن خودکار فیلترها در حالت موبایل (اختیاری)
+    // setTimeout(() => {
+    //   toggleBtn.click();
+    // }, 100);
+  }
+  
+  // بهینه‌سازی اسکرول دسته‌بندی‌ها در موبایل
+  const categoriesSlider = document.getElementById('categoriesSlider');
+  if (categoriesSlider && window.innerWidth <= 768) {
+    let isScrolling = false;
+    let startX;
+    let scrollLeft;
+    
+    categoriesSlider.addEventListener('touchstart', (e) => {
+      isScrolling = true;
+      startX = e.touches[0].pageX - categoriesSlider.offsetLeft;
+      scrollLeft = categoriesSlider.scrollLeft;
+    });
+    
+    categoriesSlider.addEventListener('touchmove', (e) => {
+      if (!isScrolling) return;
+      e.preventDefault();
+      const x = e.touches[0].pageX - categoriesSlider.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      categoriesSlider.scrollLeft = scrollLeft - walk;
+    });
+    
+    categoriesSlider.addEventListener('touchend', () => {
+      isScrolling = false;
+    });
+  }
+});
+      document.addEventListener("DOMContentLoaded", function () {
+        const selectedCategory = localStorage.getItem("selectedCategory");
+        if (selectedCategory) {
+          const chip = document.querySelector(
+            `.category-chip[data-category="${selectedCategory}"]`
+          );
+          if (chip) {
+            // فعال‌سازی کلاس و اضافه کردن به selectedCategories
+            chip.classList.add("active");
+            selectedCategories.push(selectedCategory);
+            filterProducts(); // اعمال فیلتر
+          }
+          localStorage.removeItem("selectedCategory"); // پاک کردن برای دفعات بعدی
+        }
+      });
+    </script>
+  </head>
+  <body class="min-h-screen">
+<%- include('./partials/navbar') %>
+<style>
+/* تنظیمات گرید محصولات در موبایل */
+@media (max-width: 768px) {
+  #products-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin-bottom: 0;
+  }
+  
+  .product-card .p-6 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px !important;
+  }
+  
+  /* دکمه سبد خرید همیشه در پایین کارت */
+  .product-card .p-6 > :last-child {
+    margin-top: auto;
+  }
+  
+  .product-card button {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px !important;
+    font-size: 13px;
+  }
+  
+  /* تنظیمات تصویر */
+  .product-card .w-full.h-64 {
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+  
+  .product-card .w-full.h-64 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* فونت‌های کوچک‌تر در موبایل */
+  .product-card h3 {
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .product-card .text-gray-600.text-sm {
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .product-card .price-gradient.font-bold.text-xl {
+    font-size: 14px !important;
+  }
+  
+  .product-card .text-gray-400.line-through.text-sm {
+    font-size: 10px !important;
+  }
+  
+  /* برچسب‌ها و تخفیف‌ها */
+  .product-card .absolute.top-4.right-4,
+  .product-card .absolute.top-4.left-4 {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+  
+  .product-card .absolute.bottom-4.left-4 {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+  
+  /* امتیاز */
+  .product-card .bg-white\/80.backdrop-blur-sm {
+    font-size: 10px !important;
+  }
+  
+  /* دسته‌بندی و برند */
+  .product-card .bg-orange-100 {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+}
+/* محدود کردن متن به دو خط */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* تنظیمات دسکتاپ */
+@media (min-width: 769px) {
+  .product-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-card .p-6 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-card .p-6 .mt-auto {
+    margin-top: auto;
+  }
+}
+  @media (min-width: 768px) {
+    .desktop-menu {
+      display: flex !important;
+    }
+    .hamburger {
+      display: none !important;
+    }
+  }
+  
+  .dropdown:hover .dropdown-menu {
+    display: block !important;
+  }
+  
+  .submenu-item:hover .submenu-level2 {
+    display: block !important;
+  }
+  
+  .dropdown-menu a:hover,
+  .submenu-level2 a:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .mobile-dropdown-menu,
+  .mobile-submenu-level2 {
+    transition: all 0.3s ease;
+  }
+  
+  /* استایل برای موبایل */
+  @media (max-width: 768px) {
+    .flex.items-center.space-x-4 {
+      gap: 12px;
+    }
+  }
+</style>
+
+<script>
+  // تابع کمکی برای اطمینان از وجود المنت‌ها
+  function waitForElement(selector, callback) {
+    if (document.querySelector(selector)) {
+      callback();
+      return;
+    }
+    const observer = new MutationObserver(function(mutations) {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        callback();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    // منوی همبرگری موبایل
+    var menuBtn = document.getElementById('menu-btn');
+    var mobileMenu = document.getElementById('mobile-menu');
+    
+    if (menuBtn && mobileMenu) {
+      menuBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
+          mobileMenu.style.display = 'flex';
+        } else {
+          mobileMenu.style.display = 'none';
+        }
+      };
+    }
+    
+    // ساب‌منوی موبایل
+    var mobileTriggers = document.querySelectorAll('.mobile-dropdown-trigger');
+    mobileTriggers.forEach(function(trigger) {
+      trigger.onclick = function(e) {
+        e.stopPropagation();
+        var menu = this.nextElementSibling;
+        var icon = this.querySelector('i');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+          menu.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        } else {
+          menu.style.display = 'none';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      };
+    });
+    
+    var subTriggers = document.querySelectorAll('.mobile-submenu-trigger');
+    subTriggers.forEach(function(trigger) {
+      trigger.onclick = function(e) {
+        e.stopPropagation();
+        var submenu = this.nextElementSibling;
+        var icon = this.querySelector('i');
+        if (submenu.style.display === 'none' || submenu.style.display === '') {
+          submenu.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        } else {
+          submenu.style.display = 'none';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      };
+    });
+    
+    // ====== بخش مهم: مدیریت پاپ‌آپ احراز هویت ======
+    var authButton = document.getElementById('user-auth-button');
+    var authPopup = document.getElementById('auth-popup');
+    
+    // اگر پاپ‌آپ در DOM وجود داشت، مدیریت کن
+    if (authButton && authPopup) {
+      authButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('دکمه کاربر کلیک شد - باز کردن پاپ‌آپ');
+        authPopup.classList.remove('hidden');
+        // تابع switchTab باید قبلاً تعریف شده باشد
+        if (typeof switchTab === 'function') {
+          switchTab('login');
+        }
+      });
+      
+      // بستن پاپ‌آپ با کلیک روی پس‌زمینه
+      authPopup.addEventListener('click', function(e) {
+        if (e.target === authPopup) {
+          authPopup.classList.add('hidden');
+        }
+      });
+    } else {
+      console.warn('دکمه user-auth-button یا پاپ‌آپ auth-popup در صفحه پیدا نشد!');
+      
+      // اگر پاپ‌آپ وجود نداشت، می‌توانیم یک هشدار نمایش دهیم یا لاگ بگیریم
+      if (!authButton) console.warn('عنصر با آیدی user-auth-button یافت نشد');
+      if (!authPopup) console.warn('عنصر با آیدی auth-popup یافت نشد');
+    }
+  });
+</script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        mobileMenuButton.addEventListener("click", function () {
+          mobileMenu.classList.toggle("hidden");
+        });
+
+        // بستن منو هنگام کلیک خارج از آن
+        document.addEventListener("click", function (event) {
+          if (
+            !mobileMenu.contains(event.target) &&
+            event.target !== mobileMenuButton
+          ) {
+            mobileMenu.classList.add("hidden");
+          }
+        });
+      });
+    </script>
+    <br /><br /><br />
+    <div style="padding-top: 0rem;" class="container mx-auto px-4 py-8">
+      <div
+        id="auth-popup"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+      >
+        <div
+          class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content"
+        >
+          <!-- Tab Navigation -->
+          <div class="flex border-b">
+            <button
+              id="login-tab"
+              class="tab-btn flex-1 py-4 text-center font-medium transition-colors"
+              style="color: #636337; border-bottom: 2px solid #636337;"
+            >
+              ورود
+            </button>
+            <button
+              id="register-tab"
+              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent"
+            >
+              ثبت نام
+            </button>
+            <button
+              id="forgot-tab"
+              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent"
+            >
+              بازیابی رمز
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <div id="login-content" class="tab-content active p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+              ورود به حساب کاربری
+            </h2>
+            <form
+              action="/api/authentication/signIn"
+              method="post"
+              id="login-form"
+              class="space-y-5"
+            >
+              <div>
+                <label class="block text-gray-700 mb-2" for="login-phone"
+                  >شماره موبایل</label
+                >
+                <input
+                  type="tel"
+                  name="mobile"
+                  id="login-phone"
+                  class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                  placeholder="09xxxxxxxxx"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-2" for="login-password"
+                  >رمز عبور</label
+                >
+                <input
+                  type="password"
+                  name="password"
+                  id="login-password"
+                  class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                  placeholder="رمز عبور خود را وارد کنید"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                style="background-color: #636337; color: white;"
+              >
+                ورود
+              </button>
+            </form>
+          </div>
+
+          <!-- Registration Form -->
+          <div id="register-content" class="tab-content p-6">
+            <!-- Step 1: Registration Form -->
+            <div id="register-step-1" class="form-step active">
+              <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+                ایجاد حساب کاربری
+              </h2>
+              <form
+                action="/api/authentication/signUp"
+                method="post"
+                id="register-form"
+                class="space-y-4"
+              >
+                <div>
+                  <label class="block text-gray-700 mb-2" for="register-name"
+                    >نام و نام خانوادگی</label
+                  >
+                  <input
+                    type="text"
+                    name="fullName"
+                    id="register-name"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="نام کامل خود را وارد کنید"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-gray-700 mb-2" for="register-phone"
+                    >شماره موبایل</label
+                  >
+                  <input
+                    type="tel"
+                    name="mobile"
+                    id="register-phone"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="09xxxxxxxxx"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-gray-700 mb-2" for="register-email"
+                    >ایمیل</label
+                  >
+                  <input
+                    type="email"
+                    name="email"
+                    id="register-email"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-gray-700 mb-2"
+                    for="register-password"
+                    >رمز عبور</label
+                  >
+                  <input
+                    type="password"
+                    name="password"
+                    id="register-password"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="حداقل 8 کاراکتر"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-gray-700 mb-2"
+                    for="register-confirm-password"
+                    >تکرار رمز عبور</label
+                  >
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    id="register-confirm-password"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="تکرار رمز عبور"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300 mt-2"
+                  style="background-color: #636337; color: white;"
+                >
+                  ثبت نام
+                </button>
+              </form>
+            </div>
+
+            <!-- Step 2: Verification Code -->
+            <div id="register-step-2" class="form-step">
+              <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+                تایید شماره موبایل
+              </h2>
+              <p class="text-gray-600 text-center mb-5">
+                کد تایید به شماره
+                <span id="register-phone-display" class="font-bold" style="color: #636337;"></span>
+                ارسال شد
+              </p>
+              <form id="register-verification-form" class="space-y-5">
+                <div class="text-center">
+                  <label class="block text-gray-700 mb-4 text-center"
+                    >کد تایید را وارد کنید</label
+                  >
+                  <!-- در بخش ثبت نام -->
+                  <div class="flex justify-center gap-2 mb-3">
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div
+                    id="register-resend-timer"
+                    class="text-sm text-gray-500 mb-3"
+                  >
+                    ارسال مجدد کد تا <span>۰۲:۰۰</span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white;"
+                >
+                  تایید و ورود
+                </button>
+                <button
+                  type="button"
+                  id="register-back-btn"
+                  class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300"
+                  style="color: #636337; border-color: #636337;"
+                >
+                  بازگشت
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Forgot Password Form -->
+          <div id="forgot-content" class="tab-content p-6">
+            <!-- Step 1: Phone Number -->
+            <div id="forgot-step-1" class="form-step active">
+              <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+                بازیابی رمز عبور
+              </h2>
+              <form id="forgot-form" class="space-y-5">
+                <div>
+                  <label class="block text-gray-700 mb-2" for="forgot-phone"
+                    >شماره موبایل</label
+                  >
+                  <input
+                    type="tel"
+                    id="forgot-phone"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="09xxxxxxxxx"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white;"
+                >
+                  ارسال کد تایید
+                </button>
+              </form>
+            </div>
+
+            <!-- Step 2: Verification Code -->
+            <div id="forgot-step-2" class="form-step">
+              <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">
+                تایید کد
+              </h2>
+              <p class="text-gray-600 text-center mb-5">
+                کد تایید به شماره
+                <span id="forgot-phone-display" class="font-bold" style="color: #636337;"></span> ارسال
+                شد
+              </p>
+              <form id="forgot-verification-form" class="space-y-5">
+                <div class="text-center">
+                  <label class="block text-gray-700 mb-4 text-center"
+                    >کد تایید را وارد کنید</label
+                  >
+                  <!-- در بخش ثبت نام -->
+                  <div class="flex justify-center gap-2 mb-3">
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                    <input
+                      type="text"
+                      maxlength="1"
+                      class="otp-input"
+                      dir="ltr"
+                      required
+                    />
+                  </div>
+                  <div
+                    id="forgot-resend-timer"
+                    class="text-sm text-gray-500 mb-3"
+                  >
+                    ارسال مجدد کد تا <span>۰۲:۰۰</span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white;"
+                >
+                  تایید
+                </button>
+                <button
+                  type="button"
+                  id="forgot-back-btn"
+                  class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300"
+                  style="color: #636337; border-color: #636337;"
+                >
+                  بازگشت
+                </button>
+              </form>
+            </div>
+
+            <!-- Step 3: New Password -->
+            <div id="forgot-step-3" class="form-step">
+              <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">
+                تعیین رمز عبور جدید
+              </h2>
+              <form id="new-password-form" class="space-y-5">
+                <div>
+                  <label class="block text-gray-700 mb-2" for="new-password"
+                    >رمز عبور جدید</label
+                  >
+                  <input
+                    type="password"
+                    id="new-password"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="حداقل 6 کاراکتر"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-gray-700 mb-2"
+                    for="confirm-new-password"
+                    >تکرار رمز عبور جدید</label
+                  >
+                  <input
+                    type="password"
+                    id="confirm-new-password"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
+                    placeholder="تکرار رمز عبور جدید"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white;"
+                >
+                  ذخیره و ورود
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Header Section -->
+      <!-- <div class="text-center mb-12">
+        <h1
+          class="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent mb-4"
+        >
+          مجموعه زیبایی لوکس
+        </h1>
+        <p class="text-gray-600 text-lg">کشف کنید، زیبا باشید، درخشان شوید</p>
+      </div> -->
+<% if (childCategories && childCategories.length > 0) { %>
+<section class="py-12 px-4 bg-gradient-to-b from-gray-50 overflow-hidden">
+    <div class="max-w-7xl mx-auto">
+        <!-- عنوان بخش -->
+        <div class="text-center mb-10 fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+              زیرمجموعه‌های <%= currentCategory.name %>
+            </h2>
+            <div class="w-24 h-1 bg-gradient-to-l from-[#636337] to-[#8a8a5a] mx-auto rounded-full"></div>
+        </div>
+
+        <!-- محفظه اسلایدر -->
+        <div class="relative group">
+            <!-- دکمه اسکرول به راست (بعدی) -->
+            <button id="scrollCategoriesRight" 
+                class="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-xl hover:shadow-2xl z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hidden md:block">
+                <i class="fas fa-chevron-left text-gray-700 text-xl"></i>
+            </button>
+            
+            <!-- دکمه اسکرول به چپ (قبلی) -->
+            <button id="scrollCategoriesLeft" 
+                class="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-xl hover:shadow-2xl z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hidden md:block">
+                <i class="fas fa-chevron-right text-gray-700 text-xl"></i>
+            </button>
+
+            <!-- اسلایدر -->
+            <div id="categoriesSlider" class="overflow-x-auto scrollbar-hide" style="scrollbar-width: thin; scroll-behavior: smooth;">
+                <div style="margin-bottom: 10px;" class="flex gap-4 md:gap-6" id="categoriesTrack">
+                    <% childCategories.forEach(cat => {%>
+                    <div onclick="location.href='/category/<%= cat.slug %>';" class="category-card flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-10.66px)] md:w-[calc(20%-19.2px)] lg:w-[calc(14.285%-17.14px)] bg-white rounded-2xl p-4 text-center shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border border-gray-100">
+                        <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#636337] to-[#8a8a5a] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i class="fas fa-couch text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800 text-sm md:text-base">
+                            <%= cat.name %>
+                        </h3>
+                        <span class="text-gray-400 text-xs">
+                              <%= toPersianDigits(cat.productCount || 0) %> محصول
+                        </span>
+                    </div>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+      </div>        
+</section>
+<% } else {%><br /><br /><br /><% } %>
+<script>
+  // اسلایدر دسته‌بندی‌ها
+const slider = document.getElementById('categoriesSlider');
+const track = document.getElementById('categoriesTrack');
+const scrollLeftBtn = document.getElementById('scrollCategoriesLeft');
+const scrollRightBtn = document.getElementById('scrollCategoriesRight');
+
+if (scrollLeftBtn && scrollRightBtn && slider) {
+    // اسکرول به چپ (رفتن به آیتم‌های قبلی)
+    scrollLeftBtn.addEventListener('click', () => {
+        const cardWidth = document.querySelector('.category-card')?.offsetWidth || 200;
+        const gap = 24; // مقدار gap بین کارت‌ها
+        const scrollAmount = cardWidth + gap;
+        slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+
+    // اسکرول به راست (رفتن به آیتم‌های بعدی)
+    scrollRightBtn.addEventListener('click', () => {
+        const cardWidth = document.querySelector('.category-card')?.offsetWidth || 200;
+        const gap = 24;
+        const scrollAmount = cardWidth + gap;
+        slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+
+    // مخفی کردن دکمه‌ها در ابتدا و انتهای اسکرول
+    function checkScrollButtons() {
+        const scrollLeft = slider.scrollLeft;
+        const maxScroll = slider.scrollWidth - slider.clientWidth;
+        
+        if (scrollLeft <= 10) {
+            scrollLeftBtn.style.opacity = '0.3';
+            scrollLeftBtn.style.pointerEvents = 'none';
+        } else {
+            scrollLeftBtn.style.opacity = '1';
+            scrollLeftBtn.style.pointerEvents = 'auto';
+        }
+        
+        if (scrollLeft >= maxScroll - 10) {
+            scrollRightBtn.style.opacity = '0.3';
+            scrollRightBtn.style.pointerEvents = 'none';
+        } else {
+            scrollRightBtn.style.opacity = '1';
+            scrollRightBtn.style.pointerEvents = 'auto';
+        }
+    }
+
+    slider.addEventListener('scroll', checkScrollButtons);
+    window.addEventListener('resize', checkScrollButtons);
+    setTimeout(checkScrollButtons, 100);
+}
+</script>
+
+<div class="flex flex-col xl:flex-row gap-8">
+  <!-- Advanced Filters Section - در دسکتاپ کنار، در موبایل بالای محصولات -->
+  <div class="xl:w-1/4 filters-sidebar">
+    <div class="glass-effect rounded-3xl p-8 sticky top-4 shadow-2xl">
+      <div class="flex items-center mb-8">
+        <div class="w-3 h-8 bg-gradient-to-b from-[#636337] to-[#8a8a5a] rounded-full ml-3"></div>
+        <br><br><br><br><br>
+        <h2 class="text-2xl font-bold text-gray-800">فیلترهای هوشمند</h2>
+      </div>
+
+            <!-- Search Bar -->
+            <div class="relative mb-8">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="جستجو در محصولات..."
+          class="w-full bg-white/70 border-0 rounded-2xl px-6 py-4 text-right shadow-lg focus:ring-4 focus:ring-[#636337]/20 transition-all"
+        />
+        <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <% if (childCategories && childCategories.length > 0) { %>
+      <div class="mb-8">
+        <h3 class="font-bold text-gray-700 mb-4 text-lg">زیر دسته بندی ها</h3>
+        <div class="space-y-3">
+          <% childCategories.forEach(cat => { %>
+          <div class="category-chip rounded-2xl p-4 shadow-md" data-category="<%= cat.name %>">
+            <div class="flex justify-between items-center">
+              <span class="font-medium"><%= cat.name %> <%= cat.emoji %></span>
+              <span class="bg-white/50 rounded-full px-3 py-1 text-sm"><%= toPersianDigits(cat.productCount || 0) %></span>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Price Range Slider -->
+      <div class="mb-8">
+        <h3 class="font-bold text-gray-700 mb-4 text-lg">محدوده قیمت</h3>
+        <div class="bg-white/70 rounded-2xl p-6 shadow-lg">
+          <div class="flex justify-between mb-4">
+            <span class="text-sm text-gray-600" id="min-price-display">۵۰,۰۰۰ تومان</span>
+            <span class="text-sm text-gray-600" id="max-price-display">۲,۰۰۰,۰۰۰ تومان</span>
+          </div>
+          <div class="relative mb-4">
+            <input type="range" id="price-range" min="50000" max="2000000" value="1000000" class="price-range-slider w-full cursor-pointer" />
+          </div>
+          <div class="text-center">
+            <span class="bg-[#636337]/10 text-[#636337] px-4 py-2 rounded-full text-sm font-medium" id="current-price">
+              تا ۱,۰۰۰,۰۰۰ تومان
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Selection -->
+      <div class="mb-8">
+        <h3 class="font-bold text-gray-700 mb-4 text-lg">برندهای محبوب</h3>
+<div class="brands-scroll-container">
+  <div class="grid grid-cols-2 gap-3">
+    <% for(let brand of brands) { %>
+    <div class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md" data-brand="<%= brand.name %>">
+      <div class="text-2xl mb-1"><%= brand.emoji %></div>
+      <div class="text-sm font-medium"><%= brand.name %></div>
+    </div>
+    <% } %>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+
+        <!-- Premium Products Grid -->
+        <div class="xl:w-3/4 order-1 xl:order-2">
+          <!-- Sorting & View Options -->
+          <div class="glass-effect rounded-2xl p-6 mb-8 shadow-xl">
+            <div
+              class="flex flex-col md:flex-row justify-between items-center gap-4"
+            >
+              <div class="flex items-center gap-4">
+                <span class="text-gray-600 font-medium" id="product-count"
+                  >نمایش 7 از 7 محصول</span
+                >
+                <div class="flex gap-2">
+                  <button
+                    id="grid-view"
+                    class="p-2 bg-[#636337]/10 rounded-lg hover:bg-[#636337]/20 transition"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    id="list-view"
+                    class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <select
+                id="sort-select"
+                class="bg-white/70 border-0 rounded-xl px-6 py-3 text-right shadow-lg focus:ring-4 focus:ring-[#636337]/20"
+              >
+                <option value="default">مرتب‌سازی بر اساس محبوبیت</option>
+                <option value="price-low">ارزان‌ترین قیمت</option>
+                <option value="price-high">گران‌ترین قیمت</option>
+                <option value="newest">جدیدترین محصولات</option>
+                <option value="rating">بیشترین امتیاز</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Products Grid -->
+          <div
+            id="products-container"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <!-- Products will be rendered here by JavaScript -->
+          </div>
+
+          <!-- Premium Pagination -->
+          <div class="flex justify-center mt-12">
+            <div class="glass-effect rounded-2xl p-4 shadow-xl">
+              <div class="pagination-container flex items-center gap-2">
+                <!-- Pagination buttons will be inserted here by JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div
+      id="toast"
+      class="fixed bottom-4 left-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden"
+    >
+      <span id="toast-message"></span>
+    </div>
+    <!-- بخش توضیحات سئو -->
+<% if(currentCategory && currentCategory.description && currentCategory.description.trim() !== '' && currentCategory.description !== '<p><br></p>' && currentCategory.description !== '<p></p>') { %>
+<section class="container mx-auto px-4 py-12 mt-8 border-t border-gray-200">
+  <div style="padding: 20px;" class="max-w-5xl mx-auto text-right seo-fade" id="seoSection">
+      <div class="seo-content" id="seoContent">
+        <div class="max-w-5xl mx-auto text-right">
+            <div class="prose prose-lg text-gray-600">
+                <%- currentCategory.description %>
+            </div>
+        </div>
+      </div>
+      <button class="seo-toggle-btn" id="seoToggleBtn">
+        <span>بیشتر بخوانید</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+  </div>
+</section>
+<% } %>
+<%- include('./partials/footer') %>
+
+    <script>
+        function showNotificationInPopUp(message, type = 'info') {
+            const authPopup = document.getElementById('auth-popup');
+            const notification = document.createElement('div'); // Create element on document, not authPopup
+            notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
+            }`;
+
+            notification.textContent = message;
+
+            // Animation in
+            notification.classList.add('transform', 'transition-all', 'duration-300');
+            notification.classList.add('-translate-y-[100px]', 'opacity-0');
+
+            // Append the notification to the authPopup
+            authPopup.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => notification.remove(), 300);
+            }, 800);
+        }
+        function showNotification(message, type = 'info') {
+          const notification = document.createElement('div');
+          notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+              type === 'success' ? 'bg-green-500' :
+              type === 'error' ? 'bg-red-500' :
+              'bg-blue-500'
+          }`;
+
+          // Mobile: centered at top, Desktop: top-right
+          notification.className += ' top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6';
+
+          // Width control
+          notification.className += ' w-[calc(100%-2rem)] max-w-xs sm:max-w-sm';
+
+          notification.textContent = message;
+
+          document.body.appendChild(notification);
+
+          // Animation in
+          notification.classList.add('transform', 'transition-all', 'duration-300');
+          notification.classList.add('translate-y-2', 'opacity-0');
+
+          setTimeout(() => {
+              notification.classList.remove('translate-y-2', 'opacity-0');
+          }, 10);
+
+          setTimeout(() => {
+              notification.classList.add('opacity-0', 'translate-y-2');
+              setTimeout(() => notification.remove(), 300);
+          }, 800);
+      }
+
+          // State
+          const productFromServer = <%- JSON.stringify(products) %>;
+          let currentView = "grid";
+          let allProducts = [...productFromServer];
+          let allPrices = productFromServer.map(product => {
+              return product.offerPrice || product.price;
+          });
+
+          let minGlobalPrice = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+          let maxGlobalPrice = allPrices.length > 0 ? Math.max(...allPrices) : 2000000;
+
+          if (minGlobalPrice === maxGlobalPrice) {
+              minGlobalPrice = Math.floor(minGlobalPrice * 0.8);
+              maxGlobalPrice = Math.ceil(maxGlobalPrice * 1.2);
+          }
+
+          let filteredProducts = [...productFromServer];
+          let displayedProducts = [];
+          let selectedCategories = [];
+          let selectedBrands = [];
+          let maxPrice = maxGlobalPrice;
+          let searchQuery = "";
+          let sortBy = "default";
+          let currentPage = 1;
+          const productsPerPage = 12;
+
+          function initializeProducts() {
+            // در ابتدا همه محصولات را نمایش دهید
+            filteredProducts = [...allProducts];
+            paginateProducts();
+            renderProducts();
+          }
+
+          function updatePaginationControls() {
+              const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+              const paginationContainer = document.querySelector('.pagination-container');
+              
+              if (!paginationContainer) return;
+
+              let paginationHTML = `
+                  <div class="flex items-center gap-2">
+                      <button style="
+    color: black;
+" onclick="changePage(${currentPage - 1})"
+                          class="px-4 py-2 /50 rounded-xl hover:bg-black transition-all ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                          ${currentPage === 1 ? 'disabled' : ''}>
+                          قبلی
+                      </button>`;
+
+              // نمایش حداکثر ۵ دکمه صفحه
+              let startPage = Math.max(1, currentPage - 2);
+              let endPage = Math.min(totalPages, startPage + 4);
+              
+              if (endPage - startPage < 4) {
+                  startPage = Math.max(1, endPage - 4);
+              }
+
+              for (let i = startPage; i <= endPage; i++) {
+                  paginationHTML += `
+                      <button style="
+    color: black;
+" onclick="changePage(${i})"
+                          class="px-4 py-2 ${i === currentPage ? 'bg-gradient-to-r from-[#636337] to-[#8a8a5a] text-white' : 'bg-white/50'} rounded-xl hover:bg-white transition-all">
+                          ${toPersianDigits(i)}
+                      </button>`;
+              }
+
+              paginationHTML += `
+                      <button style="
+    color: black;
+" onclick="changePage(${currentPage + 1})"
+                          class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}"
+                          ${currentPage === totalPages ? 'disabled' : ''}>
+                          بعدی
+                      </button>
+                  </div>`;
+
+              paginationContainer.innerHTML = paginationHTML;
+          }
+
+          async function fetchFilteredProducts() {
+            try {
+              const response = await fetch(`/api/products/filtered?${new URLSearchParams({
+                categories: selectedCategories.join(','),
+                brands: selectedBrands.join(','),
+                maxPrice,
+                searchQuery,
+                sortBy,
+                page: currentPage
+              })}`);
+
+              const data = await response.json();
+
+              if (data.success) {
+                filteredProducts = data.products;
+                totalProducts = data.total;
+                currentPage = data.page;
+                totalPages = data.pages;
+
+                renderProducts();
+              } else {
+                console.error('Error fetching filtered products:', data.error);
+              }
+            } catch (err) {
+              console.error('Failed to fetch filtered products:', err);
+            }
+          }
+
+          function changePage(page) {
+              const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+              if (page < 1 || page > totalPages) return;
+
+              currentPage = page;
+              
+              // صفحه‌بندی مجدد
+              paginateProducts();
+              renderProducts();
+
+              // اسکرول به بالای محصولات
+              setTimeout(() => {
+                  scrollToFirstProduct();
+              }, 100);
+          }
+
+
+          function resetFilters() {
+            selectedCategories = [];
+            selectedBrands = [];
+            maxPrice = 2000000;
+            searchQuery = "";
+            sortBy = "default";
+            currentPage = 1;
+
+            // بازنشانی فیلدهای UI
+            document.getElementById("search-input").value = "";
+            document.getElementById("price-range").value = maxPrice;
+            document.getElementById("current-price").textContent = `تا ${formatPrice(maxPrice)} تومان`;
+            document.getElementById("sort-select").value = "default";
+
+            // حذف حالت active از دسته‌بندی‌ها و برندها
+            document.querySelectorAll(".category-chip").forEach(chip => {
+              chip.classList.remove("active");
+            });
+
+            document.querySelectorAll(".brand-filter").forEach(filter => {
+              filter.classList.remove("bg-purple-100");
+              filter.classList.add("bg-white/70");
+            });
+
+            // اعمال فیلترهای بازنشانی شده
+            filterProducts();
+          }
+
+
+          // Utility functions
+          function formatPrice(price) {
+            // return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+            return price.toLocaleString("fa-IR");
+          }
+
+          // Render products
+          function toPersianDigits(str) {
+            return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+          }
+           function renderProducts() {
+  const container = document.getElementById("products-container");
+  const isListView = currentView === "list";
+
+  if (displayedProducts.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <div class="text-gray-500 text-lg mb-4">محصولی یافت نشد</div>
+        <button onclick="resetFilters()" class="px-6 py-2 bg-[#636337] text-white rounded-lg hover:bg-[#4a4a2a] transition-colors">
+          بازنشانی فیلترها
+        </button>
+      </div>
+    `;
+    updatePaginationControls();
+    return;
+  }
+
+  container.className = isListView
+    ? "space-y-6 list-view"
+    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
+
+  container.innerHTML = displayedProducts
+    .map((product) => {
+      const categoryBadges = product.category && product.category.length > 0 
+        ? product.category.map(cat => 
+            `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full ml-1 mb-1">
+                ${cat.name || (typeof cat === 'string' ? 'در حال بارگذاری...' : 'بدون نام')}
+            </span>`
+        ).join('')
+        : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
+      
+      const brandBadge = product.brand?.name ? 
+        `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-1 mb-1">
+            <i class="fas fa-tag ml-1"></i>${product.brand.name}
+        </span>` : '';
+      
+      // استخراج آدرس تصویر با سایز 800x800
+      let imageUrl = '/images/placeholder.jpg';
+      if (product?.images && product.images.length > 0 && product.images[0]?.url) {
+        imageUrl = product.images[0].url;
+        // اگر تصویر دارای پارامتر سایز نبود، سایز 800x800 را اضافه کن
+        if (!imageUrl.includes('?') && !imageUrl.includes('size=')) {
+          imageUrl = imageUrl + '?size=800x800';
+        }
+      }
+      
+      return `
+        <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation h-full flex flex-col">
+          ${!isListView ? `
+            <div class="relative w-full" style="aspect-ratio: 1/1;">
+              <a href="/productDetails/${product.slug}">
+                <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover">
+              </a>
+              ${product.isOutOfStock ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
+              ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
+              
+            </div>
+          ` : ''}
+          
+          <div class="p-6 flex flex-col flex-grow ${isListView ? "flex-1" : ""}">
+            <div class="flex justify-between items-start mb-3 flex-wrap">
+              <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
+                ${categoryBadges}
+                ${brandBadge}
+              </div>
+            </div>
+            
+            <a href="/productDetails/${product.slug}" class="flex-grow">
+              <h3 class="font-bold text-xl text-gray-800 mb-2 text-right line-clamp-2">${product.name}</h3>
+
+            </a>
+            
+            <div class="mt-auto">
+              <div class="flex justify-between items-center mb-4">
+                <div class="text-right">
+                  ${product.offerPrice ? `
+                    <div class="text-gray-400 line-through text-sm">${formatPrice(product.price)} تومان</div>
+                    <div class="price-gradient font-bold text-xl">${formatPrice(product.offerPrice)} تومان</div>
+                  ` : `
+                    <div class="price-gradient font-bold text-xl">${formatPrice(product.price)} تومان</div>
+                  `}
+                </div>
+                ${product.colors && product.colors.length > 0 ? `
+                  <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-full border-2 border-white shadow-sm" style="background-color: ${product.colors[0]}"></div>
+                  </div>
+                ` : ""}
+              </div>
+              
+              ${product.isOutOfStock || product.countInStock <= 0 ? `
+                <button disabled class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-2xl font-bold opacity-70 cursor-not-allowed shadow-lg flex items-center justify-center gap-2">
+                  <i class="fas fa-ban ml-2"></i>
+                  ناموجود
+                </button>
+              ` : `
+                <button style="
+    background-color: #8a8a5a;
+" onclick="location.href='/productDetails/${product.slug}';" class="w-full  text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                  <i class="fas fa-shopping-cart ml-2"></i>
+                  خرید
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  const totalProducts = filteredProducts.length;
+  const startItem = (currentPage - 1) * productsPerPage + 1;
+  const endItem = Math.min(currentPage * productsPerPage, totalProducts);
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
+
+  document.getElementById("product-count").innerHTML = 
+    `نمایش <span class="font-bold">${toPersianDigits(startItem)}</span> تا <span class="font-bold">${toPersianDigits(endItem)}</span> از <span class="font-bold">${toPersianDigits(totalProducts)}</span> محصول (صفحه ${toPersianDigits(currentPage)} از ${toPersianDigits(totalPages)})`;
+
+  updatePaginationControls();
+}          // تابع افزایش عدد سبد خرید
+          function addToCart(productName) {
+            // 1. پیدا کردن عنصر عدد سبد خرید
+            const cartCount = document.querySelector(".cart-count");
+
+            // 2. افزایش عدد فعلی + 1
+            let currentCount = parseInt(cartCount.textContent) || 0;
+            currentCount++;
+            cartCount.textContent = currentCount;
+
+            // 3. ذخیره در حافظه مرورگر (برای نگهداری بین صفحات)
+            localStorage.setItem("cartCount", currentCount);
+          }
+
+          // بارگذاری عدد ذخیره شده هنگام لود صفحه
+          window.addEventListener("DOMContentLoaded", () => {
+            const savedCount = localStorage.getItem("cartCount");
+            if (savedCount) {
+              document.querySelector(".cart-count").textContent = savedCount;
+            }
+          });
+          function scrollToFirstProduct() {
+            const isMobile = window.innerWidth <= 768;
+            
+            // پیدا کردن اولین محصول
+            const firstProduct = document.querySelector('.product-card');
+            
+            if (firstProduct) {
+              const headerHeight = document.querySelector('nav')?.offsetHeight || 80;
+              const elementPosition = firstProduct.getBoundingClientRect().top;
+              const offsetPosition = elementPosition + window.pageYOffset - headerHeight - (isMobile ? 20 : 10);
+              
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+            }
+          }
+          // Filter products
+          function filterProducts() {
+              // ریست به صفحه اول
+              currentPage = 1;
+              
+              filteredProducts = productFromServer.filter((product) => {
+                  // Get the effective price
+                  const effectivePrice = product.offerPrice || product.price;
+
+                  // Category filter
+                  if (selectedCategories.length > 0) {
+                      const productCategories = product.category || [];
+                      const hasMatchingCategory = productCategories.some(cat =>
+                          selectedCategories.includes(cat.name)
+                      );
+                      if (!hasMatchingCategory) return false;
+                  }
+
+                  // Brand filter
+                  if (selectedBrands.length > 0) {
+                      let productBrand = null;
+                      if (product.brand && typeof product.brand === 'object') {
+                          productBrand = product.brand.name;
+                      } else if (product.brand && typeof product.brand === 'string') {
+                          productBrand = product.brand;
+                      } else if (product.brandName) {
+                          productBrand = product.brandName;
+                      }
+                      
+                      if (!productBrand || !selectedBrands.includes(productBrand)) {
+                          return false;
+                      }
+                  }
+
+                  // Price filter
+                  if (effectivePrice > maxPrice) {
+                      return false;
+                  }
+
+                  // Search filter
+                  if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                      !product.lilDescription.toLowerCase().includes(searchQuery.toLowerCase())) {
+                      return false;
+                  }
+
+                  return true;
+              });
+
+              // مرتب‌سازی
+              switch (sortBy) {
+                  case "price-low":
+                      filteredProducts.sort((a, b) => (a.offerPrice || a.price) - (b.offerPrice || b.price));
+                      break;
+                  case "price-high":
+                      filteredProducts.sort((a, b) => (b.offerPrice || b.price) - (a.offerPrice || a.price));
+                      break;
+                  case "newest":
+                      filteredProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                      break;
+                  case "rating":
+                      filteredProducts.sort((a, b) => b.rating - a.rating);
+                      break;
+                  default:
+                      filteredProducts.sort((a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum);
+              }
+
+              // صفحه‌بندی مجدد
+              paginateProducts();
+              renderProducts();
+
+              setTimeout(() => {
+                  scrollToFirstProduct();
+              }, 100);
+          }
+
+          function paginateProducts() {
+              const startIndex = (currentPage - 1) * productsPerPage;
+              const endIndex = startIndex + productsPerPage;
+              displayedProducts = filteredProducts.slice(startIndex, endIndex);
+              
+              // این خط رو اضافه کن - مطمئن شو currentPage از کل صفحات بیشتر نباشه
+              const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+              if (currentPage > totalPages && totalPages > 0) {
+                  currentPage = totalPages;
+                  // دوباره محاسبه کن
+                  const newStartIndex = (currentPage - 1) * productsPerPage;
+                  const newEndIndex = newStartIndex + productsPerPage;
+                  displayedProducts = filteredProducts.slice(newStartIndex, newEndIndex);
+              }
+          }
+          
+            document.addEventListener('DOMContentLoaded', function() {
+              const seoContent = document.getElementById('seoContent');
+              const seoToggleBtn = document.getElementById('seoToggleBtn');
+              const seoSection = document.getElementById('seoSection');
+              
+              if (!seoToggleBtn || !seoContent) return;
+              
+              // اول مخفی کن
+              seoContent.style.maxHeight = '120px';
+              seoContent.style.overflow = 'hidden';
+              seoContent.style.transition = 'max-height 0.5s ease';
+              
+              const fullHeight = seoContent.scrollHeight;
+              
+              if (fullHeight <= 120) {
+                seoToggleBtn.style.display = 'none';
+                return;
+              }
+              
+              let isExpanded = false;
+              
+              seoToggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                isExpanded = !isExpanded;
+                
+                if (isExpanded) {
+                  seoContent.style.maxHeight = fullHeight + 'px';
+                  this.innerHTML = '<span>کمتر بخوانید</span> <i class="fas fa-chevron-up"></i>';
+                } else {
+                  seoContent.style.maxHeight = '120px';
+                  this.innerHTML = '<span>بیشتر بخوانید</span> <i class="fas fa-chevron-down"></i>';
+                  seoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              });
+            });
+
+
+          // Event listeners
+          document.addEventListener("DOMContentLoaded", function () {
+            const priceRangee = document.getElementById('price-range');
+            if (priceRangee) {
+                priceRangee.min = minGlobalPrice;
+                priceRangee.max = maxGlobalPrice;
+                priceRangee.value = maxGlobalPrice;
+                
+                document.getElementById('min-price-display').textContent = formatPrice(minGlobalPrice) + ' تومان';
+                document.getElementById('max-price-display').textContent = formatPrice(maxGlobalPrice) + ' تومان';
+                document.getElementById('current-price').textContent = `تا ${formatPrice(maxGlobalPrice)} تومان`;
+            }
+            initializeProducts();
+            // Initial render
+            renderProducts();
+
+            // View toggle buttons
+            document
+              .getElementById("grid-view")
+              .addEventListener("click", function () {
+                currentView = "grid";
+                this.classList.add("bg-[#636337]/10");
+                this.classList.remove("bg-gray-100");
+                document.getElementById("list-view").classList.add("bg-gray-100");
+                document
+                  .getElementById("list-view")
+                  .classList.remove("bg-[#636337]/10");
+                renderProducts();
+              });
+
+            document
+              .getElementById("list-view")
+              .addEventListener("click", function () {
+                currentView = "list";
+                this.classList.add("bg-[#636337]/10");
+                this.classList.remove("bg-gray-100");
+                document.getElementById("grid-view").classList.add("bg-gray-100");
+                document
+                  .getElementById("grid-view")
+                  .classList.remove("bg-[#636337]/10");
+                renderProducts();
+              });
+
+            // Sort dropdown
+            document
+              .getElementById("sort-select")
+              .addEventListener("change", function () {
+                sortBy = this.value;
+                filterProducts();
+                showNotification("محصولات مرتب شدند!");
+              });
+
+            // Search input
+            document
+              .getElementById("search-input")
+              .addEventListener("input", function () {
+                searchQuery = this.value;
+                filterProducts();
+              });
+
+            // Price range slider
+            const priceRange = document.getElementById("price-range");
+            const currentPriceDisplay = document.getElementById("current-price");
+
+            priceRange.addEventListener("input", function () {
+              maxPrice = parseInt(this.value);
+              currentPriceDisplay.textContent = `تا ${formatPrice(maxPrice)} تومان`;
+              filterProducts();
+            });
+
+            // Category filters
+            document.querySelectorAll(".category-chip").forEach((chip) => {
+              chip.addEventListener("click", function () {
+                const category = this.dataset.category;
+                if (selectedCategories.includes(category)) {
+                  selectedCategories = selectedCategories.filter(
+                    (c) => c !== category
+                  );
+                  this.classList.remove("active");
+                } else {
+                  selectedCategories.push(category);
+                  this.classList.add("active");
+                }
+                filterProducts();
+
+                window.scrollTo({ top: 380, behavior: 'smooth' });
+              });
+            });
+
+            // Brand filters
+            document.querySelectorAll(".brand-filter").forEach((filter) => {
+              filter.addEventListener("click", function () {
+                const brand = this.dataset.brand;
+                if (selectedBrands.includes(brand)) {
+                  selectedBrands = selectedBrands.filter((b) => b !== brand);
+                  this.classList.remove("bg-purple-100");
+                  this.classList.add("bg-white/70");
+                } else {
+                  selectedBrands.push(brand);
+                  this.classList.add("bg-purple-100");
+                  this.classList.remove("bg-white/70");
+                }
+                filterProducts();
+
+                window.scrollTo({ top: 380, behavior: 'smooth' });
+              });
+            });
+
+            // Apply filters button
+            document
+              .getElementById("apply-filters")
+              .addEventListener("click", function () {
+                filterProducts();
+                showNotification("فیلترها با موفقیت اعمال شدند!");
+              });
+          });
+          // مدیریت پاپ‌آپ احراز هویت
+                const authButton = document.getElementById("user-auth-button");
+                const authPopup = document.getElementById("auth-popup");
+
+                authButton.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  authPopup.classList.remove("hidden");
+                  switchTab("login");
+                });
+
+                authPopup.addEventListener("click", function (e) {
+                  if (e.target === authPopup) {
+                    authPopup.classList.add("hidden");
+                  }
+                });
+
+                // Tab Switching
+                const tabs = {
+                  login: document.getElementById("login-tab"),
+                  register: document.getElementById("register-tab"),
+                  forgot: document.getElementById("forgot-tab"),
+                };
+
+                const contents = {
+                  login: document.getElementById("login-content"),
+                  register: document.getElementById("register-content"),
+                  forgot: document.getElementById("forgot-content"),
+                };
+
+                function switchTab(activeTab) {
+                  Object.values(tabs).forEach((tab) => {
+                    tab.classList.remove("border-pink-500", "text-pink-500");
+                    tab.classList.add("text-gray-500");
+                  });
+
+                  Object.values(contents).forEach((content) => {
+                    content.classList.remove("active");
+                  });
+
+                  tabs[activeTab].classList.add(
+                    "border-pink-500",
+                    "text-pink-500"
+                  );
+                  tabs[activeTab].classList.remove("text-gray-500");
+                  contents[activeTab].classList.add("active");
+                }
+
+                tabs.login.addEventListener("click", () => switchTab("login"));
+                tabs.register.addEventListener("click", () =>
+                  switchTab("register")
+                );
+                tabs.forgot.addEventListener("click", () => switchTab("forgot"));
+
+                // Improved OTP input handling (LTR focus movement)
+                function getOtpValue(containerSelector) {
+                  const inputs = Array.from(
+                    document.querySelectorAll(`${containerSelector} .otp-input`)
+                  );
+                  return inputs.map((input) => input.value).join("");
+                }
+
+                // Registration Process
+                const registerForm = document.getElementById("register-form");
+                const registerStep1 = document.getElementById("register-step-1");
+                const registerStep2 = document.getElementById("register-step-2");
+                const registerPhoneDisplay = document.getElementById(
+                  "register-phone-display"
+                );
+
+
+                  registerForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const fullName = document.getElementById("register-name").value
+                    const mobile = document.getElementById("register-phone").value.trim();
+                    const email = document.getElementById("register-email").value.trim();
+                    const password = document.getElementById("register-password").value;
+                    const confirmPassword = document.getElementById("register-confirm-password").value;
+
+
+                    const iranMobileRegex = /^09\d{9}$/;
+                    const emailRegex = /^\S+@\S+\.\S+$/;
+
+
+                        if (fullName.length < 3) {
+                        showNotificationInPopUp("نام کامل باید حداقل ۳ کاراکتر باشد", 'error');
+                        return;
+                      }
+
+                      // ✅ Mobile number format
+                      if (!iranMobileRegex.test(mobile)) {
+                        showNotificationInPopUp("شماره موبایل وارد شده معتبر نیست (مثال: 09123456789)", 'error');
+                        return;
+                      }
+
+                      // ✅ Email (if entered)
+                      if (email && !emailRegex.test(email)) {
+                        showNotificationInPopUp("ایمیل وارد شده معتبر نیست", 'error');
+                        return;
+                      }
+
+                      // ✅ Password rules
+                      if (password.length < 8) {
+                        showNotificationInPopUp("رمز عبور باید حداقل ۸ کاراکتر باشد", 'error');
+                        return;
+                      }
+
+                      if (password !== confirmPassword) {
+                        showNotificationInPopUp("رمز عبور و تکرار آن یکسان نیستند", 'error');
+                        return;
+                      }
+
+
+                    const formDataRegister = new FormData(registerForm);
+                    const phone = document.getElementById("register-phone").value;
+                    registerPhoneDisplay.textContent = phone;
+                    registerStep1.classList.remove("active");
+                    registerStep2.classList.add("active");
+                    startCountdown("register-resend-timer", 120);
+                    setupOtpInputs("#register-step-2");
+
+                    fetch("/api/mobile/sendOtp", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ mobile: phone }),
+                    })
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data.success) {
+                          // Only run this if otp was successful
+                          // otp verification form
+                          const registerVerificationForm = document.getElementById(
+                            "register-verification-form"
+                          );
+
+                          registerVerificationForm.addEventListener(
+                            "submit",
+                            function (e) {
+                              e.preventDefault();
+                              const otpValue = getOtpValue("#register-step-2");
+                              const reversedOtpValue = otpValue
+                                .split("")
+                                .reverse()
+                                .join("");
+                              fetch("/api/mobile/verifyOtp", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  mobile: phone,
+                                  otp: reversedOtpValue,
+                                }),
+                              })
+                                .then((res) => res.json())
+                                .then((data) => {
+                                  if (data.success) {
+                                    fetch("/api/authentication/signUp", {
+                                      method: "POST",
+                                      body: formDataRegister,
+                                    })
+                                      .then((res) => res.json())
+                                      .then((data) => {
+                                        if (data.success) {
+                                          // Only run this if registration was successful
+                                          showNotification(data.message, 'success');
+                                          setTimeout(() => {
+                                            location.reload();
+                                          }, 800);
+                                        } else {
+                                          // Show error message
+                                          showNotificationInPopUp(data.message, 'error');
+                                        }
+                                      })
+                                      .catch((err) => {
+                                        console.error("Error:", err);
+                                        showNotificationInPopUp(data.message, 'error');
+                                      });
+                                    authPopup.classList.add("hidden");
+                                  } else {
+                                    showNotificationInPopUp(data.message, 'error');
+                                  }
+                                })
+                                .catch((err) => {
+                                  console.error("Error:", err);
+                                  showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                                });
+                            }
+                          );
+                        } else {
+                          // Show error message
+                          showNotificationInPopUp(data.message, 'error')
+                        }
+                      })
+                      .catch((err) => {
+                        console.error("Error:", err);
+                        showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error')
+                      });
+                  });
+
+                document
+                  .getElementById("register-back-btn")
+                  .addEventListener("click", function () {
+                    registerStep2.classList.remove("active");
+                    registerStep1.classList.add("active");
+                  });
+
+                // Forgot Password Process
+                const forgotForm = document.getElementById("forgot-form");
+                const forgotStep1 = document.getElementById("forgot-step-1");
+                const forgotStep2 = document.getElementById("forgot-step-2");
+                const forgotStep3 = document.getElementById("forgot-step-3");
+                const forgotPhoneDisplay = document.getElementById(
+                  "forgot-phone-display"
+                );
+
+                forgotForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  const phone = document.getElementById("forgot-phone").value;
+                  forgotPhoneDisplay.textContent = phone;
+                  forgotStep1.classList.remove("active");
+                  forgotStep2.classList.add("active");
+                  startCountdown("forgot-resend-timer", 120);
+                  setupOtpInputs("#forgot-step-2"); // این خط را اضافه کنید
+                });
+
+                document
+                  .getElementById("forgot-back-btn")
+                  .addEventListener("click", function () {
+                    forgotStep2.classList.remove("active");
+                    forgotStep1.classList.add("active");
+                  });
+                function setupOtpInputs(containerSelector) {
+                  const inputs = Array.from(
+                    document.querySelectorAll(`${containerSelector} .otp-input`)
+                  );
+
+                  // فوکوس روی آخرین اینپوت (راست‌ترین)
+                  inputs[inputs.length - 1].focus();
+
+                  inputs.forEach((input, index) => {
+                    // حرکت به چپ هنگام وارد کردن عدد
+                    input.addEventListener("input", function () {
+                      if (this.value.length === 1) {
+                        if (index > 0) {
+                          inputs[index - 1].focus(); // حرکت به اینپوت قبلی (چپ)
+                        }
+                      }
+                    });
+
+                    // حرکت به راست هنگام پاک کردن
+                    input.addEventListener("keydown", function (e) {
+                      if (e.key === "Backspace" && this.value.length === 0) {
+                        if (index < inputs.length - 1) {
+                          inputs[index + 1].focus(); // حرکت به اینپوت بعدی (راست)
+                        }
+                      }
+                    });
+                  });
+                }
+
+                // Initialize OTP inputs for both forms
+                setupOtpInputs("#register-step-2");
+                setupOtpInputs("#forgot-step-2");
+
+                // Forgot password verification form
+                const forgotVerificationForm = document.getElementById(
+                  "forgot-verification-form"
+                );
+                forgotVerificationForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  forgotStep2.classList.remove("active");
+                  forgotStep3.classList.add("active");
+                });
+
+                // Login form submission
+                const loginForm = document.getElementById("login-form");
+
+                loginForm.addEventListener("submit", function (e) {
+                  const formDataLogin = new FormData(loginForm);
+                  e.preventDefault();
+                  fetch("/api/authentication/signIn", {
+                    method: "POST",
+                    body: formDataLogin,
+                  })
+                    .then((res) => res.json())
+                    .then((data) => {
+                      if (data.success) {
+                      // Only run this if registration was successful
+                      showNotification(data.message, 'success');
+                      setTimeout(() => {
+                        location.reload();
+                      }, 800);
+                      authPopup.classList.add("hidden");
+                      } else {
+                        // Show error message
+                        showNotificationInPopUp(data.message, 'error');
+                      }
+                    })
+                    .catch((err) => {
+                      console.error("Error:", err);
+                      showNotificationInPopUp("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
+                    });
+                });
+
+                // New password form submission
+                const newPasswordForm =
+                  document.getElementById("new-password-form");
+                newPasswordForm.addEventListener("submit", function (e) {
+                  e.preventDefault();
+                  showNotification("رمز عبور با موفقیت تغییر یافت!", 'success')
+                  authPopup.classList.add("hidden");
+                });
+
+                // Countdown timer function
+                function startCountdown(elementId, seconds) {
+                  const timerElement = document.getElementById(elementId);
+                  const timerSpan = timerElement.querySelector("span");
+
+                  let remaining = seconds;
+
+                  const interval = setInterval(() => {
+                    const minutes = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+
+                    timerSpan.textContent = `${minutes
+                      .toString()
+                      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+
+                    if (remaining <= 0) {
+                      clearInterval(interval);
+                      timerElement.innerHTML =
+                        '<a href="#" class="text-pink-500">ارسال مجدد کد</a>';
+                    }
+
+                    remaining--;
+                  }, 1000);
+                }
+
+                // Phone number input validation
+                const phoneInputs =
+                  document.querySelectorAll('input[type="tel"]');
+                phoneInputs.forEach((input) => {
+                  input.addEventListener("input", function (e) {
+                    this.value = this.value.replace(/\D/g, "");
+                  });
+
+                  input.addEventListener("blur", function () {
+                    if (!this.value.startsWith("0") && this.value.length > 0) {
+                      this.value = "0" + this.value;
+                    }
+                  });
+                });
+    </script>
+  </body>
+</html>

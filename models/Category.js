@@ -17,6 +17,20 @@ const categorySchema = mongoose.Schema(
       maxlength: [50, "نام نمی‌تواند بیشتر از ۵۰ کاراکتر باشد"],
       minlength: [2, "نام نمی‌تواند کمتر از ۲ کاراکتر باشد"],
     },
+      metaDescription: {
+        type: String,
+        maxlength: [160, "توضیحات متا نمی‌تواند بیشتر از ۱۶۰ کاراکتر باشد"],
+        trim: true
+      },
+      metaTitle: {
+        type: String,
+        maxlength: [60, "عنوان متا نمی‌تواند بیشتر از ۶۰ کاراکتر باشد"],
+        trim: true
+      },
+      metaKeywords: {
+        type: String,
+        trim: true
+      },
     slug: {
       type: String,
       immutable: true,
@@ -164,11 +178,17 @@ categorySchema.virtual("children", {
   foreignField: "parentId",
 });
 
-categorySchema.virtual("productCount", {
+categorySchema.virtual("publishedProducts", {
   ref: "Product",
   localField: "_id",
   foreignField: "category",
-  count: true,
+  justOne: false,
+  match: { isPublished: true }
+});
+
+// سپس یک virtual دیگر برای count
+categorySchema.virtual("productCount").get(function() {
+  return this.publishedProducts ? this.publishedProducts.length : 0;
 });
 
 categorySchema.index({ name: "text", description: "text" });

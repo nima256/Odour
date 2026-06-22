@@ -64,11 +64,9 @@ const userSchema = new mongoose.Schema(
         },
         selectedColor: {
           type: String,
-          required: true,
         },
         selectedSize: {
           type: String,
-          required: true,
         },
       },
     ],

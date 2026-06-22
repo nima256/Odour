@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 const User = require("../models/User");
+const Category = require("../models/Category");
 const DiscountCode = require("../models/DiscountCode");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 const multer = require("multer");
@@ -10,7 +11,13 @@ const Product = require("../models/Product");
 const { body, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const ZarinPal = require("zarinpal-checkout");
-const zarinpal = ZarinPal.create("4da16f0c-eb42-4064-bf75-22a4b53e2b74", false);
+const https = require("https");
+const MERCHANT_ID = "4da16f0c-eb42-4064-bf75-22a4b53e2b74";
+const SANDBOX = process.env.ZARINPAL_SANDBOX === 'true' ? true : false;
+
+const zarinpal = ZarinPal.create(MERCHANT_ID, SANDBOX);
+
+const ADMIN_MOBILE = "09014968828";
 
 // For access to req.body
 router.use(express.json());
@@ -29,6 +36,55 @@ const errorResponse = (res, status, message, details = {}) => {
     ...details,
   });
 };
+
+const sendSms = (mobile, message) => {
+  return new Promise((resolve, reject) => {
+    // اگر شماره موبایل نامعتبر باشد
+    if (!mobile || mobile.length !== 11) {
+      return reject(new Error("شماره موبایل نامعتبر است"));
+    }
+
+    const data = JSON.stringify({
+      bodyId: 347717,
+      to: mobile,
+      args: [message], // پیام به عنوان آرگومان ارسال می‌شود
+    });
+
+    const options = {
+      hostname: "console.melipayamak.com",
+      port: 443,
+      path: "/api/send/shared/b38b715606c847b491c032790a75c7d8",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": Buffer.byteLength(data),
+      },
+    };
+
+    const reqSms = https.request(options, (smsRes) => {
+      let responseData = "";
+      smsRes.on("data", (d) => {
+        responseData += d;
+      });
+
+      smsRes.on("end", () => {
+        if (smsRes.statusCode === 200) {
+          resolve({ success: true, data: responseData });
+        } else {
+          reject(new Error(`خطا در ارسال پیامک: ${smsRes.statusCode}`));
+        }
+      });
+    });
+
+    reqSms.on("error", (error) => {
+      reject(error);
+    });
+
+    reqSms.write(data, "utf8");
+    reqSms.end();
+  });
+};
+
 
 router.post(
   "/",
@@ -63,12 +119,12 @@ router.post(
       const productsForOrder = await Promise.all(
         user.cart.map(async (item) => {
           const product = await Product.findById(item.productId);
-          if (!product || product.stock < item.quantity) {
+          if (!product || product.countInStock < item.quantity) {
             unavailableProducts.push({
               productId: item.productId,
               name: product?.name || "نامعلوم",
               requested: item.quantity,
-              available: product?.stock || 0,
+              available: product?.countInStock || 0,
             });
             return null;
           }
@@ -81,8 +137,8 @@ router.post(
             quantity: item.quantity,
             priceAtPurchase: price,
             nameAtPurchase: product.name,
-            selectedColor: item.selectedColor, // اضافه کردن رنگ انتخاب شده
-            selectedSize: item.selectedSize, // اضافه کردن سایز انتخاب شده
+            selectedColor: item.selectedColor || null, 
+            selectedSize: item.selectedSize || null, 
           };
         })
       );
@@ -164,7 +220,7 @@ router.post(
           user.cart.map((item) =>
             Product.updateOne(
               { _id: item.productId._id },
-              { $inc: { stock: -item.quantity } }
+              { $inc: { countInStock: -item.quantity } }
             )
           )
         );
@@ -176,11 +232,26 @@ router.post(
         if (req.session.OrderNum) {
           delete req.session.OrderNum;
         }
+        
+        const fullName = user.fullName || 'کاربر مهمان';
+        const phoneNumber = user.mobile || '';
+        
+        // محدودیت کاراکتر Description در زرین‌پال معمولاً 255 کاراکتر است
+        let description = `سفارش ${order.OrderNum} - خریدار: ${fullName}`;
+        if (phoneNumber) {
+          description += ` - تلفن: ${phoneNumber}`;
+        }
+        
+        // اگر description太长، کوتاه‌ترش کن
+        if (description.length > 250) {
+          description = `سفارش ${order.OrderNum} - ${fullName.substring(0, 50)}`;
+        }
+
 
         const payment = await zarinpal.PaymentRequest({
           Amount: order.totalPrice,
-          CallbackURL: "http://localhost:7000/api/order/verify",
-          Description: `سفارش ${order.OrderNum}`,
+          CallbackURL: `${process.env.SITE_URL || 'http://localhost:7000'}/api/order/verify`,
+          Description: description,
           Email: user.email,
           Mobile: user.mobile,
         });
@@ -303,11 +374,62 @@ router.get("/verify", async (req, res) => {
 });
 
 router.get("/payment-success", async (req, res) => {
-  res.render("PaymentSuccess", { OrderNum: req.session.OrderNum });
+    const user = await User.findById(req.session.userId)
+      .populate("cart.productId")
+      .populate("orders");
+
+    const cartCount = user?.cart?.length || 0;
+    const orderNum = req.query.orderNum || req.session.OrderNum;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+ res.render("PaymentSuccess", { OrderNum: orderNum , menuCategories, user, cartCount});
 });
 
 router.get("/payment-failed", async (req, res) => {
-  res.render("PaymentFailed", { OrderNum: req.session.OrderNum });
+    const user = await User.findById(req.session.userId)
+      .populate("cart.productId")
+      .populate("orders");
+
+    const cartCount = user?.cart?.length || 0;
+    
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+  res.render("PaymentFailed", { OrderNum: req.session.OrderNum, menuCategories, user ,cartCount });
 });
 
 module.exports = router;

@@ -3,15 +3,23 @@ const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
-const flash = require("connect-flash");
+const flash = require("connect-flash"); 
 const fs = require("fs");
-const MongoStore = require("connect-mongo");
 const { SitemapStream, streamToPromise } = require("sitemap");
 const { createGzip } = require("zlib");
-const ZarinPal = require("zarinpal-checkout");
-const zarinpal = ZarinPal.create("ZP.1722858", false);
+const Visit = require("./models/Visit");
+const crypto = require("crypto"); 
+const compression = require('compression');
+ 
+function getPersianDate(date = new Date()) {
+  const year = date.toLocaleDateString('fa-IR', { year: 'numeric' });
+  const month = date.toLocaleDateString('fa-IR', { month: 'numeric' });
+  const day = date.toLocaleDateString('fa-IR', { day: 'numeric' });
+  return `${year}-${month}-${day}`;
+}
 
 require("dotenv").config();
 
@@ -20,18 +28,37 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Public folder for css js font and etc.
-app.use(express.static("public/"));
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+app.use(express.static(path.join(__dirname, 'public/'), {
+  maxAge: '30d',
+  immutable: true
+}));
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
+  maxAge: '7d',  // 7 روز برای آپلودها
+  immutable: true
+}));
+
+app.use(compression({
+  level: 6, 
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.path.match(/\.(css|js|html|svg|json|xml)$/)) {
+      return true;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
-// For file uploads using multer or similar
 app.use(express.raw({ limit: "50mb" }));
 
-process.env.BSON_BUFFER_SIZE = 1024 * 1024 * 50; // 50MB
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
 
-// Middlewares
+process.env.BSON_BUFFER_SIZE = 1024 * 1024 * 50; // 50MB
 
 // Models
 const Product = require("./models/Product");
@@ -41,42 +68,39 @@ const Weblog = require("./models/Weblog");
 const User = require("./models/User");
 
 // For production
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key-change-this",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.DB_URL,
+      ttl: 24 * 60 * 60, // 24 ساعت
+      autoRemove: 'native'
+    }),
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // فقط HTTPS در production
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 ساعت
+    },
+    name: 'sessionId' // نام کوکی
+  })
+);
+
+// Basic Setup
 // app.use(
 //   session({
-//     secret: process.env.SESSION_SECRET || 'fallback-secret-but-warn',
+//     secret: "randomguys",
 //     resave: false,
 //     saveUninitialized: false,
 //     cookie: {
 //       httpOnly: true,
-//       secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-//       sameSite: 'strict',
-//       maxAge: 1000 * 60 * 60 * 2, // 2 hours
+//       secure: false,
+//       maxAge: 1000 * 60 * 60 * 1,
 //     },
-//     store: MongoStore.create({ // For production - stores sessions in DB
-//       mongoUrl: process.env.DB_URL,
-//       ttl: 14 * 24 * 60 * 60 // 14 days
-//     })
 //   })
 // );
-
-// // Warn if using default session secret
-// if (!process.env.SESSION_SECRET) {
-//   console.warn('WARNING: Using default session secret - set SESSION_SECRET in production!');
-// }
-
-// Basic Setup
-app.use(
-  session({
-    secret: "randomguys",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: false,
-      maxAge: 1000 * 60 * 60 * 1,
-    },
-  })
-);
 
 app.use(
   helmet({
@@ -85,39 +109,126 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
           "https://cdn.tailwindcss.com",
           "https://cdn.quilljs.com",
           "https://cdn.jsdelivr.net",
-          "'unsafe-inline'",
+          "https://unpkg.com",
+          "https://cdnjs.cloudflare.com",
+          "https://trustseal.enamad.ir",
+          "https://www.zarinpal.com",
+          "https://sandbox.zarinpal.com",
+          "https://payment.zarinpal.com",
+          "https://*.enamad.ir",  // اضافه کن
+          "https://enamad.ir"      // اضافه کن
         ],
         styleSrc: [
           "'self'",
+          "'unsafe-inline'",
           "https://cdn.tailwindcss.com",
           "https://cdnjs.cloudflare.com",
           "https://fonts.googleapis.com",
           "https://cdn.quilljs.com",
-          "'unsafe-inline'",
+          "https://unpkg.com",
+          "https://cdn.jsdelivr.net",
+          "https://trustseal.enamad.ir",
+          "https://*.enamad.ir",
+          "https://fonts.googleapis.com/css2"  // اضافه کن
         ],
         fontSrc: [
           "'self'",
           "data:",
           "https://cdnjs.cloudflare.com",
           "https://fonts.gstatic.com",
+          "https://unpkg.com",
+          "https://fonts.googleapis.com"  // اضافه کن
         ],
-        formAction: ["'self'", "https://www.zarinpal.com"],
-        frameSrc: ["https://www.zarinpal.com"],
-        imgSrc: ["'self'", "data:", "https:"],
         connectSrc: [
           "'self'",
-          "https://www.zarinpal.com", // اضافه کردن زرین‌پال
-          "https://sandbox.zarinpal.com", // برای محیط تست
-          "https://payment.zarinpal.com", // برای API پرداخت
+          "https://www.zarinpal.com",
+          "https://sandbox.zarinpal.com",
+          "https://payment.zarinpal.com",
+          "https://api.odour.ir",
+          "https://trustseal.enamad.ir",
+          process.env.SITE_URL,
         ],
-        scriptSrcAttr: ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
+        imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],
+        frameSrc: ["https://www.zarinpal.com", "https://trustseal.enamad.ir"],
+        formAction: ["'self'", "https://www.zarinpal.com"],
+        scriptSrcAttr: ["'self'", "'unsafe-inline'"],
       },
     },
   })
 );
+
+app.enable('trust proxy');
+
+app.use((req, res, next) => {
+  const host = req.get('host');
+
+  if (host === 'odour.ir') {
+    return res.redirect(301, `https://www.odour.ir${req.originalUrl}`);
+  }
+
+  next();
+});
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.use(async (req, res, next) => {
+  if (
+    req.method === "GET" &&
+    !req.path.startsWith("/admin") &&
+    !req.path.startsWith("/api") &&
+    !req.path.includes(".") &&
+    req.path !== "/favicon.ico"
+  ) {
+    try {
+      const visitorId = crypto
+        .createHash("md5")
+        .update(`${req.ip}-${req.headers["user-agent"] || "unknown"}`)
+        .digest("hex");
+
+      // بررسی آخرین بازدید کاربر از این صفحه (در 5 دقیقه اخیر)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+      const lastVisit = await Visit.findOne({
+        path: req.path,
+        visitorId: visitorId,
+        visitTimestamp: { $gte: fiveMinutesAgo }
+      });
+
+      // اگر در 5 دقیقه اخیر بازدیدی نداشته، ثبت کن
+      if (!lastVisit) {
+        await Visit.create({
+          path: req.path,
+          title: req.originalUrl || req.path,
+          visitorId: visitorId,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"] || "",
+          referer: req.headers["referer"] || "",
+          visitDate: getPersianDate(),
+          visitTimestamp: new Date(),
+        });
+      }
+    } catch (error) {
+      console.error("Visit tracking error:", error.message);
+    }
+  }
+  next();
+});
+
 
 app.use(flash());
 
@@ -145,14 +256,18 @@ const mobileRoutes = require("./routes/mobile");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/order");
 const adminRoutes = require("./routes/admin");
+const weblogRoutes = require('./routes/weblog');
+const torobRoutes = require("./routes/torobRoutes");
 const { isLoggedIn } = require("./middlewares/isLoggedIn");
 
-app.use("/api/", apiLimiter);
+// app.use("/api/", apiLimiter);
 app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/order", orderRoutes);
+app.use('/', torobRoutes);
 app.use("/admin", adminRoutes);
+app.use('/', weblogRoutes);
 
 app.locals.toPersianDigitsForSizes = function (input) {
   if (input === undefined || input === null) return "";
@@ -179,37 +294,123 @@ function generateOrderNumber() {
   return `ORD-${randomNum}`;
 }
 
+async function getAllCategoryIds(parentId) {
+  let ids = [parentId];
+  const children = await Category.find({ parentId, isActive: true });
+  
+  for (const child of children) {
+    const childIds = await getAllCategoryIds(child._id);
+    ids = [...ids, ...childIds];
+  }
+  
+  return ids;
+}
+
+app.use(async (req, res, next) => {
+  // گرفتن 5 دسته‌بندی اصلی برای فوتر
+  const footerCategories = await Category.find({ 
+    categoryType: "product",
+    parentId: null,  // فقط دسته‌بندی‌های اصلی
+    isActive: true 
+  })
+  .limit(5)  // فقط 5 تا
+  .sort({ name: 1 });  // مرتب بر اساس نام
+  
+  res.locals.footerCategories = footerCategories;
+  next();
+});
+
+
 app.get("/", async (req, res) => {
-  const categories = await Category.find({ categoryType: "product" });
-  const products = await Product.find({ isPopular: true })
-    .sort({ createdAt: -1 })
-    .limit(4);
-  const isFeaturedProducts = await Product.find({ isFeatured: true })
-    .sort({ createdAt: -1 })
-    .limit(6);
-  const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
-  const user = await User.findById(req.session.userId);
+  try {
+    // ====== 1. دسته‌بندی‌های اصلی برای منوی نوبار (با ساختار درختی) ======
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+    
+    // ====== 2. دسته‌بندی‌های اصلی با تعداد محصولات (برای اسلایدر هوم پیج) ======
+    const parentCategories = await Category.find({ 
+      categoryType: "product",
+      parentId: null,
+      isActive: true 
+    });
+    
+    const products = await Product.find({ isPopular: true })
+      .sort({ createdAt: -1 })
+      .limit(4);
+      
+    const isFeaturedProducts = await Product.find({ isFeatured: true })
+      .sort({ createdAt: -1 })
+      .limit(6);
+      
+    const isNewProduct = await Product.find({ isNewProduct: true })
+      .sort({ createdAt: -1 })
+      .limit(4);
+      
+    const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
+    const user = await User.findById(req.session.userId);
+    const cartCount = user?.cart?.length || 0;
 
-  const cartCount = user?.cart?.length || 0;
+    // تابع بازگشتی برای گرفتن همه IDهای زیرمجموعه‌ها
+    async function getAllChildCategoryIds(categoryId) {
+      let ids = [categoryId];
+      const children = await Category.find({ parentId: categoryId, isActive: true });
+      
+      for (const child of children) {
+        const childIds = await getAllChildCategoryIds(child._id);
+        ids = [...ids, ...childIds];
+      }
+      
+      return ids;
+    }
 
-  const categoriesWithCounts = await Promise.all(
-    categories.map(async (cat) => {
-      const count = await Product.countDocuments({ category: cat._id });
-      return {
-        ...cat._doc, // spread the original category fields
-        productCount: count, // add a new property
-      };
-    })
-  );
+    // محاسبه تعداد محصولات هر دسته با احتساب زیرمجموعه‌ها
+    const categoriesWithCounts = await Promise.all(
+      parentCategories.map(async (cat) => {
+        const allCategoryIds = await getAllChildCategoryIds(cat._id);
+        const count = await Product.countDocuments({ 
+          category: { $in: allCategoryIds },
+          isOutOfStock: { $ne: true }
+        });
+        
+        return {
+          ...cat._doc,
+          productCount: count,
+        };
+      })
+    );
 
-  res.render("Home", {
-    categories: categoriesWithCounts,
-    products,
-    weblogs,
-    user,
-    cartCount,
-    isFeaturedProducts,
-  });
+    res.render("Home", {
+      menuCategories,  
+      categories: categoriesWithCounts,
+      products,
+      weblogs,
+      user,
+      cartCount,
+      isFeaturedProducts,
+      isNewProduct,
+    });
+    
+  } catch (error) {
+    console.error("Home page error:", error);
+    res.status(500).render("500", { message: "خطای سرور" });
+  }
 });
 
 const asyncHandler = (fn) => (req, res, next) =>
@@ -218,12 +419,33 @@ const asyncHandler = (fn) => (req, res, next) =>
 app.get(
   "/shop",
   asyncHandler(async (req, res) => {
-    const products = await Product.find({})
+    const products = await Product.find({ isPublished: true })
       .populate("category")
       .populate("brand");
     const categories = await Category.find({ categoryType: "product" });
     const brands = await Brand.find({});
     const user = await User.findById(req.session.userId);
+
+    // ====== 1. دسته‌بندی‌های اصلی برای منوی نوبار (با ساختار درختی) ======
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
 
     if (!products || !categories || !brands) {
       const error = new Error("خطا در بارگزاری فروشگاه");
@@ -233,10 +455,28 @@ app.get(
 
     const cartCount = user?.cart?.length || 0;
 
-    // count products for each category
+    // تابع بازگشتی برای گرفتن همه IDهای زیرمجموعه‌ها
+    async function getAllChildCategoryIds(categoryId) {
+      let ids = [categoryId];
+      const children = await Category.find({ parentId: categoryId, isActive: true });
+      
+      for (const child of children) {
+        const childIds = await getAllChildCategoryIds(child._id);
+        ids = [...ids, ...childIds];
+      }
+      
+      return ids;
+    }
+
+    // محاسبه تعداد محصولات هر دسته با احتساب زیرمجموعه‌ها
     const categoriesWithCounts = await Promise.all(
       categories.map(async (cat) => {
-        const count = await Product.countDocuments({ category: cat._id }); // Changed to "categories" array
+        const allCategoryIds = await getAllChildCategoryIds(cat._id);
+        const count = await Product.countDocuments({ 
+          category: { $in: allCategoryIds },
+          isOutOfStock: { $ne: true }
+        });
+        
         return {
           ...cat._doc,
           productCount: count,
@@ -250,6 +490,7 @@ app.get(
       brands,
       cartCount,
       user,
+      menuCategories,
     });
   })
 );
@@ -331,7 +572,7 @@ app.get("/api/products/filtered", async (req, res) => {
   }
 });
 
-app.get("/productDetails/:slug", async (req, res) => {
+app.get("/productDetails/:slug", async (req, res, next) => {
   try {
     const slug = req?.params?.slug;
     const user = await User.findById(req.session.userId);
@@ -343,14 +584,40 @@ app.get("/productDetails/:slug", async (req, res) => {
 
     const product = await Product.findOne({ slug });
     if (!product) {
-      const error = new Error("محصول یافت نشد");
-      error.statusCode = 404;
-      throw error;
+      // شاید این اسلاگ، اسلاگ قدیمی یک محصول باشد
+      const redirectedProduct = await Product.findOne({ oldSlugs: slug });
+      if (redirectedProduct) {
+        return res.redirect(301, `/productDetails/${redirectedProduct.slug}`);
+      }
+      return res.status(404).render("404"); // یا هر چیزی که الان برای ۴۰۴ داری
     }
+
 
     const cartCount = user?.cart?.length || 0;
 
-    res.render("ProductDetails", { product, user, cartCount });
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+    const priceInIRR = (product.offerPrice || product.price) * 10;
+
+    res.render("ProductDetails", { product, user, cartCount, menuCategories, priceInIRR });
   } catch (err) {
     next(err);
   }
@@ -394,6 +661,8 @@ app.get(
           weight: prod.weight,
           image: prod.images?.[0] || "",
           quantity: item.quantity,
+          selectedColor: item.selectedColor || "",
+          selectedSize: item.selectedSize || ""
         };
       })
       .filter((item) => item !== null);
@@ -416,6 +685,29 @@ app.get(
       req.session.OrderNum = generateOrderNumber();
     }
 
+
+   const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
     res.render("Cart", {
       cartItems,
       user,
@@ -424,19 +716,216 @@ app.get(
       discountAmount,
       finalTotal,
       discountCode: req.session.discount?.code || null,
+      cartCount,
+      menuCategories,
     });
   })
 );
 
 app.get("/weblog", async (req, res) => {
   try {
-    const weblogs = await Weblog.find({})
+    // دریافت مقالات با مرتب‌سازی جدیدترین اول
+    const weblogs = await Weblog.find({ isPublished: true })
       .populate("categories")
-      .populate("author");
-    res.render("Weblog", { weblogs }); // Render empty initially
+      .populate("author", "fullName")
+      .sort({ createdAt: -1 });  // جدیدترین اول
+    
+    // دریافت دسته‌بندی‌های وبلاگ (categoryType: "weblog")
+    const weblogCategories = await Category.find({ 
+      categoryType: "weblog",
+      isActive: true 
+    }).populate('children');
+    
+    const user = await User.findById(req.session.userId)
+      .populate("cart.productId")
+      .populate("orders");
+
+    const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+    let singlePost;
+
+    res.render("Weblog", {
+      weblogs,
+      weblogCategories,  // دسته‌بندی‌های وبلاگ
+      user, 
+      cartCount, 
+      menuCategories,
+      singlePost,
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).render("error", { message: "خطا در بارگزاری وبلاگ" });
   }
+});
+
+app.get("/about-us", async (req, res) => {
+  const user = await User.findById(req.session.userId)
+    .populate("cart.productId")
+    .populate("orders");
+
+  const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+  res.render("aboutus", {user, cartCount, menuCategories});
+});
+
+app.get("/connect-us", async (req, res) => {
+   const user = await User.findById(req.session.userId)
+    .populate("cart.productId")
+    .populate("orders");
+  
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+  const cartCount = user?.cart?.length || 0;
+
+  res.render("connect" , {user, cartCount, menuCategories});
+});
+
+app.get("/contact-us", async (req, res) => {
+  const user = await User.findById(req.session.userId)
+    .populate("cart.productId")
+    .populate("orders");
+
+  const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+  res.render("contact", {user, cartCount, menuCategories});
+});
+
+app.get("/terms-and-conditions", async (req, res) => {
+    const user = await User.findById(req.session.userId)
+    .populate("cart.productId")
+    .populate("orders");
+
+  const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+  res.render("terms", {user, cartCount, menuCategories});
+});
+
+app.get("/privacy-policy", async (req, res) => {
+   const user = await User.findById(req.session.userId)
+    .populate("cart.productId")
+    .populate("orders");
+
+  const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+  res.render("privacy", {user, cartCount, menuCategories});
 });
 
 app.get("/api/weblogs/:id/related", async (req, res) => {
@@ -453,6 +942,27 @@ app.get("/api/weblogs/:id/related", async (req, res) => {
     res.json(related);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/weblogs/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const weblog = await Weblog.findOne({ slug })
+      .populate("author", "fullName email")
+      .populate("categories", "name slug");
+    
+    if (!weblog) {
+      return res.status(404).json({ success: false, message: "مقاله یافت نشد" });
+    }
+    
+    res.json({
+      success: true,
+      weblog
+    });
+  } catch (error) {
+    console.error("Error fetching weblog:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -481,13 +991,267 @@ app.get("/userProfile", async (req, res) => {
   );
   const canceledOrders = user.orders.filter((o) => o.status === "لغو شده");
 
+  const cartCount = user?.cart?.length || 0;
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+
   res.render("UserProfile", {
     user,
     currentOrders,
     completedOrders,
     canceledOrders,
+    cartCount,
+    menuCategories
   });
 });
+
+app.get("/category/:slug", async (req, res) => {
+  try {
+    const user = await User.findById(req.session.userId)
+      .populate("cart.productId")
+      .populate("orders");
+
+    const cartCount = user?.cart?.length || 0;
+    const { slug } = req.params;
+    
+    const currentCategory = await Category.findOne({ 
+      slug: slug,
+      isActive: true 
+    }).populate('parentId');
+    
+    if (!currentCategory) {
+      return res.status(404).render("404", { message: "دسته‌بندی یافت نشد" });
+    }
+    
+    // تابع بازگشتی برای گرفتن همه زیرمجموعه‌ها
+    async function getAllChildCategories(parentId) {
+      const children = await Category.find({ parentId, isActive: true });
+      let allChildren = [...children];
+      
+      for (const child of children) {
+        const grandChildren = await getAllChildCategories(child._id);
+        allChildren = [...allChildren, ...grandChildren];
+      }
+      
+      return allChildren;
+    }
+    
+    const allChildCategories = await getAllChildCategories(currentCategory._id);
+    
+    // محاسبه تعداد محصولات برای هر زیرمجموعه
+    const childCategoriesWithCount = await Promise.all(
+      allChildCategories.map(async (cat) => {
+        let allChildIds = [cat._id];
+        
+        async function getChildIds(parentId) {
+          const children = await Category.find({ parentId, isActive: true });
+          for (const child of children) {
+            allChildIds.push(child._id);
+            await getChildIds(child._id);
+          }
+        }
+        
+        await getChildIds(cat._id);
+        
+        const productCount = await Product.countDocuments({
+          category: { $in: allChildIds },
+          isOutOfStock: { $ne: true }
+        });
+        
+        return {
+          ...cat.toObject(),
+          productCount
+        };
+      })
+    );
+    
+    // پیدا کردن مسیر دسته‌بندی (breadcrumb)
+    let breadcrumb = [];
+    let parent = currentCategory;
+    while (parent) {
+      breadcrumb.unshift({
+        name: parent.name,
+        slug: parent.slug
+      });
+      parent = parent.parentId;
+    }
+    
+    // پیدا کردن تمام IDهای دسته‌بندی (خودش + همه فرزندان)
+    let categoryIds = [currentCategory._id];
+    
+    async function getAllChildIds(parentId) {
+      const children = await Category.find({ parentId, isActive: true });
+      for (const child of children) {
+        categoryIds.push(child._id);
+        await getAllChildIds(child._id);
+      }
+    }
+    
+    await getAllChildIds(currentCategory._id);
+    
+    const products = await Product.find({
+      category: { $in: categoryIds },
+      isOutOfStock: { $ne: true },
+      isPublished: true
+    })
+      .populate("category")
+      .populate("brand")
+      .sort({ createdAt: -1 });
+    
+    const brands = await Brand.find({
+      _id: { $in: [...new Set(products.map(p => p.brand?._id || p.brand).filter(Boolean))] }
+    });
+
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+    
+    res.render("category", {
+      currentCategory,
+      childCategories: childCategoriesWithCount,
+      products,
+      brands,
+      allCategories: await Category.find({ categoryType: "product", parentId: null, isActive: true }),
+      breadcrumb,
+      path: `/category/${slug}`,
+      title: `${currentCategory.name} | فروشگاه`,
+      description: `خرید ${currentCategory.name}`,
+      user,
+      cartCount,
+      menuCategories
+    });
+    
+  } catch (error) {
+    console.error("Category page error:", error);
+    res.status(500).render("500", { message: "خطای سرور" });
+  }
+});
+
+function toPersianDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('fa-IR');
+}
+
+app.get('/weblog/:slug', async (req, res) => {
+  try {
+    const user = await User.findById(req.session.userId)
+      .populate("cart.productId")
+      .populate("orders");
+
+    const cartCount = user?.cart?.length || 0;
+    
+    const allCategories = await Category.find({ 
+      categoryType: "product",
+      isActive: true 
+    });
+    
+    // ساخت ساختار درختی برای منو
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
+    });
+    
+    const menuCategories = [];
+    allCategories.forEach(cat => {
+      if (cat.parentId && categoryMap[cat.parentId]) {
+        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
+      } else if (!cat.parentId) {
+        menuCategories.push(categoryMap[cat._id]);
+      }
+    });
+    const { slug } = req.params;
+    
+    // دریافت اطلاعات مقاله با اسلاگ مشخص
+    const post = await Weblog.findOne({ slug, isPublished: true })
+      .populate('categories')
+      .populate('author');
+    
+    if (!post) {
+      return res.status(404).render('404', { message: 'مقاله مورد نظر یافت نشد' });
+    }
+    
+    // افزایش بازدید
+    post.viewCount = (post.viewCount || 0) + 1;
+    await post.save();
+    
+    // دریافت مقالات مرتبط (دسته‌بندی مشابه)
+    let relatedPosts = [];
+    if (post.categories && post.categories.length > 0) {
+      const categoryIds = post.categories.map(cat => cat._id);
+      relatedPosts = await Weblog.find({
+        _id: { $ne: post._id },
+        categories: { $in: categoryIds },
+        isPublished: true
+      })
+      .limit(5)
+      .sort({ publishedAt: -1 });
+    }
+    
+    // اگر مقاله مرتبط کم بود، با جدیدترین مقالات پر کن
+    if (relatedPosts.length < 3) {
+      const extraPosts = await Weblog.find({
+        _id: { $ne: post._id },
+        isPublished: true
+      })
+      .limit(5 - relatedPosts.length)
+      .sort({ publishedAt: -1 });
+      
+      relatedPosts = [...relatedPosts, ...extraPosts];
+    }
+    
+    res.render('WeblogDetails', {
+      post,
+      relatedPosts,
+      title: post.title,
+      description: post.description,
+      menuCategories, 
+      user,
+      cartCount,
+      toPersianDate
+    });
+    
+  } catch (error) {
+    console.error('Error in weblog details route:', error);
+    res.status(500).render('error', { message: 'خطا در بارگذاری مقاله' });
+  }
+});
+
 
 app.get("/sitemap.xml", async (req, res) => {
   try {
@@ -561,8 +1325,8 @@ const connectWithRetry = async () => {
     });
     console.log("Connected To DB");
 
-    app.listen(process.env.PORT || 8000, () => {
-      console.log(`Server running on http://localhost:${process.env.PORT}`);
+    app.listen(process.env.PORT || 8080, () => {
+      console.log(`Server running on http://localhost:${process.env.PORT || 8080}`);
     });
   } catch (err) {
     console.error("Failed to connect to MongoDB - retrying in 5 sec", err);

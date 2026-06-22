@@ -3,32 +3,72 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>فروشگاه</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>فروشگاه | اودر</title>
     <meta
       name="description"
-      content="فروشگاه اینترنتی اودور منبع فروش محصولات شیگلم و فروش محصولات آرایشی"
-    />
-    <meta
-      name="keywords"
-      content="محصولات شیگلم, خرید فروش محصولات شیگلم , خرید محصولات شیگلم , محصولات آرایشی"
+      content="لیست کامل محصولات فروشگاه لوازم آرایشی بهداشتی اودر شامل محصولات آرایش صورت، چشم و لب"
     />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/tailwind.min.css">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/vazir-font/30.1.0/font-face.css"
     />
+    
+    <link rel="canonical" href="https://odour.ir/shop" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "همه محصولات آرایشی بهداشتی اودر",
+      "description": "لیست کامل محصولات فروشگاه لوازم آرایشی بهداشتی اودر شامل محصولات آرایش صورت، چشم و لب",
+      "url": "https://odour.ir/shop",
+      "numberOfItems": "<%= products.length %>",
+      "itemListElement": [
+        <% for(let i = 0; i < Math.min(products.length, 10); i++) { %>
+        {
+          "@type": "ListItem",
+          "position": <%= i+1 %>,
+          "url": "https://odour.ir/productDetails/<%= products[i].slug %>"
+        }<%= i < Math.min(products.length, 10)-1 ? ',' : '' %>
+        <% } %>
+      ]
+    }
+    </script>
+
+    <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined') { %>
+      <% if (currentPage > 1) { %>
+        <link rel="prev" href="https://odour.ir/shop?page=<%= currentPage - 1 %>" />
+      <% } %>
+      <% if (currentPage < totalPages) { %>
+        <link rel="next" href="https://odour.ir/shop?page=<%= currentPage + 1 %>" />
+      <% } %>
+    <% } %>
     <style>
-      body {
-        font-family: "Vazir", sans-serif;
-      }
+      @font-face {
+        font-family: "MyFont";
+        src: url("/fonts/Vazirmatn-Light.ttf");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+        }
+
+        body {
+        font-family: "MyFont", sans-serif;
+        scroll-behavior: smooth;
+        text-align: right;
+        background: #fffdf0;;
+        }
+
       .glass-effect {
-        background: rgba(255, 255, 255, 0.25);
+        background: rgba(255, 241, 219, 0.25);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(99, 99, 55, 0.18);
       }
       .product-card {
         background: linear-gradient(145deg, #ffffff, #f8fafc);
@@ -36,32 +76,33 @@
       }
       .product-card:hover {
         transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 25px 50px -12px rgba(99, 99, 55, 0.25);
       }
       .filter-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #636337 0%, #8a8a5a 100%);
         transition: all 0.3s ease;
       }
       .filter-btn:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        background: linear-gradient(135deg, #8a8a5a 0%, #636337 100%);
         transform: translateY(-2px);
       }
       .price-gradient {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        background: linear-gradient(135deg, #636337, #8a8a5a);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
       .category-chip {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        background: linear-gradient(135deg, #FFF1DB 0%, #fff7ef 100%);
         transition: all 0.3s ease;
         cursor: pointer;
+        border: 1px solid rgba(99, 99, 55, 0.1);
       }
       .category-chip:hover {
-        background: linear-gradient(135deg, #fed6e3 0%, #a8edea 100%);
+        background: linear-gradient(135deg, #fff7ef 0%, #FFF1DB 100%);
         transform: scale(1.05);
       }
       .category-chip.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #636337 0%, #8a8a5a 100%);
         color: white;
       }
       .floating-animation {
@@ -77,7 +118,7 @@
         }
       }
       .gradient-border {
-        background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+        background: linear-gradient(45deg, #636337, #8a8a5a, #a0a06a, #b8b87a);
         background-size: 400% 400%;
         animation: gradientShift 3s ease infinite;
       }
@@ -118,7 +159,7 @@
         appearance: none;
         height: 8px;
         border-radius: 5px;
-        background: linear-gradient(to right, #667eea, #764ba2);
+        background: linear-gradient(to right, #636337, #8a8a5a);
         outline: none;
       }
       .price-range-slider::-webkit-slider-thumb {
@@ -127,7 +168,7 @@
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background: #667eea;
+        background: #636337;
         cursor: pointer;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       }
@@ -135,38 +176,38 @@
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background: #667eea;
+        background: #636337;
         cursor: pointer;
         border: none;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       }
       .cart-button {
-        background-color: #2563eb;
+        background-color: #636337;
         color: white;
         padding: 1rem;
         border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 15px -3px rgba(99, 99, 55, 0.2);
         transition: all 0.3s;
         border: none;
         cursor: pointer;
       }
 
       .cart-button:hover {
-        background-color: #1d4ed8;
+        background-color: #4a4a2a;
         transform: scale(1.05);
       }
 
       .cart-button:focus {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 0 4px rgba(99, 99, 55, 0.5);
       }
 
       .cart-button.success {
-        background-color: #16a34a;
+        background-color: #4a4a2a;
       }
 
       .cart-button.success:hover {
-        background-color: #15803d;
+        background-color: #3a3a1f;
       }
 
       .icon {
@@ -207,7 +248,7 @@
         height: 2px;
         bottom: -4px;
         right: 50%;
-        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        background: linear-gradient(90deg, #636337, #8a8a5a);
         transition: all 0.3s ease;
       }
 
@@ -248,6 +289,92 @@
       .form-step {
         display: none;
       }
+      /* استایل اسکرول خودکار برای بخش برندها */
+.brands-scroll-auto {
+  max-height: 350px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #636337 #f0f0f0;
+}
+
+.brands-scroll-auto::-webkit-scrollbar {
+  width: 5px;
+}
+
+.brands-scroll-auto::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+.brands-scroll-auto::-webkit-scrollbar-thumb {
+  background: #636337;
+  border-radius: 10px;
+}
+
+/* اضافه کردن سایه ملایم در پایین برای نشان دادن اسکرول */
+.brands-scroll-auto {
+  position: relative;
+}
+
+.brands-scroll-auto::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+  pointer-events: none;
+  display: none;
+}
+
+.brands-scroll-auto:not(:hover)::after {
+  display: block;
+}
+@media (max-width: 640px) {
+  .brands-scroll-auto {
+    max-height: 250px;
+  }
+}
+/* استایل اسکرول برای دسته‌بندی‌ها */
+.categories-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-left: 4px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #636337 #e5e7eb;
+}
+
+/* استایل اسکرول بار برای مرورگرهای Webkit */
+.categories-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-thumb {
+  background: #636337;
+  border-radius: 10px;
+}
+
+.categories-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4a4a2a;
+}
+
+/* انیمیشن برای آیتم‌های دسته‌بندی */
+.category-chip {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.category-chip:hover {
+  transform: translateX(-5px);
+  background: linear-gradient(135deg, #fff7ef 0%, #FFF1DB 100%);
+}
 
       .tab-content.active,
       .form-step.active {
@@ -256,6 +383,8 @@
 
       input:focus {
         outline: none;
+        border-color: #636337;
+        box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
       }
 
       /* استایل کدهای تایید */
@@ -267,7 +396,10 @@
         border: 1px solid #d1d5db;
         border-radius: 0.5rem;
         direction: ltr;
-        /* این خط رو اضافه کنید */
+      }
+      .otp-input:focus {
+        border-color: #636337;
+        box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
       }
 
       /* انیمیشن پاپ‌آپ */
@@ -300,11 +432,11 @@
       }
 
       .cart-icon {
-        color: #333;
+        color: #636337;
       }
 
       .cart-icon:hover {
-        color: #007bff;
+        color: #4a4a2a;
       }
 
       .success-icon {
@@ -319,8 +451,315 @@
         width: 24px;
         height: 24px;
       }
+/* ترتیب المان‌ها در موبایل */
+/* جایگزین کدهای CSS که در انتهای استایل‌ها وجود دارد */
+/* ترتیب المان‌ها در موبایل */
+@media (max-width: 1280px) {
+  .responsive-filters-layout {
+    display: flex;
+    flex-direction: column !important;
+  }
+  
+  .filters-sidebar-mobile {
+    order: 2 !important;
+    width: 100% !important;
+    margin-top: 2rem !important;
+  }
+  
+  .products-grid-mobile {
+    order: 1 !important;
+    width: 100% !important;
+  }
+}
+/* استایل اسکرول برای بخش برندها */
+.brands-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-left: 8px;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #636337 #e5e7eb;
+}
+
+/* استایل اسکرول بار برای مرورگرهای Webkit (Chrome, Safari, Edge) */
+.brands-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-thumb {
+  background: #636337;
+  border-radius: 10px;
+}
+
+.brands-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #4a4a2a;
+}
+/* استایل جدید برای نمایش فیلترها در موبایل به صورت آکاردئونی */
+@media (max-width: 768px) {
+  .filters-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #636337 0%, #8a8a5a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  
+  .filters-toggle-btn i {
+    transition: transform 0.3s ease;
+  }
+  
+  .filters-toggle-btn.active i {
+    transform: rotate(180deg);
+  }
+  
+  .filters-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  .filters-content.show {
+    max-height: 2000px;
+  }
+  
+  .glass-effect {
+    position: relative;
+    margin-bottom: 20px;
+  }
+}
+
+/* مخفی کردن دکمه اسکرول در موبایل */
+@media (max-width: 768px) {
+  #scrollCategoriesLeft,
+  #scrollCategoriesRight {
+    display: none !important;
+  }
+  
+  #categoriesSlider {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .category-card {
+    width: calc(33.333% - 10.66px) !important;
+  }
+}
+
+/* بهبود فاصله‌ها در موبایل */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .product-card {
+    margin-bottom: 16px;
+  }
+  
+  .glass-effect {
+    padding: 16px;
+  }
+}
+    /* استایل بخش توضیحات سئو */
+
+.seo-fade {
+  position: relative;
+}
+
+.seo-fade:not(.expanded)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 60px;
+  background: linear-gradient(to top, white, transparent);
+  pointer-events: none;
+  border-radius: 0 0 16px 16px;
+}
+
+.seo-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #636337, #8a8a5a);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.seo-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(99, 99, 55, 0.4);
+}
+
+.seo-toggle-btn i {
+  transition: transform 0.3s ease;
+}
+
+.seo-toggle-btn.active i {
+  transform: rotate(180deg);
+}
+
+.cart-count {
+    top: -8px;
+    left: -8px;
+}
+
+h2 {
+    color: #6A1B9A;
+    padding-right: 15px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+h3 {
+    color: #9C7655;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+p {
+    margin-bottom: 15px;
+    text-align: justify;
+}
+strong {
+    color: #8B4513;
+    font-weight: bold;
+}
+hr {
+    margin: 30px 0;
+    border: 0;
+    height: 1px;
+    background: #ddd;
+}
+
     </style>
     <script>
+      // کد مدیریت نمایش فیلترها در موبایل
+document.addEventListener('DOMContentLoaded', function() {
+  // ایجاد دکمه toggle برای فیلترها در موبایل
+  const filtersContainer = document.querySelector('.glass-effect');
+  const filtersSidebar = document.querySelector('.xl\\:w-1\\/4');
+  const productsContainer = document.querySelector('.xl\\:w-3\\/4');
+  
+  if (window.innerWidth <= 768) {
+    createMobileFiltersToggle();
+  }
+  
+  window.addEventListener('resize', function() {
+    if (window.innerWidth <= 768) {
+      if (!document.querySelector('.filters-toggle-btn')) {
+        createMobileFiltersToggle();
+      }
+    } else {
+      const toggleBtn = document.querySelector('.filters-toggle-btn');
+      if (toggleBtn) {
+        toggleBtn.remove();
+        const filtersContent = document.querySelector('.filters-content');
+        if (filtersContent) {
+          filtersContent.classList.remove('show');
+          filtersContent.style.maxHeight = null;
+        }
+      }
+    }
+  });
+  
+  function createMobileFiltersToggle() {
+    // اگه دکمه قبلاً وجود داره، دوباره ایجاد نکن
+    if (document.querySelector('.filters-toggle-btn')) return;
+    
+    // گرفتن المان فیلترها
+    const filtersContainer = document.querySelector('.glass-effect');
+    if (!filtersContainer) return;
+    
+    // ذخیره محتوای اصلی فیلترها
+    const originalContent = filtersContainer.innerHTML;
+    
+    // ایجاد دکمه toggle
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'filters-toggle-btn';
+    toggleBtn.innerHTML = `
+      <span>
+        <i class="fas fa-filter ml-2"></i>
+        فیلترهای هوشمند
+      </span>
+      <i class="fas fa-chevron-down"></i>
+    `;
+    
+    // ایجاد کانتینر برای محتوای فیلترها
+    const filtersContent = document.createElement('div');
+    filtersContent.className = 'filters-content';
+    filtersContent.innerHTML = originalContent;
+    
+    // پاک کردن محتوای قبلی و اضافه کردن دکمه و محتوای جدید
+    filtersContainer.innerHTML = '';
+    filtersContainer.appendChild(toggleBtn);
+    filtersContainer.appendChild(filtersContent);
+    
+    // رویداد کلیک برای toggle
+    toggleBtn.addEventListener('click', function() {
+      this.classList.toggle('active');
+      filtersContent.classList.toggle('show');
+      
+      if (filtersContent.classList.contains('show')) {
+        filtersContent.style.maxHeight = filtersContent.scrollHeight + 'px';
+      } else {
+        filtersContent.style.maxHeight = null;
+      }
+    });
+    
+    // باز کردن خودکار فیلترها در حالت موبایل (اختیاری)
+    // setTimeout(() => {
+    //   toggleBtn.click();
+    // }, 100);
+  }
+  
+  // بهینه‌سازی اسکرول دسته‌بندی‌ها در موبایل
+  const categoriesSlider = document.getElementById('categoriesSlider');
+  if (categoriesSlider && window.innerWidth <= 768) {
+    let isScrolling = false;
+    let startX;
+    let scrollLeft;
+    
+    categoriesSlider.addEventListener('touchstart', (e) => {
+      isScrolling = true;
+      startX = e.touches[0].pageX - categoriesSlider.offsetLeft;
+      scrollLeft = categoriesSlider.scrollLeft;
+    });
+    
+    categoriesSlider.addEventListener('touchmove', (e) => {
+      if (!isScrolling) return;
+      e.preventDefault();
+      const x = e.touches[0].pageX - categoriesSlider.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      categoriesSlider.scrollLeft = scrollLeft - walk;
+    });
+    
+    categoriesSlider.addEventListener('touchend', () => {
+      isScrolling = false;
+    });
+  }
+});
       document.addEventListener("DOMContentLoaded", function () {
         const selectedCategory = localStorage.getItem("selectedCategory");
         if (selectedCategory) {
@@ -338,142 +777,262 @@
       });
     </script>
   </head>
-  <body
-    class="bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 min-h-screen"
-  >
-    <!-- Notification -->
-    <div
-      id="notification"
-      class="notification bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg"
-    >
-      <span id="notification-text">فیلتر اعمال شد!</span>
-    </div>
-    <nav
-      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
-    >
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <!-- Logo -->
-        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
-          <div class="h-full overflow-hidden flex items-center">
-            <img
-              src="logo.png"
-              alt="لوگوی اودور"
-              class="h-full w-auto object-contain"
-            />
-          </div>
-        </a>
+  <body class="min-h-screen">
+<%- include('./partials/navbar') %>
 
-        <!-- Desktop Menu -->
-        <div
-          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
-        >
-          <a
-            href="/"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >خانه</a
-          >
-          <a
-            href="/shop"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >فروشگاه</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >دسته‌بندی‌ها</a
-          >
-          <a
-            href="/weblog"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >وبلاگ</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >درباره ما</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >تماس با ما</a
-          >
-        </div>
 
-        <!-- Icons -->
-        <div
-          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
-        >
-          <div class="relative">
-            <button
-              onclick="window.location.href='/cart';"
-              class="relative text-gray-700 hover:text-pink-500 transition-colors"
-            >
-              <i class="fas fa-shopping-bag text-xl"></i>
-              <% if(user) { %>
-              <span
-                style="bottom: 15px; right: 7px"
-                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                ><%= toPersianDigitsForSizes(cartCount) %></span
-              >
-              <% } else {%><% } %>
-            </button>
-          </div>
-          <% if (!user) {%>
-          <button
-            id="user-auth-button"
-            class="text-gray-700 hover:text-pink-500 transition-colors"
-          >
-            <i class="fas fa-user text-xl"></i>
-          </button>
-          <% } else { %>
-          <a href="/userProfile">
-            <button class="text-gray-700 hover:text-pink-500 transition-colors">
-              <i class="fas fa-user text-xl"></i>
-            </button>
-          </a>
-          <% } %>
-        </div>
-      </div>
+<style>
+/* تنظیمات گرید محصولات در موبایل */
+@media (max-width: 768px) {
+  #products-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin-bottom: 0;
+  }
+  
+  .product-card .p-6 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px !important;
+  }
+  
+  /* دکمه سبد خرید همیشه در پایین کارت */
+  .product-card .p-6 > :last-child {
+    margin-top: auto;
+  }
+  
+  .product-card button {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px !important;
+    font-size: 13px;
+  }
+  
+  /* تنظیمات تصویر */
+  .product-card .w-full.h-64 {
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+  
+  .product-card .w-full.h-64 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* فونت‌های کوچک‌تر در موبایل */
+  .product-card h3 {
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .product-card .text-gray-600.text-sm {
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .product-card .price-gradient.font-bold.text-xl {
+    font-size: 14px !important;
+  }
+  
+  .product-card .text-gray-400.line-through.text-sm {
+    font-size: 10px !important;
+  }
+  
+  /* برچسب‌ها و تخفیف‌ها */
+  .product-card .absolute.top-4.right-4,
+  .product-card .absolute.top-4.left-4 {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+  
+  .product-card .absolute.bottom-4.left-4 {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+  
+  /* امتیاز */
+  .product-card .bg-white\/80.backdrop-blur-sm {
+    font-size: 10px !important;
+  }
+  
+  /* دسته‌بندی و برند */
+  .product-card .bg-orange-100 {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+}
+/* محدود کردن متن به دو خط */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
-      <!-- Mobile Menu -->
-      <div
-        id="mobile-menu"
-        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
-      >
-        <div class="flex flex-col px-4 py-2">
-          <a
-            href="/"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >خانه</a
-          >
-          <a
-            href="/shop"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >فروشگاه</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >دسته‌بندی‌ها</a
-          >
-          <a
-            href="/weblog"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >وبلاگ</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >درباره ما</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >تماس با ما</a
-          >
-        </div>
-      </div>
-    </nav>
+/* تنظیمات دسکتاپ */
+@media (min-width: 769px) {
+  .product-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-card .p-6 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-card .p-6 .mt-auto {
+    margin-top: auto;
+  }
+}
+  @media (min-width: 768px) {
+    .desktop-menu {
+      display: flex !important;
+    }
+    .hamburger {
+      display: none !important;
+    }
+  }
+  
+  .dropdown:hover .dropdown-menu {
+    display: block !important;
+  }
+  
+  .submenu-item:hover .submenu-level2 {
+    display: block !important;
+  }
+  
+  .dropdown-menu a:hover,
+  .submenu-level2 a:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .mobile-dropdown-menu,
+  .mobile-submenu-level2 {
+    transition: all 0.3s ease;
+  }
+  
+  /* استایل برای موبایل */
+  @media (max-width: 768px) {
+    .flex.items-center.space-x-4 {
+      gap: 12px;
+    }
+  }
+</style>
+
+<script>
+  // تابع کمکی برای اطمینان از وجود المنت‌ها
+  function waitForElement(selector, callback) {
+    if (document.querySelector(selector)) {
+      callback();
+      return;
+    }
+    const observer = new MutationObserver(function(mutations) {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        callback();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    // منوی همبرگری موبایل
+    var menuBtn = document.getElementById('menu-btn');
+    var mobileMenu = document.getElementById('mobile-menu');
+    
+    if (menuBtn && mobileMenu) {
+      menuBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
+          mobileMenu.style.display = 'flex';
+        } else {
+          mobileMenu.style.display = 'none';
+        }
+      };
+    }
+    
+    // ساب‌منوی موبایل
+    var mobileTriggers = document.querySelectorAll('.mobile-dropdown-trigger');
+    mobileTriggers.forEach(function(trigger) {
+      trigger.onclick = function(e) {
+        e.stopPropagation();
+        var menu = this.nextElementSibling;
+        var icon = this.querySelector('i');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+          menu.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        } else {
+          menu.style.display = 'none';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      };
+    });
+    
+    var subTriggers = document.querySelectorAll('.mobile-submenu-trigger');
+    subTriggers.forEach(function(trigger) {
+      trigger.onclick = function(e) {
+        e.stopPropagation();
+        var submenu = this.nextElementSibling;
+        var icon = this.querySelector('i');
+        if (submenu.style.display === 'none' || submenu.style.display === '') {
+          submenu.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        } else {
+          submenu.style.display = 'none';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      };
+    });
+    
+    // ====== بخش مهم: مدیریت پاپ‌آپ احراز هویت ======
+    var authButton = document.getElementById('user-auth-button');
+    var authPopup = document.getElementById('auth-popup');
+    
+    // اگر پاپ‌آپ در DOM وجود داشت، مدیریت کن
+    if (authButton && authPopup) {
+      authButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('دکمه کاربر کلیک شد - باز کردن پاپ‌آپ');
+        authPopup.classList.remove('hidden');
+        // تابع switchTab باید قبلاً تعریف شده باشد
+        if (typeof switchTab === 'function') {
+          switchTab('login');
+        }
+      });
+      
+      // بستن پاپ‌آپ با کلیک روی پس‌زمینه
+      authPopup.addEventListener('click', function(e) {
+        if (e.target === authPopup) {
+          authPopup.classList.add('hidden');
+        }
+      });
+    } else {
+      console.warn('دکمه user-auth-button یا پاپ‌آپ auth-popup در صفحه پیدا نشد!');
+      
+      // اگر پاپ‌آپ وجود نداشت، می‌توانیم یک هشدار نمایش دهیم یا لاگ بگیریم
+      if (!authButton) console.warn('عنصر با آیدی user-auth-button یافت نشد');
+      if (!authPopup) console.warn('عنصر با آیدی auth-popup یافت نشد');
+    }
+  });
+</script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const mobileMenuButton = document.getElementById("mobile-menu-button");
@@ -495,7 +1054,7 @@
       });
     </script>
     <br /><br /><br />
-    <div class="container mx-auto px-4 py-8">
+    <div style="padding-top: 0rem;" class="container mx-auto px-4 py-8">
       <div
         id="auth-popup"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
@@ -507,19 +1066,20 @@
           <div class="flex border-b">
             <button
               id="login-tab"
-              class="tab-btn flex-1 py-4 text-center font-medium text-pink-500 border-b-2 border-pink-500"
+              class="tab-btn flex-1 py-4 text-center font-medium transition-colors"
+              style="color: #636337; border-bottom: 2px solid #636337;"
             >
               ورود
             </button>
             <button
               id="register-tab"
-              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
+              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent"
             >
               ثبت نام
             </button>
             <button
               id="forgot-tab"
-              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500"
+              class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent"
             >
               بازیابی رمز
             </button>
@@ -544,7 +1104,7 @@
                   type="tel"
                   name="mobile"
                   id="login-phone"
-                  class="w-full px-4 py-3 rounded-lg border"
+                  class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                   placeholder="09xxxxxxxxx"
                   required
                 />
@@ -557,14 +1117,15 @@
                   type="password"
                   name="password"
                   id="login-password"
-                  class="w-full px-4 py-3 rounded-lg border"
+                  class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                   placeholder="رمز عبور خود را وارد کنید"
                   required
                 />
               </div>
               <button
                 type="submit"
-                class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                style="background-color: #636337; color: white; hover:background-color: #4a4a2a;"
               >
                 ورود
               </button>
@@ -592,7 +1153,7 @@
                     type="text"
                     name="fullName"
                     id="register-name"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="نام کامل خود را وارد کنید"
                     required
                   />
@@ -605,7 +1166,7 @@
                     type="tel"
                     name="mobile"
                     id="register-phone"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="09xxxxxxxxx"
                     required
                   />
@@ -618,7 +1179,7 @@
                     type="email"
                     name="email"
                     id="register-email"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="email@example.com"
                   />
                 </div>
@@ -632,7 +1193,7 @@
                     type="password"
                     name="password"
                     id="register-password"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="حداقل 8 کاراکتر"
                     required
                   />
@@ -647,14 +1208,15 @@
                     type="password"
                     name="confirmPassword"
                     id="register-confirm-password"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="تکرار رمز عبور"
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors mt-2"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300 mt-2"
+                  style="background-color: #636337; color: white; hover:background-color: #4a4a2a;"
                 >
                   ثبت نام
                 </button>
@@ -668,7 +1230,7 @@
               </h2>
               <p class="text-gray-600 text-center mb-5">
                 کد تایید به شماره
-                <span id="register-phone-display" class="font-bold"></span>
+                <span id="register-phone-display" class="font-bold" style="color: #636337;"></span>
                 ارسال شد
               </p>
               <form id="register-verification-form" class="space-y-5">
@@ -676,7 +1238,6 @@
                   <label class="block text-gray-700 mb-4 text-center"
                     >کد تایید را وارد کنید</label
                   >
-                  <!-- در بخش ثبت نام -->
                   <div class="flex justify-center gap-2 mb-3">
                     <input
                       type="text"
@@ -723,14 +1284,16 @@
                 </div>
                 <button
                   type="submit"
-                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white; hover:background-color: #4a4a2a;"
                 >
                   تایید و ورود
                 </button>
                 <button
                   type="button"
                   id="register-back-btn"
-                  class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
+                  class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300"
+                  style="color: #636337; border-color: #636337; hover:background-color: #FFF1DB;"
                 >
                   بازگشت
                 </button>
@@ -753,14 +1316,15 @@
                   <input
                     type="tel"
                     id="forgot-phone"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="09xxxxxxxxx"
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white; hover:background-color: #4a4a2a;"
                 >
                   ارسال کد تایید
                 </button>
@@ -774,7 +1338,7 @@
               </h2>
               <p class="text-gray-600 text-center mb-5">
                 کد تایید به شماره
-                <span id="forgot-phone-display" class="font-bold"></span> ارسال
+                <span id="forgot-phone-display" class="font-bold" style="color: #636337;"></span> ارسال
                 شد
               </p>
               <form id="forgot-verification-form" class="space-y-5">
@@ -782,7 +1346,6 @@
                   <label class="block text-gray-700 mb-4 text-center"
                     >کد تایید را وارد کنید</label
                   >
-                  <!-- در بخش ثبت نام -->
                   <div class="flex justify-center gap-2 mb-3">
                     <input
                       type="text"
@@ -829,14 +1392,16 @@
                 </div>
                 <button
                   type="submit"
-                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white; hover:background-color: #4a4a2a;"
                 >
                   تایید
                 </button>
                 <button
                   type="button"
                   id="forgot-back-btn"
-                  class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors"
+                  class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300"
+                  style="color: #636337; border-color: #636337; hover:background-color: #FFF1DB;"
                 >
                   بازگشت
                 </button>
@@ -856,7 +1421,7 @@
                   <input
                     type="password"
                     id="new-password"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="حداقل 6 کاراکتر"
                     required
                   />
@@ -870,14 +1435,15 @@
                   <input
                     type="password"
                     id="confirm-new-password"
-                    class="w-full px-4 py-3 rounded-lg border"
+                    class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent"
                     placeholder="تکرار رمز عبور جدید"
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors"
+                  class="w-full py-3 rounded-lg font-medium transition-colors duration-300"
+                  style="background-color: #636337; color: white; hover:background-color: #4a4a2a;"
                 >
                   ذخیره و ورود
                 </button>
@@ -887,132 +1453,201 @@
         </div>
       </div>
       <!-- Header Section -->
-      <div class="text-center mb-12">
+      <!-- <div class="text-center mb-12">
         <h1
           class="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent mb-4"
         >
           مجموعه زیبایی لوکس
         </h1>
         <p class="text-gray-600 text-lg">کشف کنید، زیبا باشید، درخشان شوید</p>
-      </div>
+      </div> -->
+<section class="py-12 px-4 overflow-hidden">
+    <div class="max-w-7xl mx-auto">
+        <!-- عنوان بخش -->
+        <div class="text-center mb-10 fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">دسته بندی های ویژه</h2>
+            <div class="w-24 h-1 bg-gradient-to-l from-[#636337] to-[#8a8a5a] mx-auto rounded-full"></div>
+            <p class="text-gray-500 mt-4">محصولات اورجینال و با کیفیت برای حرفه‌ای‌ها</p>
+        </div>
 
-      <div class="flex flex-col xl:flex-row gap-8">
-        <!-- Advanced Filters Section -->
-        <div class="xl:w-1/4 order-2 xl:order-1">
-          <div class="glass-effect rounded-3xl p-8 sticky top-4 shadow-2xl">
-            <div class="flex items-center mb-8">
-              <div
-                class="w-3 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full ml-3"
-              ></div>
-              <h2 class="text-2xl font-bold text-gray-800">فیلترهای هوشمند</h2>
+        <!-- محفظه اسلایدر -->
+        <div class="relative group">
+            <!-- دکمه اسکرول به راست (بعدی) -->
+            <button id="scrollCategoriesRight" 
+                class="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-xl hover:shadow-2xl z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hidden md:block">
+                <i class="fas fa-chevron-left text-gray-700 text-xl"></i>
+            </button>
+            
+            <!-- دکمه اسکرول به چپ (قبلی) -->
+            <button id="scrollCategoriesLeft" 
+                class="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-3 shadow-xl hover:shadow-2xl z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hidden md:block">
+                <i class="fas fa-chevron-right text-gray-700 text-xl"></i>
+            </button>
+
+            <!-- اسلایدر -->
+            <div id="categoriesSlider" class="overflow-x-auto scrollbar-hide" style="scrollbar-width: thin; scroll-behavior: smooth;">
+                <div style="margin-bottom:10px" class="flex gap-4 md:gap-6" id="categoriesTrack">
+                    <% for(let category of categories.filter(c => !c.parentId)) {%>
+                    <div onclick="location.href='/category/<%= category.slug %>';" class="category-card flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-10.66px)] md:w-[calc(20%-19.2px)] lg:w-[calc(14.285%-17.14px)] bg-white rounded-2xl p-4 text-center shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border border-gray-100">
+                        <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#636337] to-[#8a8a5a] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i class="fas fa-couch text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800 text-sm md:text-base">
+                            <%= category.name %>
+                        </h3>
+                        <span class="text-gray-400 text-xs">
+                              <%= toPersianDigits(category.productCount) %> محصول
+                        </span>
+                    </div>
+                    <% } %>
+                </div>
             </div>
+        </div>
+
+        <!-- دکمه مشاهده همه -->
+        
+
+</section>
+<script>
+  // اسلایدر دسته‌بندی‌ها
+const slider = document.getElementById('categoriesSlider');
+const track = document.getElementById('categoriesTrack');
+const scrollLeftBtn = document.getElementById('scrollCategoriesLeft');
+const scrollRightBtn = document.getElementById('scrollCategoriesRight');
+
+if (scrollLeftBtn && scrollRightBtn && slider) {
+    // اسکرول به چپ (رفتن به آیتم‌های قبلی)
+    scrollLeftBtn.addEventListener('click', () => {
+        const cardWidth = document.querySelector('.category-card')?.offsetWidth || 200;
+        const gap = 24; // مقدار gap بین کارت‌ها
+        const scrollAmount = cardWidth + gap;
+        slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+
+    // اسکرول به راست (رفتن به آیتم‌های بعدی)
+    scrollRightBtn.addEventListener('click', () => {
+        const cardWidth = document.querySelector('.category-card')?.offsetWidth || 200;
+        const gap = 24;
+        const scrollAmount = cardWidth + gap;
+        slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+
+    // مخفی کردن دکمه‌ها در ابتدا و انتهای اسکرول
+    function checkScrollButtons() {
+        const scrollLeft = slider.scrollLeft;
+        const maxScroll = slider.scrollWidth - slider.clientWidth;
+        
+        if (scrollLeft <= 10) {
+            scrollLeftBtn.style.opacity = '0.3';
+            scrollLeftBtn.style.pointerEvents = 'none';
+        } else {
+            scrollLeftBtn.style.opacity = '1';
+            scrollLeftBtn.style.pointerEvents = 'auto';
+        }
+        
+        if (scrollLeft >= maxScroll - 10) {
+            scrollRightBtn.style.opacity = '0.3';
+            scrollRightBtn.style.pointerEvents = 'none';
+        } else {
+            scrollRightBtn.style.opacity = '1';
+            scrollRightBtn.style.pointerEvents = 'auto';
+        }
+    }
+
+    slider.addEventListener('scroll', checkScrollButtons);
+    window.addEventListener('resize', checkScrollButtons);
+    setTimeout(checkScrollButtons, 100);
+}
+</script>
+
+<div class="flex flex-col xl:flex-row gap-8">
+  <!-- Advanced Filters Section - در دسکتاپ کنار، در موبایل بالای محصولات -->
+  <div class="xl:w-1/4 filters-sidebar">
+    <div class="glass-effect rounded-3xl p-8 sticky top-4 shadow-2xl">
+      <div class="flex items-center mb-8">
+        <div class="w-3 h-8 bg-gradient-to-b from-[#636337] to-[#8a8a5a] rounded-full ml-3"></div>
+        <br><br><br><br><br>
+        <h2 class="text-2xl font-bold text-gray-800">فیلترهای هوشمند</h2>
+      </div>
 
             <!-- Search Bar -->
             <div class="relative mb-8">
-              <input
-                type="text"
-                id="search-input"
-                placeholder="جستجو در محصولات..."
-                class="w-full bg-white/70 border-0 rounded-2xl px-6 py-4 text-right shadow-lg focus:ring-4 focus:ring-purple-200 transition-all"
-              />
-              <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
-                <svg
-                  class="w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="جستجو در محصولات..."
+          class="w-full bg-white/70 border-0 rounded-2xl px-6 py-4 text-right shadow-lg focus:ring-4 focus:ring-[#636337]/20 transition-all"
+        />
+        <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+      </div>
 
-            <!-- Category Pills -->
-            <div class="mb-8">
-              <h3 class="font-bold text-gray-700 mb-4 text-lg">دسته‌بندی‌ها</h3>
-              <div class="space-y-3">
-                <% for(let category of categories) { %>
-                <div
-                  class="category-chip rounded-2xl p-4 shadow-md"
-                  data-category="<%= category.name %>"
-                >
-                  <div class="flex justify-between items-center">
-                    <span class="font-medium"
-                      ><%= category.name %> <%= category.emoji %></span
-                    >
-                    <span class="bg-white/50 rounded-full px-3 py-1 text-sm"
-                      ><%= toPersianDigits(category.productCount) %></span
-                    >
-                  </div>
-                </div>
-                <% } %>
-              </div>
-            </div>
 
-            <!-- Price Range Slider -->
-            <div class="mb-8">
-              <h3 class="font-bold text-gray-700 mb-4 text-lg">محدوده قیمت</h3>
-              <div class="bg-white/70 rounded-2xl p-6 shadow-lg">
-                <div class="flex justify-between mb-4">
-                  <span class="text-sm text-gray-600" id="min-price-display"
-                    >۵۰,۰۰۰ تومان</span
-                  >
-                  <span class="text-sm text-gray-600" id="max-price-display"
-                    >۲,۰۰۰,۰۰۰ تومان</span
-                  >
-                </div>
-                <div class="relative mb-4">
-                  <input
-                    type="range"
-                    id="price-range"
-                    min="50000"
-                    max="2000000"
-                    value="1000000"
-                    class="price-range-slider w-full cursor-pointer"
-                  />
-                </div>
-                <div class="text-center">
-                  <span
-                    class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium"
-                    id="current-price"
-                  >
-                    تا ۱,۰۰۰,۰۰۰ تومان
-                  </span>
-                </div>
-              </div>
-            </div>
+<% 
+// در بالای فایل shop.ejs، یک تابع کمکی برای محاسبه تعداد محصولات هر دسته تعریف کنید
+function getPublishedProductCount(categoryId) {
+    if (!products || !products.length) return 0;
+    return products.filter(p => 
+        p.isPublished === true && 
+        p.category && 
+        p.category.some(cat => cat._id.toString() === categoryId.toString())
+    ).length;
+}
+%>
+<div class="mb-8">
+<h3 class="font-bold text-gray-700 mb-4 text-lg">دسته‌بندی‌ها</h3>
+<div class="categories-scroll-container">
+<div class="space-y-3">
+  <% for(let category of categories) { %>
+  <div class="category-chip rounded-2xl p-4 shadow-md" data-category="<%= category.name %>">
+    <div class="flex justify-between items-center">
+      <span class="font-medium"><%= category.name %> <%= category.emoji %></span>
+      <span class="bg-white/50 rounded-full px-3 py-1 text-sm"><%= toPersianDigits(getPublishedProductCount(category._id))%></span>
+    </div>
+  </div>
+  <% } %>
+</div>
+      </div>
+</div>
 
-            <!-- Brand Selection -->
-            <div class="mb-8">
-              <h3 class="font-bold text-gray-700 mb-4 text-lg">
-                برندهای محبوب
-              </h3>
-              <div class="grid grid-cols-2 gap-3">
-                <% for(let brand of brands) { %>
-                <div
-                  class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md"
-                  data-brand="<%= brand.name %>"
-                >
-                  <div class="text-2xl mb-1"><%= brand.emoji %></div>
-                  <div class="text-sm font-medium"><%= brand.name %></div>
-                </div>
-                <% } %>
-              </div>
-            </div>
-
-            <button
-              id="apply-filters"
-              class="filter-btn w-full text-white py-4 rounded-2xl font-bold text-lg shadow-xl"
-            >
-              اعمال فیلترها
-            </button>
+      <!-- Price Range Slider -->
+      <div class="mb-8">
+        <h3 class="font-bold text-gray-700 mb-4 text-lg">محدوده قیمت</h3>
+        <div class="bg-white/70 rounded-2xl p-6 shadow-lg">
+          <div class="flex justify-between mb-4">
+            <span class="text-sm text-gray-600" id="min-price-display">۵۰,۰۰۰ تومان</span>
+            <span class="text-sm text-gray-600" id="max-price-display">۲,۰۰۰,۰۰۰ تومان</span>
+          </div>
+          <div class="relative mb-4">
+            <input type="range" id="price-range" min="50000" max="2000000" value="1000000" class="price-range-slider w-full cursor-pointer" />
+          </div>
+          <div class="text-center">
+            <span class="bg-[#636337]/10 text-[#636337] px-4 py-2 rounded-full text-sm font-medium" id="current-price">
+              تا ۱,۰۰۰,۰۰۰ تومان
+            </span>
           </div>
         </div>
+      </div>
+
+      <!-- Brand Selection -->
+      <div class="mb-8">
+        <h3 class="font-bold text-gray-700 mb-4 text-lg">برندهای محبوب</h3>
+<div class="brands-scroll-container">
+  <div class="grid grid-cols-2 gap-3">
+    <% for(let brand of brands) { %>
+    <div class="brand-filter bg-white/70 rounded-xl p-3 text-center cursor-pointer hover:bg-white transition-all shadow-md" data-brand="<%= brand.name %>">
+      <div class="text-2xl mb-1"><%= brand.emoji %></div>
+      <div class="text-sm font-medium"><%= brand.name %></div>
+    </div>
+    <% } %>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
 
         <!-- Premium Products Grid -->
         <div class="xl:w-3/4 order-1 xl:order-2">
@@ -1028,7 +1663,7 @@
                 <div class="flex gap-2">
                   <button
                     id="grid-view"
-                    class="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 transition"
+                    class="p-2 bg-[#636337]/10 rounded-lg hover:bg-[#636337]/20 transition"
                   >
                     <svg
                       class="w-5 h-5"
@@ -1059,7 +1694,7 @@
               </div>
               <select
                 id="sort-select"
-                class="bg-white/70 border-0 rounded-xl px-6 py-3 text-right shadow-lg focus:ring-4 focus:ring-purple-200"
+                class="bg-white/70 border-0 rounded-xl px-6 py-3 text-right shadow-lg focus:ring-4 focus:ring-[#636337]/20"
               >
                 <option value="default">مرتب‌سازی بر اساس محبوبیت</option>
                 <option value="price-low">ارزان‌ترین قیمت</option>
@@ -1095,124 +1730,94 @@
     >
       <span id="toast-message"></span>
     </div>
-    <footer class="bg-gray-900 text-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div class="flex items-center space-x-reverse space-x-3 mb-4">
-              <div
-                class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center"
-              >
-                <svg
-                  class="w-6 h-6 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold">وبلاگ مدرن</h3>
-            </div>
-            <p class="text-gray-400 text-sm leading-relaxed">
-              مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
-            </p>
-            <p class="text-gray-400 text-sm leading-relaxed mt-2">
-              شماره تلفن: ۰۹۰۵۴۲۴۳۴۶۴
-            </p>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >طراحی وب</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >برنامه‌نویسی</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors">UI/UX</a>
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >هوش مصنوعی</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">لینک‌های مفید</h4>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >درباره ما</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >تماس با ما</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >حریم خصوصی</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >شرایط استفاده</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">شبکه‌های اجتماعی</h4>
-            <div class="flex space-x-reverse space-x-4">
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-                  />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400"
-        >
-          <p>&amp;copy; ۱۴۰۳ وبلاگ مدرن. تمامی حقوق محفوظ است.</p>
-        </div>
+    <!-- بخش توضیحات سئو -->
+<section class="container mx-auto px-4 py-12 mt-8 border-t border-gray-200">
+  <div style="padding: 20px;" class="max-w-5xl mx-auto text-right seo-fade" id="seoSection">
+    
+    <div class="seo-content" id="seoContent">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+فروشگاه اودر – صفحه خرید لوازم آرایشی و بهداشتی   
+</h1>
+        <p>به فروشگاه آنلاین <span class="shop-name">اودر</span> خوش آمدید. اگر به دنبال یک تجربه مطمئن، سریع و لذت‌بخش از <strong>خرید لوازم آرایشی و بهداشتی</strong> هستید، در جای درستی قرار گرفته‌اید. ما در <span class="shop-name">اودر</span> سعی کرده‌ایم تمام نیازهای شما برای زیبایی و مراقبت از پوست و مو را در یک جا جمع کنیم. از ادکلن‌های لاکچری و خط چشم‌های حرفه‌ای گرفته تا رژلب‌های بی‌نظیر، کرم‌های مراقبتی و محصولات تخصصی آرایش ابرو، همه چیز اینجاست.</p>
+
+        <h2>چرا فروشگاه اودر بهترین انتخاب برای خرید لوازم آرایشی و بهداشتی است؟</h2>
+        <p>وقتی صحبت از <strong>قیمت لوازم آرایشی و بهداشتی</strong> به میان می‌آید، خیلی از مشتریان نگران کیفیت در برابر هزینه هستند. اما در فروشگاه <span class="shop-name">اودر</span>، <strong>قیمت لوازم آرایشی و بهداشتی</strong> کاملاً شفاف، رقابتی و متناسب با کیفیت واقعی هر محصول تعیین شده است. یکی از بزرگترین دغدغه‌های افراد، پیدا کردن جایی معتبر برای <strong>خرید لوازم آرایشی و بهداشتی</strong> است. متأسفانه در فضای آنلاین، فروشنده‌های غیرحرفه‌ای زیادی وجود دارند که ممکن است جنس نامرغوب یا تقلبی را با قیمت بالا به شما بفروشند. <span class="shop-name">اودر</span> این مشکل را برای همیشه حل کرده است.</p>
+
+        <h3>تضمین کیفیت در فروش لوازم آرایشی و بهداشتی</h3>
+        <p>ما فرآیند <strong>فروش لوازم آرایشی و بهداشتی</strong> را فقط به فروشنده‌های معتبر، دارای مجوز و سابقه واگذار کرده‌ایم. بنابراین وقتی از <span class="shop-name">اودر</span> <strong>خرید لوازم آرایشی و بهداشتی</strong> می‌کنید، خیالتان از بابت اصل بودن کالا (اورجینال) و کیفیت بالای آن راحت است. همچنین ما به صورت روزانه <strong>قیمت لوازم آرایشی و بهداشتی</strong> را بررسی و به‌روزرسانی می‌کنیم تا همیشه بهترین قیمت را دریافت کنید.</p>
+
+        <h3>تنوع بی‌نظیر دسته‌بندی‌ها</h3>
+        <p>نکته مهم دیگر، تنوع بی‌نظیر در فروشگاه <span class="shop-name">اودر</span> است. ما می‌دانیم که هر شخصی سلیقه، نوع پوست و نیاز مخصوص به خود را دارد. به همین دلیل در فرآیند <strong>فروش لوازم آرایشی و بهداشتی</strong>، محصولات متنوعی از نظر برند، مدل، رنگ، جنس و بافت ارائه می‌شود. شما می‌توانید بر اساس دسته‌بندی اصلی، نوع کاربرد، برند مورد علاقه و البته <strong>قیمت لوازم آرایشی و بهداشتی</strong> جستجو کنید و دقیقاً همان چیزی را پیدا کنید که به دنبالش هستید. ما معتقدیم <strong>خرید لوازم آرایشی و بهداشتی</strong> باید ساده، سریع و بدون سردرگمی باشد.</p>
+
+        <h2>فرصت‌های ویژه برای فروشنده‌های لوازم آرایشی و بهداشتی در اودر</h2>
+        <p>اگر فروشنده هستید و به دنبال یک پلتفرم حرفه‌ای برای <strong>فروش لوازم آرایشی و بهداشتی</strong> می‌گردید، فروشگاه <span class="shop-name">اودر</span> بهترین انتخاب برای شماست. ما امکاناتی مانند پنل مدیریت فروش، نمایش خودکار محصولات در صفحه دسته‌بندی مرتبط، امکان دریافت نظرات و بازخورد مشتریان و آمار دقیق از بازدید و فروش را در اختیار شما قرار می‌دهیم.</p>
+
+        <h3>مزایای فروش در اودر</h3>
+        <p><strong>فروش لوازم آرایشی و بهداشتی</strong> در <span class="shop-name">اودر</span> به معنای دیده شدن محصولات شما در میان هزاران خریدار واقعی و حرفه‌ای است. از طرف دیگر، همین تنوع فروشنده‌ها باعث می‌شود که <strong>قیمت لوازم آرایشی و بهداشتی</strong> در فروشگاه ما همیشه رقابتی باشد و خریدار بتواند بهترین معامله را انجام دهد.</p>
+
+        <h3>مقایسه هوشمندانه قیمت لوازم آرایشی و بهداشتی</h3>
+        <p>یکی از ویژگی‌های منحصربه‌فرد فروشگاه <span class="shop-name">اودر</span>، امکان مقایسه <strong>قیمت لوازم آرایشی و بهداشتی</strong> از چندین فروشنده مختلف است. فرض کنید یک ادکلن زنانه نیشان یا یک کرم ضدآفتاب لاروش پوزای نظر شما را جلب کرده است. شما می‌توانید در یک صفحه، <strong>قیمت لوازم آرایشی و بهداشتی</strong> آن محصول را از فروشنده‌های گوناگون ببینید، نظرات کاربران را بخوانید و سپس تصمیم بگیرید. این شفافیت در <strong>فروش لوازم آرایشی و بهداشتی</strong> باعث شده است که هم خریدار راضی باشد، هم فروشنده خوب به فروش برسد.</p>
+
+        <h3>تخفیف‌ها و پیشنهادهای ویژه</h3>
+        <p>همچنین ما هر هفته بخش «پرفروش‌ترین‌ها» و «محصولات با تخفیف ویژه» را به‌روز می‌کنیم تا <strong>خرید لوازم آرایشی و بهداشتی</strong> برای شما مقرون‌به‌صرفه‌تر شود.</p>
+
+        <h2>محصولات موجود در فروشگاه لوازم آرایشی و بهداشتی اودر</h2>
+        <p>بیایید کمی دقیق‌تر ببینیم چه نوع محصولاتی در فروشگاه <span class="shop-name">اودر</span> برای <strong>خرید لوازم آرایشی و بهداشتی</strong> موجود است.</p>
+
+        <h3>ادکلن (عطر و ادوپرفیوم)</h3>
+        <p>ما در بخش <strong>ادکلن</strong>، انواع عطرهای مردانه، زنانه و آنیسمکس (مشترک) از برندهای معتبر مثل <strong>نیشان، ورساچه، دیور، شنل، گوچی، دلئون، گوست بلک</strong> و صدها برند دیگر را داریم. چه به دنبال یک ادکلن تابستانه و خنک باشید چه یک عطر سنگین و گرم زمستانی، <span class="shop-name">اودر</span> بهترین گزینه‌ها را با بهترین <strong>قیمت لوازم آرایشی و بهداشتی</strong> ارائه می‌دهد.</p>
+
+        <h3>آرایش چشم</h3>
+        <p>برای <strong>آرایش چشم</strong>، مجموعه کاملی از <strong>خط چشم نازک و ضخیم، خط چشم ژله‌ای و مایع، مداد چشم، سایه چشم متالیک و مات، پرایم چشم، ریمل حجم‌دهنده و بلندکننده و مژه مصنوعی</strong> عرضه می‌کنیم.</p>
+
+        <h3>آرایش لب</h3>
+        <p>در بخش <strong>آرایش لب</strong>، <strong>رژلب‌های مات، براق، کرمی و متالیک، خط لب، تینت لب، بالم لب رنگی و شفاف، ماسک لب شب و پرکننده لب (لیپ پلامپر)</strong> موجود است.</p>
+
+        <h3>اسپری</h3>
+        <p><strong>اسپری</strong>‌های خنک‌کننده صورت (میست)، <strong>اسپری تثبیت کننده آرایش (ستینگ اسپری)</strong>، اسپری ضد تعریق و اسپری خوشبوکننده مو و بدن نیز در <span class="shop-name">اودر</span> قابل تهیه هستند.</p>
+
+        <h3>آرایش صورت</h3>
+        <p>برای <strong>آرایش صورت</strong>، <strong>کرم‌پودر (فاندیشن)، کانسیلر، کانتور، هایلایتر، پنکک، کرم بی‌بی (BB Cream)، پرایمر صورت و پودر فیکس کننده</strong> را داریم. تمام این محصولات در طیف رنگی کامل و مناسب پوست‌های چرب، خشک و مختلط عرضه می‌شوند.</p>
+
+        <h3>مراقبت پوستی</h3>
+        <p>در بخش <strong>مراقبت پوستی</strong>، <strong>ضدآفتاب‌های فیزیکی و شیمیایی، کرم شب و روز، سرم‌های ویتامین سی، هیالورونیک اسید و رتینول، تونر، پاک‌کننده آرایش میسلار واتر، فوم و ژل شستشو، ماسک ورقه‌ای و لایه‌بردارهای شیمیایی</strong> موجود است.</p>
+
+        <h3>مراقبت مو</h3>
+        <p>برای <strong>مراقبت مو</strong> نیز <strong>شامپو و نرم کننده تخصصی برای موهای چرب، خشک و آسیب‌دیده، ماسک مو، سرم مو، روغن مو، اسپری حالت‌دهنده، اسپری حرارت و کراتین مو</strong> عرضه می‌شود.</p>
+
+        <h3>آرایش ابرو</h3>
+        <p><strong>آرایش ابرو</strong> هم طرفداران زیادی دارد. در <span class="shop-name">اودر</span> میتوانید <strong>ژل ابرو رنگی و شفاف، پودر ابرو، مداد ابرو دوطرفه، وکس ابرو، تیش ابرو و کیت کامل آرایش ابرو</strong> را پیدا کنید.</p>
+
+        <p>تمامی این تنوع در حالی است که <strong>قیمت لوازم آرایشی و بهداشتی</strong> برای هر رنج بودجه‌ای در نظر گرفته شده است. چه بودجه محدودی داشته باشید و چه به دنبال محصولات لوکس و حرفه‌ای باشید، فروشگاه <span class="shop-name">اودر</span> پاسخگوی شماست.</p>
+
+        <h2>خدمات جانبی فروشگاه اودر</h2>
+        <p>ما می‌دانیم که <strong>فروش لوازم آرایشی و بهداشتی</strong> تنها به ارائه محصول ختم نمی‌شود. مشاوره قبل از خرید بر اساس نوع پوست و مو، راهنمای مصرف، اطلاعات دقیق درباره ترکیبات (وگن، بدون حیوان‌آزاری)، و پشتیبانی پس از فروش نیز بخش مهمی از کار ماست.</p>
+
+        <h3>راهنمای نوع پوست و جنس محصولات</h3>
+        <p>در صفحه هر محصول، توضیحات کاملی درباره <strong>نوع پوست مناسب (چرب، خشک، حساس، مختلط)</strong>، نحوه استفاده، مواد تشکیل‌دهنده و تاریخ انقضا نوشته شده است تا <strong>خرید لوازم آرایشی و بهداشتی</strong> برای شما آگاهانه و بی‌دغدغه باشد.</p>
+
+        <h2>تجربه خریدی متفاوت با اودر</h2>
+        <p>اگر تا به حال تجربه تلخی از <strong>خرید لوازم آرایشی و بهداشتی</strong> آنلاین داشته‌اید (مثل جنس تقلبی، تاریخ گذشته یا بسته‌بندی نامناسب)، وقت آن رسیده که دوباره امتحان کنید. <span class="shop-name">اودر</span> با تکیه بر اصول شفافیت، کیفیت و تنوع، استاندارد جدیدی برای <strong>فروش لوازم آرایشی و بهداشتی</strong> در ایران تعریف کرده است.</p>
+
+        <h3>چگونه از اودر خرید کنیم؟</h3>
+        <p>شما می‌توانید همین حالا جستجوی خود را شروع کنید، محصولات را بر اساس <strong>قیمت لوازم آرایشی و بهداشتی</strong> فیلتر کنید، برند و سایز مناسب را انتخاب کنید و سفارش خود را ثبت کنید. همچنین با ثبت‌نام در فروشگاه <span class="shop-name">اودر</span>، از تخفیف‌های ویژه و کدهای حراجی با خبر شوید.</p>
+
+        <h2>جمع‌بندی</h2>
+        <p>در پایان، یادآوری می‌کنیم که فروشگاه <span class="shop-name">اودر</span> فقط یک پلتفرم برای <strong>خرید لوازم آرایشی و بهداشتی</strong> نیست؛ بلکه جامعه‌ای از افراد زیبایی‌دوست، متخصصان پوست و مو و فروشنده‌های حرفه‌ای است که به دنبال بهترین‌ها هستند. پس همین حالا دست به کار شوید، <strong>قیمت لوازم آرایشی و بهداشتی</strong> را مقایسه کنید، محصول مورد علاقه خود را پیدا کنید و از یک <strong>خرید لوازم آرایشی و بهداشتی</strong> امن، سریع و لذت‌بخش در <span class="shop-name">اودر</span> لذت ببرید.</p>
+
+        <p><strong>فروشگاه اودر ، همراه شما از یک رژلب ساده تا یک استایل حرفه‌ای کامل.</strong></p>
+
       </div>
-    </footer>
+    </div>
+    
+    <button class="seo-toggle-btn" id="seoToggleBtn">
+      <span>بیشتر بخوانید</span>
+      <i class="fas fa-chevron-down"></i>
+    </button>
+    
+  </div>
+</section>
+<%- include('./partials/footer') %>
 
     <script>
         function showNotificationInPopUp(message, type = 'info') {
@@ -1240,7 +1845,7 @@
             setTimeout(() => {
                 notification.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => notification.remove(), 300);
-            }, 2000);
+            }, 800);
         }
         function showNotification(message, type = 'info') {
           const notification = document.createElement('div');
@@ -1271,18 +1876,30 @@
           setTimeout(() => {
               notification.classList.add('opacity-0', 'translate-y-2');
               setTimeout(() => notification.remove(), 300);
-          }, 2000);
+          }, 800);
       }
 
           // State
           const productFromServer = <%- JSON.stringify(products) %>;
           let currentView = "grid";
           let allProducts = [...productFromServer];
-          let filteredProducts = [...productFromServer]; // ابتدا همه محصولات را در filteredProducts قرار دهید
-          let displayedProducts = []; // اینجا خالی می‌ماند تا در init پر شود
+          let allPrices = productFromServer.map(product => {
+              return product.offerPrice || product.price;
+          });
+
+          let minGlobalPrice = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+          let maxGlobalPrice = allPrices.length > 0 ? Math.max(...allPrices) : 2000000;
+
+          if (minGlobalPrice === maxGlobalPrice) {
+              minGlobalPrice = Math.floor(minGlobalPrice * 0.8);
+              maxGlobalPrice = Math.ceil(maxGlobalPrice * 1.2);
+          }
+
+          let filteredProducts = [...productFromServer];
+          let displayedProducts = [];
           let selectedCategories = [];
           let selectedBrands = [];
-          let maxPrice = 2000000;
+          let maxPrice = maxGlobalPrice;
           let searchQuery = "";
           let sortBy = "default";
           let currentPage = 1;
@@ -1296,34 +1913,50 @@
           }
 
           function updatePaginationControls() {
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            const paginationContainer = document.querySelector('.pagination-container');
+              const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+              const paginationContainer = document.querySelector('.pagination-container');
+              
+              if (!paginationContainer) return;
 
-            let paginationHTML = `
-              <div class="flex items-center gap-2">
-                <button onclick="changePage(${currentPage - 1})"
-                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                  ${currentPage === 1 ? 'disabled' : ''}>
-                  قبلی
-                </button>`;
+              let paginationHTML = `
+                  <div class="flex items-center gap-2">
+                      <button style="
+    color: black;
+" onclick="changePage(${currentPage - 1})"
+                          class="px-4 py-2 /50 rounded-xl hover:bg-black transition-all ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                          ${currentPage === 1 ? 'disabled' : ''}>
+                          قبلی
+                      </button>`;
 
-            for (let i = 1; i <= totalPages; i++) {
+              // نمایش حداکثر ۵ دکمه صفحه
+              let startPage = Math.max(1, currentPage - 2);
+              let endPage = Math.min(totalPages, startPage + 4);
+              
+              if (endPage - startPage < 4) {
+                  startPage = Math.max(1, endPage - 4);
+              }
+
+              for (let i = startPage; i <= endPage; i++) {
+                  paginationHTML += `
+                      <button style="
+    color: black;
+" onclick="changePage(${i})"
+                          class="px-4 py-2 ${i === currentPage ? 'bg-gradient-to-r from-[#636337] to-[#8a8a5a] text-white' : 'bg-white/50'} rounded-xl hover:bg-white transition-all">
+                          ${toPersianDigits(i)}
+                      </button>`;
+              }
+
               paginationHTML += `
-                <button onclick="changePage(${i})"
-                  class="px-4 py-2 ${i === currentPage ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/50'} rounded-xl hover:bg-white transition-all">
-                  ${toPersianDigits(i)}
-                </button>`;
-            }
+                      <button style="
+    color: black;
+" onclick="changePage(${currentPage + 1})"
+                          class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}"
+                          ${currentPage === totalPages ? 'disabled' : ''}>
+                          بعدی
+                      </button>
+                  </div>`;
 
-            paginationHTML += `
-                <button onclick="changePage(${currentPage + 1})"
-                  class="px-4 py-2 bg-white/50 rounded-xl hover:bg-white transition-all"
-                  ${currentPage === totalPages ? 'disabled' : ''}>
-                  بعدی
-                </button>
-              </div>`;
-
-            paginationContainer.innerHTML = paginationHTML;
+              paginationContainer.innerHTML = paginationHTML;
           }
 
           async function fetchFilteredProducts() {
@@ -1355,20 +1988,21 @@
           }
 
           function changePage(page) {
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            if (page < 1 || page > totalPages) return;
+              const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+              if (page < 1 || page > totalPages) return;
 
-            currentPage = page;
+              currentPage = page;
+              
+              // صفحه‌بندی مجدد
+              paginateProducts();
+              renderProducts();
 
-            // اگر از API back-end استفاده می‌کنید:
-            // fetchFilteredProducts();
-
-            // اگر pagination در front-end انجام می‌شود:
-            paginateProducts();
-            renderProducts();
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+              // اسکرول به بالای محصولات
+              setTimeout(() => {
+                  scrollToFirstProduct();
+              }, 100);
           }
+
 
           function resetFilters() {
             selectedCategories = [];
@@ -1409,111 +2043,125 @@
           function toPersianDigits(str) {
             return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
           }
-          function renderProducts() {
-            const container = document.getElementById("products-container");
-            const isListView = currentView === "list";
+           function renderProducts() {
+  const container = document.getElementById("products-container");
+  const isListView = currentView === "list";
 
-            if (displayedProducts.length === 0) {
-              container.innerHTML = `
-                <div class="col-span-full text-center py-12">
-                  <div class="text-gray-500 text-lg mb-4">محصولی یافت نشد</div>
-                  <button onclick="resetFilters()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                    بازنشانی فیلترها
-                  </button>
-                </div>
-              `;
-              updatePaginationControls();
-              return;
-            }
-
-            container.className = isListView
-              ? "space-y-6 list-view"
-              : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
-
-            container.innerHTML = displayedProducts
-              .map((product) => {
-                return `
-                <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation">
-
-                            ${
-                              isListView
-                                ? ""
-                                : `
-                          <div class="relative">
-                              <div class="w-full h-64 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
-                                  <a href="/productDetails/${product.slug}">
-                                    <div class="absolute inset-0 bg-gradient-to-br"><img src=${product?.images[0]?.url} alt=${product.name}></div>
-                                  </a>
-                                  ${product.countInStock === 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
-                                  ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
-                                  <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 text-sm">⭐ ${ toPersianDigits(product.rating)} (${toPersianDigits(product.reviewsNum)} نظر)</div>
-                              </div>
-                          </div>
-                          `
-                          }
-                          <a href="/productDetails/${product.slug}">
-                            <div class="p-6 ${isListView ? "flex-1" : ""}">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
-                                        ${product.catName}
-                                    </div>
-                                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <h3 class="font-bold text-xl text-gray-800 mb-2 text-right">${
-                                  product.name
-                                }</h3>
-                                <p class="text-gray-600 text-sm mb-4 text-right">${
-                                  product.lilDescription
-                                }</p>
-                                <div class="flex justify-between items-center mb-4">
-                                  <div class="text-right">
-                                    ${
-                                      product.offerPrice
-                                        ? `
-                                          <div class="text-gray-400 line-through text-sm">${formatPrice(product.price)}</div>
-                                          <div class="price-gradient font-bold text-xl">${formatPrice(product.offerPrice)}</div>
-                                        `
-                                        : `
-                                          <div class="price-gradient font-bold text-xl">${formatPrice(product.price)}</div>
-                                        `
-                                    }
-                                  </div>
-                                    ${
-                                      product.colors.length > 0
-                                        ? `
-                                    <div class="flex gap-1">
-                                        <div class="w-4 h-4 ${product.colors} rounded-full border-2 border-white shadow-sm"></div>
-                                    </div>
-                                    `
-                                        : ""
-                                    }
-                                </div>
-                                </a>
-
-                        <button onclick="location.href='/productDetails/${ product.slug }';" class="w-full bg-gradient-to-r from-blue-600 to-teal-600
-                } text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg">
-            افزودن به سبد خرید
+  if (displayedProducts.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <div class="text-gray-500 text-lg mb-4">محصولی یافت نشد</div>
+        <button onclick="resetFilters()" class="px-6 py-2 bg-[#636337] text-white rounded-lg hover:bg-[#4a4a2a] transition-colors">
+          بازنشانی فیلترها
         </button>
-                                </div>
-                        </div>
+      </div>
+    `;
+    updatePaginationControls();
+    return;
+  }
 
-                    `;
-              })
-              .join("");
+  container.className = isListView
+    ? "space-y-6 list-view"
+    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
 
-            // Update product count
-            document.getElementById(
-              "product-count"
-            ).textContent = `نمایش ${toPersianDigits(displayedProducts.length)} از ${toPersianDigits(filteredProducts.length)} محصول (صفحه ${toPersianDigits(currentPage)} از ${toPersianDigits(Math.ceil(filteredProducts.length / productsPerPage))})`;
+  container.innerHTML = displayedProducts
+    .map((product) => {
+      const categoryBadges = product.category && product.category.length > 0 
+        ? product.category.map(cat => 
+            `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full ml-1 mb-1">
+                ${cat.name || (typeof cat === 'string' ? 'در حال بارگذاری...' : 'بدون نام')}
+            </span>`
+        ).join('')
+        : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
+      
+      const brandBadge = product.brand?.name ? 
+        `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-1 mb-1">
+            <i class="fas fa-tag ml-1"></i>${product.brand.name}
+        </span>` : '';
+      
+      // استخراج آدرس تصویر با سایز 800x800
+      let imageUrl = '/images/placeholder.jpg';
+      if (product?.images && product.images.length > 0 && product.images[0]?.url) {
+        imageUrl = product.images[0].url;
+        // اگر تصویر دارای پارامتر سایز نبود، سایز 800x800 را اضافه کن
+        if (!imageUrl.includes('?') && !imageUrl.includes('size=')) {
+          imageUrl = imageUrl + '?size=800x800';
+        }
+      }
+      
+      return `
+        <div class="product-card rounded-3xl overflow-hidden shadow-xl floating-animation h-full flex flex-col">
+          ${!isListView ? `
+            <div class="relative w-full" style="aspect-ratio: 1/1;">
+              <a href="/productDetails/${product.slug}">
+                <img src="${imageUrl}" alt="${product.name}" class="w-full h-full object-cover">
+              </a>
+              ${product.isOutOfStock ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">ناموجود</div>` : product.discount > 0 ? `<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">${toPersianDigits(product.discount)}% تخفیف</div>` : ''}
+              ${product.isNew ? `<div class="absolute top-4 ${product.discount ? `left-4` : `right-4`} bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">جدید</div>` : ''}
+              
+            </div>
+          ` : ''}
+          
+          <div class="p-6 flex flex-col flex-grow ${isListView ? "flex-1" : ""}">
+            <div class="flex justify-between items-start mb-3 flex-wrap">
+              <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
+                ${categoryBadges}
+                ${brandBadge}
+              </div>
+            </div>
+            
+            <a href="/productDetails/${product.slug}" class="flex-grow">
+              <h3 class="font-bold text-xl text-gray-800 mb-2 text-right line-clamp-2">${product.name}</h3>
 
-            // Update pagination controls
-            updatePaginationControls();
-          }
-          // تابع افزایش عدد سبد خرید
+            </a>
+            
+            <div class="mt-auto">
+              <div class="flex justify-between items-center mb-4">
+                <div class="text-right">
+                  ${product.offerPrice ? `
+                    <div class="text-gray-400 line-through text-sm">${formatPrice(product.price)} تومان</div>
+                    <div class="price-gradient font-bold text-xl">${formatPrice(product.offerPrice)} تومان</div>
+                  ` : `
+                    <div class="price-gradient font-bold text-xl">${formatPrice(product.price)} تومان</div>
+                  `}
+                </div>
+                ${product.colors && product.colors.length > 0 ? `
+                  <div class="flex gap-1">
+                    <div class="w-4 h-4 rounded-full border-2 border-white shadow-sm" style="background-color: ${product.colors[0]}"></div>
+                  </div>
+                ` : ""}
+              </div>
+              
+              ${product.isOutOfStock || product.countInStock <= 0 ? `
+                <button disabled class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-2xl font-bold opacity-70 cursor-not-allowed shadow-lg flex items-center justify-center gap-2">
+                  <i class="fas fa-ban ml-2"></i>
+                  ناموجود
+                </button>
+              ` : `
+                <button style="
+    background-color: #8a8a5a;
+" onclick="location.href='/productDetails/${product.slug}';" class="w-full  text-white py-3 rounded-2xl font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                  <i class="fas fa-shopping-cart ml-2"></i>
+                  خرید
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  const totalProducts = filteredProducts.length;
+  const startItem = (currentPage - 1) * productsPerPage + 1;
+  const endItem = Math.min(currentPage * productsPerPage, totalProducts);
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
+
+  document.getElementById("product-count").innerHTML = 
+    `نمایش <span class="font-bold">${toPersianDigits(startItem)}</span> تا <span class="font-bold">${toPersianDigits(endItem)}</span> از <span class="font-bold">${toPersianDigits(totalProducts)}</span> محصول (صفحه ${toPersianDigits(currentPage)} از ${toPersianDigits(totalPages)})`;
+
+  updatePaginationControls();
+}          // تابع افزایش عدد سبد خرید
           function addToCart(productName) {
             // 1. پیدا کردن عنصر عدد سبد خرید
             const cartCount = document.querySelector(".cart-count");
@@ -1534,93 +2182,163 @@
               document.querySelector(".cart-count").textContent = savedCount;
             }
           });
+          function scrollToFirstProduct() {
+            const isMobile = window.innerWidth <= 768;
+            
+            // پیدا کردن اولین محصول
+            const firstProduct = document.querySelector('.product-card');
+            
+            if (firstProduct) {
+              const headerHeight = document.querySelector('nav')?.offsetHeight || 80;
+              const elementPosition = firstProduct.getBoundingClientRect().top;
+              const offsetPosition = elementPosition + window.pageYOffset - headerHeight - (isMobile ? 20 : 10);
+              
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+            }
+          }
           // Filter products
           function filterProducts() {
-            currentPage = 1;
-            filteredProducts = productFromServer.filter((product) => {
-              // Get the effective price (use offerPrice if available, otherwise use price)
-              const effectivePrice = product.offerPrice || product.price;
+              // ریست به صفحه اول
+              currentPage = 1;
+              
+              filteredProducts = productFromServer.filter((product) => {
+                  // Get the effective price
+                  const effectivePrice = product.offerPrice || product.price;
 
-              // Category filter - now checks all categories in product.categories
-              if (selectedCategories.length > 0) {
-                const productCategories = product.category || [];
-                const hasMatchingCategory = productCategories.some(cat =>
-                  selectedCategories.includes(cat.name)
-                );
-                if (!hasMatchingCategory) return false;
+                  // Category filter
+                  if (selectedCategories.length > 0) {
+                      const productCategories = product.category || [];
+                      const hasMatchingCategory = productCategories.some(cat =>
+                          selectedCategories.includes(cat.name)
+                      );
+                      if (!hasMatchingCategory) return false;
+                  }
+
+                  // Brand filter
+                  if (selectedBrands.length > 0) {
+                      let productBrand = null;
+                      if (product.brand && typeof product.brand === 'object') {
+                          productBrand = product.brand.name;
+                      } else if (product.brand && typeof product.brand === 'string') {
+                          productBrand = product.brand;
+                      } else if (product.brandName) {
+                          productBrand = product.brandName;
+                      }
+                      
+                      if (!productBrand || !selectedBrands.includes(productBrand)) {
+                          return false;
+                      }
+                  }
+
+                  // Price filter
+                  if (effectivePrice > maxPrice) {
+                      return false;
+                  }
+
+                  // Search filter
+                  if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                      !product.lilDescription.toLowerCase().includes(searchQuery.toLowerCase())) {
+                      return false;
+                  }
+
+                  return true;
+              });
+
+              // مرتب‌سازی
+              switch (sortBy) {
+                  case "price-low":
+                      filteredProducts.sort((a, b) => (a.offerPrice || a.price) - (b.offerPrice || b.price));
+                      break;
+                  case "price-high":
+                      filteredProducts.sort((a, b) => (b.offerPrice || b.price) - (a.offerPrice || a.price));
+                      break;
+                  case "newest":
+                      filteredProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                      break;
+                  case "rating":
+                      filteredProducts.sort((a, b) => b.rating - a.rating);
+                      break;
+                  default:
+                      filteredProducts.sort((a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum);
               }
 
-              // Brand filter
-              if (
-                selectedBrands.length > 0 &&
-                !selectedBrands.includes(product.brandName)
-              ) {
-                return false;
-              }
+              // صفحه‌بندی مجدد
+              paginateProducts();
+              renderProducts();
 
-              // Price filter - now uses effectivePrice
-              if (effectivePrice > maxPrice) {
-                return false;
-              }
-
-              // Search filter
-              if (
-                searchQuery &&
-                !product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                !product.lilDescription.toLowerCase().includes(searchQuery.toLowerCase())
-              ) {
-                return false;
-              }
-
-              return true;
-            });
-
-            // Update sorting to use effectivePrice
-            switch (sortBy) {
-              case "price-low":
-                filteredProducts.sort((a, b) => {
-                  const aPrice = a.offerPrice || a.price;
-                  const bPrice = b.offerPrice || b.price;
-                  return aPrice - bPrice;
-                });
-                break;
-              case "price-high":
-                filteredProducts.sort((a, b) => {
-                  const aPrice = a.offerPrice || a.price;
-                  const bPrice = b.offerPrice || b.price;
-                  return bPrice - aPrice;
-                });
-                break;
-              case "newest":
-                filteredProducts.sort((a, b) => b.isNew - a.isNew);
-                break;
-              case "rating":
-                filteredProducts.sort((a, b) => b.rating - a.rating);
-                break;
-              default:
-                filteredProducts.sort(
-                  (a, b) => b.rating * b.reviewsNum - a.rating * a.reviewsNum
-                );
-            }
-
-            paginateProducts();
-            renderProducts();
+              setTimeout(() => {
+                  scrollToFirstProduct();
+              }, 100);
           }
 
           function paginateProducts() {
-            const startIndex = (currentPage - 1) * productsPerPage;
-            const endIndex = startIndex + productsPerPage;
-            displayedProducts = filteredProducts.slice(startIndex, endIndex);
-
-            const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-            if (currentPage > totalPages && totalPages > 0) {
-              currentPage = totalPages;
-              paginateProducts();
-            }
+              const startIndex = (currentPage - 1) * productsPerPage;
+              const endIndex = startIndex + productsPerPage;
+              displayedProducts = filteredProducts.slice(startIndex, endIndex);
+              
+              // این خط رو اضافه کن - مطمئن شو currentPage از کل صفحات بیشتر نباشه
+              const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+              if (currentPage > totalPages && totalPages > 0) {
+                  currentPage = totalPages;
+                  // دوباره محاسبه کن
+                  const newStartIndex = (currentPage - 1) * productsPerPage;
+                  const newEndIndex = newStartIndex + productsPerPage;
+                  displayedProducts = filteredProducts.slice(newStartIndex, newEndIndex);
+              }
           }
+          
+            document.addEventListener('DOMContentLoaded', function() {
+              const seoContent = document.getElementById('seoContent');
+              const seoToggleBtn = document.getElementById('seoToggleBtn');
+              const seoSection = document.getElementById('seoSection');
+              
+              if (!seoToggleBtn || !seoContent) return;
+              
+              // اول مخفی کن
+              seoContent.style.maxHeight = '120px';
+              seoContent.style.overflow = 'hidden';
+              seoContent.style.transition = 'max-height 0.5s ease';
+              
+              const fullHeight = seoContent.scrollHeight;
+              
+              if (fullHeight <= 120) {
+                seoToggleBtn.style.display = 'none';
+                return;
+              }
+              
+              let isExpanded = false;
+              
+              seoToggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                isExpanded = !isExpanded;
+                
+                if (isExpanded) {
+                  seoContent.style.maxHeight = fullHeight + 'px';
+                  this.innerHTML = '<span>کمتر بخوانید</span> <i class="fas fa-chevron-up"></i>';
+                } else {
+                  seoContent.style.maxHeight = '120px';
+                  this.innerHTML = '<span>بیشتر بخوانید</span> <i class="fas fa-chevron-down"></i>';
+                  seoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              });
+            });
+
 
           // Event listeners
           document.addEventListener("DOMContentLoaded", function () {
+            const priceRangee = document.getElementById('price-range');
+            if (priceRangee) {
+                priceRangee.min = minGlobalPrice;
+                priceRangee.max = maxGlobalPrice;
+                priceRangee.value = maxGlobalPrice;
+                
+                document.getElementById('min-price-display').textContent = formatPrice(minGlobalPrice) + ' تومان';
+                document.getElementById('max-price-display').textContent = formatPrice(maxGlobalPrice) + ' تومان';
+                document.getElementById('current-price').textContent = `تا ${formatPrice(maxGlobalPrice)} تومان`;
+            }
             initializeProducts();
             // Initial render
             renderProducts();
@@ -1630,12 +2348,12 @@
               .getElementById("grid-view")
               .addEventListener("click", function () {
                 currentView = "grid";
-                this.classList.add("bg-purple-100");
+                this.classList.add("bg-[#636337]/10");
                 this.classList.remove("bg-gray-100");
                 document.getElementById("list-view").classList.add("bg-gray-100");
                 document
                   .getElementById("list-view")
-                  .classList.remove("bg-purple-100");
+                  .classList.remove("bg-[#636337]/10");
                 renderProducts();
               });
 
@@ -1643,12 +2361,12 @@
               .getElementById("list-view")
               .addEventListener("click", function () {
                 currentView = "list";
-                this.classList.add("bg-purple-100");
+                this.classList.add("bg-[#636337]/10");
                 this.classList.remove("bg-gray-100");
                 document.getElementById("grid-view").classList.add("bg-gray-100");
                 document
                   .getElementById("grid-view")
-                  .classList.remove("bg-purple-100");
+                  .classList.remove("bg-[#636337]/10");
                 renderProducts();
               });
 
@@ -1693,6 +2411,8 @@
                   this.classList.add("active");
                 }
                 filterProducts();
+
+                window.scrollTo({ top: 380, behavior: 'smooth' });
               });
             });
 
@@ -1710,6 +2430,8 @@
                   this.classList.remove("bg-white/70");
                 }
                 filterProducts();
+
+                window.scrollTo({ top: 380, behavior: 'smooth' });
               });
             });
 
@@ -1891,7 +2613,7 @@
                                           showNotification(data.message, 'success');
                                           setTimeout(() => {
                                             location.reload();
-                                          }, 2000);
+                                          }, 800);
                                         } else {
                                           // Show error message
                                           showNotificationInPopUp(data.message, 'error');
@@ -2015,7 +2737,7 @@
                       showNotification(data.message, 'success');
                       setTimeout(() => {
                         location.reload();
-                      }, 2000);
+                      }, 800);
                       authPopup.classList.add("hidden");
                       } else {
                         // Show error message

@@ -12,19 +12,28 @@ const productSchema = mongoose.Schema(
       minlength: [3, "نام محصول نمی‌تواند کمتر از ۳ کاراکتر باشد"],
       maxlength: [100, "نام محصول نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد"],
     },
+    englishName: {
+      type: String,
+      trim: true,
+      maxlength: [100, "نام انگلیسی نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد"],
+    },
     slug: {
       type: String,
-      immutable: true,
       unique: true,
       sparse: true,
       validate: {
         validator: function (v) {
-          // Allows Persian letters (ا-ی), numbers (۰-۹), and hyphens (-)
-          return /^[\u0600-\u06FF0-9-]+$/.test(v);
+          // اجازه حروف انگلیسی (a-z A-Z)، حروف فارسی (ا-ی)، اعداد (0-9 و ۰-۹) و خط تیره (-)
+          return /^[a-zA-Z\u0600-\u06FF0-9\-]+$/.test(v);
         },
-        message: "اسلاگ باید فقط شامل حروف فارسی، اعداد و خط تیره (-) باشد",
+        message: "اسلاگ باید فقط شامل حروف انگلیسی، فارسی، اعداد و خط تیره (-) باشد",
       },
     },
+    oldSlugs: [
+      {
+        type: String,
+      },
+    ],
     lilDescription: {
       type: String,
       maxlength: [160, "توضیح کوتاه نمی‌تواند بیشتر از ۱۶۰ کاراکتر باشد"],
@@ -32,8 +41,6 @@ const productSchema = mongoose.Schema(
     },
     description: {
       type: String,
-      required: [true, "توضیحات محصول الزامی است"],
-      minlength: [20, "توضیحات محصول نمی‌تواند کمتر از ۲۰ کاراکتر باشد"],
       maxlength: 1000000
     },
     images: [
@@ -61,6 +68,8 @@ const productSchema = mongoose.Schema(
           type: String,
           required: true,
         },
+        caption: String,
+        alt: String,
       },
     ],
     price: {
@@ -156,12 +165,10 @@ const productSchema = mongoose.Schema(
       {
         size: {
           type: String,
-          required: [true, "سایز الزامی است"],
           trim: true,
         },
         usage: {
           type: String,
-          required: [true, "کاربرد سایز الزامی است"],
           trim: true,
         },
       },
@@ -197,6 +204,14 @@ const productSchema = mongoose.Schema(
     updateTarikh: {
       type: String,
     },
+    isPublished: {
+      type: Boolean,
+      default: false,
+    },
+    
+    publishedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
@@ -217,6 +232,7 @@ const productSchema = mongoose.Schema(
 );
 
 productSchema.pre("validate", async function (next) {
+  // اگر اسلاگ خالی فرستاده شده (یا اصلاً وجود نداشته) و نام موجود است، خودکار بساز
   if (!this.slug && this.name) {
     let baseSlug = this.name
       .trim()
@@ -227,7 +243,34 @@ productSchema.pre("validate", async function (next) {
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
 
-    // Ensure uniqueness
+    this.slug = baseSlug || `محصول-${Date.now()}`;
+  }
+
+  // اگر اسلاگ به صورت دستی توسط کاربر وارد شده، فقط نرمالایزش کن
+  if (this.slug) {
+    this.slug = this.slug
+      .trim()
+      .normalize("NFKD")
+      .replace(/\s+/g, "-")
+      .replace(/ـ/g, "-")
+      .replace(/[^\u0600-\u06FF0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  // اگر اسلاگ تغییر کرده (سند جدید نیست) اسلاگ قبلی را برای ریدایرکت نگه دار
+  if (!this.isNew && this.isModified("slug")) {
+    const original = await this.constructor.findById(this._id).select("slug oldSlugs");
+    if (original && original.slug && original.slug !== this.slug) {
+      this.oldSlugs = Array.from(
+        new Set([...(original.oldSlugs || []), original.slug])
+      ).filter((s) => s !== this.slug);
+    }
+  }
+
+  // اطمینان از یکتا بودن اسلاگ نهایی
+  if (this.slug) {
+    let baseSlug = this.slug;
     let uniqueSlug = baseSlug;
     let counter = 1;
     while (true) {
@@ -235,8 +278,7 @@ productSchema.pre("validate", async function (next) {
       if (!exists || exists._id.equals(this._id)) break;
       uniqueSlug = `${baseSlug}-${counter++}`;
     }
-
-    this.slug = uniqueSlug || `دسته-${Date.now()}`;
+    this.slug = uniqueSlug;
   }
 
   next();

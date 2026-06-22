@@ -3,22 +3,95 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= product?.name %> | محصولات شیگلم</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title><%= product?.name %></title>
     <meta
       name="description"
       content="<%= product?.lilDescription %>"
     />
-    <meta name="keywords" content="<%= product?.tags.join(", ") %>" />
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <meta name="product_id" content="<%= product?._id %>">
+    <meta name="product_name" content="<%= product?.name %>">
+    <meta name="product_price" content="<%= (product?.offerPrice && product.offerPrice > 0) ? product.offerPrice : product?.price %>">
+    <meta name="availability" content="<%= product?.isOutOfStock ? 'outofstock' : 'instock' %>">
+    <% if (product?.guarantee) { %>
+      <meta name="guarantee" content="<%= product.guarantee %>">
+    <% } else { %>
+      <meta name="guarantee" content="گارانتی اصالت و سلامت فیزیکی کالا">
+    <% } %>
+    
+
+    <meta property="og:title" content="<%= product?.name || 'نام محصول' %>">
+    <meta property="og:description" content="<%= product?.lilDescription || 'توضیحات محصول' %>">
+    <meta property="og:image" content="<%= product?.images?.[0]?.url || '/default-image.jpg' %>">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/css/lightgallery.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/lightgallery.min.js"></script>
+
+    <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
+     <link rel="stylesheet" href="/tailwind.min.css">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/css/lightgallery-bundle.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/lightgallery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/plugins/zoom/lg-zoom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/plugins/thumbnail/lg-thumbnail.min.js"></script>
 
-    <link
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "<%= product.name %>",
+  "image": "<%= product.images && product.images[0] ? 'https://odour.ir' + product.images[0].url : 'https://odour.ir/images/default.jpg' %>",
+  "description": "<%= product.lilDescription || product.description?.substring(0, 150) %>",
+  "sku": "<%= product._id %>",
+  "mpn": "<%= product._id %>",
+  "brand": {
+    "@type": "Brand",
+    "name": "<%= product.brand?.name || 'کیدل' %>"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "<%= priceInIRR %>",
+    "priceCurrency": "IRR",
+    "priceValidUntil": "<%= new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0] %>",
+    "availability": "<%= product.isOutOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock' %>",
+    "url": "https://odour.ir/productDetails/<%= product.slug %>",
+    "seller": {
+      "@type": "Organization",
+      "name": "کیدل"
+    }
+  },
+  "color": [
+    <% if(product?.colors && product?.colors?.length) { %>
+      <% product?.colors.forEach(function(color, index) { %>
+        "<%= color.name %>"<%= index < product?.colors.length-1 ? ',' : '' %>
+      <% }) %>
+    <% } %>
+  ],
+  "size": [
+    <% if(product?.sizes && product?.sizes.length) { %>
+      <% product?.sizes.forEach(function(size, index) { %>
+        "<%= size.size %>"<%= index < product?.sizes.length-1 ? ',' : '' %>
+      <% }) %>
+    <% } %>
+  ]
+}
+</script>
+
+
+<% if (product && product.slug) { %>
+  <link rel="canonical" href="https://odour.ir/productDetails/<%= product.slug %>" />
+<% } else { %>
+  <link rel="canonical" href="https://odour.ir<%= req.originalUrl.split('?')[0] %>" />
+<% } %>
+
+    <!-- <link
       href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
-    />
+    /> -->
     <script>
       tailwind.config = {
         theme: {
@@ -34,9 +107,21 @@
       };
     </script>
     <style>
-      * {
-        font-family: "Vazirmatn", sans-serif;
-      }
+      @font-face {
+        font-family: "MyFont";
+        src: url("/fonts/Vazirmatn-Light.ttf");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+        }
+
+        body {
+        font-family: "MyFont", sans-serif;
+        scroll-behavior: smooth;
+        text-align: right;
+        background: linear-gradient(135deg, #FFF1DB 0%, #fff7ef 48%, #FFF1DB 100%);
+        }
+
       .main-image {
         transition: all 0.4s ease;
       }
@@ -46,12 +131,16 @@
       }
       .thumbnail:hover {
         transform: scale(1.05);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 30px rgba(99, 99, 55, 0.15);
       }
       .thumbnail.active {
-        border-color: #ec4899;
-        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
+        border-color: #636337;
+        box-shadow: 0 0 0 3px rgba(99, 99, 55, 0.3);
       }
+          .cart-count {
+      top: -8px;
+      left: -8px;
+    }
       .color-swatch {
         transition: all 0.3s ease;
         cursor: pointer;
@@ -59,7 +148,7 @@
       }
       .color-swatch:hover {
         transform: scale(1.15);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 20px rgba(99, 99, 55, 0.2);
       }
       .color-swatch.selected::after {
         content: "✓";
@@ -78,54 +167,54 @@
       }
       .volume-option:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 20px rgba(99, 99, 55, 0.15);
       }
       .volume-option.selected {
-        background: linear-gradient(135deg, #ec4899, #f472b6);
+        background: linear-gradient(135deg, #636337, #8a8a5a);
         color: white;
-        box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4);
+        box-shadow: 0 8px 25px rgba(99, 99, 55, 0.4);
       }
       .feature-card {
         transition: all 0.3s ease;
       }
       .feature-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 30px rgba(99, 99, 55, 0.1);
       }
       .section-card {
         transition: all 0.3s ease;
       }
       .section-card:hover {
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 40px rgba(99, 99, 55, 0.1);
       }
 
       .cart-button {
-        background-color: #2563eb;
+        background-color: #636337;
         color: white;
         padding: 1rem;
         border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 15px -3px rgba(99, 99, 55, 0.2);
         transition: all 0.3s;
         border: none;
         cursor: pointer;
       }
 
       .cart-button:hover {
-        background-color: #1d4ed8;
+        background-color: #4a4a2a;
         transform: scale(1.05);
       }
 
       .cart-button:focus {
         outline: none;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 0 4px rgba(99, 99, 55, 0.5);
       }
 
       .cart-button.success {
-        background-color: #16a34a;
+        background-color: #4a4a2a;
       }
 
       .cart-button.success:hover {
-        background-color: #15803d;
+        background-color: #3a3a1f;
       }
 
       .icon {
@@ -144,6 +233,176 @@
         stroke-linejoin: round;
         fill: none;
       }
+      #tab-description a,
+        #productDescriptionContent a {
+            color: #3b82f6 !important;
+            text-decoration: none !important;
+            border-bottom: 1px solid #3b82f6 !important;
+            transition: all 0.3s ease !important;
+            padding-bottom: 2px !important;
+            font-weight: bold;
+        }
+        
+        #tab-description a:hover,
+        #productDescriptionContent a:hover {
+            color: #1d4ed8 !important;
+            border-bottom-color: #1d4ed8 !important;
+            transform: translateY(-1px) !important;
+        }
+        
+        /* استایل سفارشی tooltip برای لینک‌ها و تصاویر */
+a[title],
+img[title],
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+/* استایل tooltip سفارشی برای لینک‌ها */
+a[title]:hover::after,
+a[data-tooltip]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -32px;
+  right: 0;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.3px;
+  font-family: inherit;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* فلش کوچک برای tooltip لینک */
+a[title]:hover::before,
+a[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 15px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #1f2937;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* استایل tooltip برای تصاویر */
+img[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -32px;
+  right: 50%;
+  transform: translateX(50%);
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-family: inherit;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* فلش برای تصاویر */
+img[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #1f2937;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* برای لینک‌هایی که در محتوای Quill هستند */
+.ql-editor a[title]:hover::after,
+#productDescriptionContent a[title]:hover::after {
+  bottom: -32px;
+  right: 0;
+  transform: none;
+  white-space: nowrap;
+}
+
+.ql-editor a[title]:hover::before,
+#productDescriptionContent a[title]:hover::before {
+  right: 15px;
+  transform: none;
+}
+
+/* نسخه موبایل - tooltip را غیرفعال یا کوچک‌تر کن */
+@media (max-width: 768px) {
+  a[title]:hover::after,
+  img[title]:hover::after,
+  [data-tooltip]:hover::after {
+    display: none;
+  }
+  
+  a[title]:hover::before,
+  img[title]:hover::before,
+  [data-tooltip]:hover::before {
+    display: none;
+  }
+  
+  /* یا اگر میخوای در موبایل هم نمایش بده، سایز کوچک‌تر */
+  a[title]:hover::after {
+    font-size: 10px;
+    padding: 4px 8px;
+    bottom: -28px;
+    white-space: normal;
+    max-width: 200px;
+    min-width: 100px;
+    word-break: break-word;
+  }
+}
+
+/* نسخه ساده‌تر بدون فلش (اختیاری) */
+.simple-tooltip[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+/* استایل برای tooltip لینک‌های داخل جدول محتویات */
+.table-of-contents a[title]:hover::after {
+  bottom: -28px;
+  right: 0;
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.table-of-contents a[title]:hover::before {
+  bottom: -4px;
+}
+
 
       .logo-container {
         --logo-size: 2.5rem;
@@ -166,7 +425,7 @@
         height: 2px;
         bottom: -4px;
         right: 50%;
-        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        background: linear-gradient(90deg, #636337, #8a8a5a);
         transition: all 0.3s ease;
       }
 
@@ -214,18 +473,67 @@
       }
 
       .text-gray-700 a {
-        color: #3b82f6;
+        color: #636337;
         text-decoration: underline;
       }
 
       .text-gray-700 a:hover {
-        color: #2563eb;
+        color: #4a4a2a;
       }
 
       .text-gray-700 strong {
         font-weight: bold;
       }
+/* برای تمام المان‌های متنی در دسکتاپ */
+.text-gray-700, 
+.prose, 
+[class*="text-"] {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+}
 
+/* مخصوص بخش توضیحات محصول */
+.section-card .text-gray-700 {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* برای متن‌های داخل دیوهای مختلف */
+div, p, span, h1, h2, h3, h4, h5, h6 {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* برای محتوای تولید شده توسط Quill یا ویرایشگرهای متن */
+.ql-editor,
+.ql-container {
+  word-wrap: break-word !important;
+  white-space: normal !important;
+}
+@media (max-width: 768px) {
+  /* نسخه قوی‌تر برای رفع مشکل */
+  .section-card .text-gray-700 {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    hyphens: auto !important;
+  }
+}
+/* نسخه قوی‌تر برای دسکتاپ - رفع مشکل خروج متن */
+.section-card .text-gray-700,
+.product-description,
+[class*="description"] {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  hyphens: auto !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
       .text-gray-700 em {
         font-style: italic;
       }
@@ -247,130 +555,688 @@
       .text-gray-700 p {
         margin: 1em 0;
       }
+      /* جلوگیری از اسکرول وقتی منو بازه */
+body.menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+} 
+      /* اضافه کنید به استایل‌ها */
+.gallery-popup-container {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+
+.gallery-popup-container.active {
+  display: flex;
+}
+
+.gallery-popup-content {
+  position: relative;
+  width: 90%;
+  max-width: 1200px;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-popup-image {
+  max-width: 90%;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.gallery-popup-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.gallery-popup-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.gallery-popup-prev,
+.gallery-popup-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.gallery-popup-prev {
+  left: 20px;
+}
+.pb-4 {
+    padding-bottom: 2rem;
+}
+.gallery-popup-next {
+  right: 20px;
+}
+
+.gallery-popup-prev:hover,
+.gallery-popup-next:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.gallery-popup-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 30px;
+  color: white;
+  font-size: 14px;
+  z-index: 10;
+}
+
+.gallery-popup-thumbnails {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  overflow-x: auto;
+  max-width: 80%;
+  z-index: 10;
+}
+
+.gallery-popup-thumbnails img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.gallery-popup-thumbnails img:hover {
+  transform: scale(1.05);
+  border-color: #636337;
+}
+
+.gallery-popup-thumbnails img.active {
+  border-color: #636337;
+  box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.5);
+}
+
+@media (max-width: 768px) {
+  .gallery-popup-prev,
+  .gallery-popup-next {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .gallery-popup-thumbnails {
+    bottom: 70px;
+  }
+  
+  .gallery-popup-thumbnails img {
+    width: 45px;
+    height: 45px;
+  }
+}
+/* استایل‌های ریسپانسیو برای موبایل */
+@media (max-width: 768px) {
+  /* کاهش فاصله‌ها و padding در کارت‌ها */
+  .section-card {
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  /* کوچک‌تر کردن عنوان محصول */
+  .section-card h1 {
+    font-size: 20px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* کوچک‌تر کردن قیمت */
+  .section-card .text-3xl {
+    font-size: 22px !important;
+  }
+  
+  /* رنگ‌ها - تبدیل به 3 ستون با دایره‌های کوچک‌تر */
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .color-swatch {
+    width: 45px !important;
+    height: 45px !important;
+  }
+  
+  .color-swatch.selected::after {
+    font-size: 10px !important;
+  }
+  
+  /* حجم‌ها - تبدیل به 2 ستون */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  
+  .volume-option {
+    padding: 8px 12px !important;
+  }
+  
+  .volume-option .text-lg {
+    font-size: 14px !important;
+  }
+  
+  .volume-option .text-xs {
+    font-size: 10px !important;
+  }
+  
+  /* ویژگی‌ها - تبدیل به 2 ستون در موبایل */
+  .grid-cols-1.sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  .feature-card {
+    padding: 10px !important;
+  }
+  
+  .feature-card .w-12 {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .feature-card h4 {
+    font-size: 12px !important;
+  }
+  
+  .feature-card p {
+    font-size: 10px !important;
+  }
+  /* نسخه قوی‌تر برای رفع مشکل */
+.section-card .text-gray-700 {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+  hyphens: auto !important;
+}
+  /* دکمه افزودن به سبد خرید */
+  #add-to-cart {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  /* عنوان‌های بخش‌ها */
+  .section-card h3 {
+    font-size: 16px !important;
+    margin-bottom: 12px !important; 
+  }
+  
+  /* متن رنگ و حجم انتخابی */
+  .text-sm.text-gray-600 {
+    font-size: 12px !important;
+    margin-top: 8px !important;
+  }
+  
+  /* توضیحات محصول */
+  .text-gray-700 {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* کاهش فضای خالی بین بخش‌ها */
+  .space-y-8 {
+    gap: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* فاصله بین المنت‌ها در main */
+  main .grid {
+    gap: 20px !important;
+  }
+  
+  /* کوچک‌تر کردن thumbnails */
+  .thumbnail {
+    padding: 8px !important;
+  }
+  
+  .thumbnail img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  /* تصویر اصلی */
+  .main-image {
+    height: 250px !important;
+  }
+  
+  .section-card.p-8 {
+    padding: 15px !important;
+  }
+}
+
+/* فشرده‌سازی کل صفحه در موبایل */
+@media (max-width: 768px) {
+  main {
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+  }
+  
+  main .px-6 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  /* حذف padding اضافی از header */
+  header .px-6 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  header .py-5 {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  
+  /* کوچک‌تر کردن دکمه بازگشت */
+  header .w-6 {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  header .text-lg {
+    font-size: 14px !important;
+  }
+  
+  /* حذف فضای اضافی nav */
+  nav {
+    padding: 8px 12px !important;
+  }
+  
+  nav img {
+    height: 36px !important;
+  }
+  
+  /* کاهش فضای خالی در footer */
+  footer .py-12 {
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+  }
+  
+  footer .gap-8 {
+    gap: 20px !important;
+  }
+  
+  /* حذف فاصله اضافی اول صفحه */
+  br {
+    display: none !important;
+  }
+  
+  /* فاصله بین ستون اصلی محصولات */
+  .grid-cols-1.lg\:grid-cols-2 {
+    gap: 16px !important;
+  }
+}
+/* استایل تب‌ها */
+.tab-button {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab-button.active {
+  color: #636337;
+  font-weight: 600;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  right: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #636337, #8a8a5a);
+  border-radius: 3px;
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* استایل جدول ویژگی‌های کلیدی */
+.key-features-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.key-features-table tr {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.key-features-table td {
+  padding: 12px 8px;
+  vertical-align: top;
+}
+
+.key-features-table td:first-child {
+  width: 35%;
+  font-weight: 600;
+  color: #4b5563;
+  background-color: #fafafa;
+  border-radius: 8px 0 0 8px;
+}
+
+.key-features-table td:last-child {
+  width: 65%;
+  color: #6b7280;
+}
+
+.key-features-table tr:hover td:first-child {
+  background-color: rgba(99, 99, 55, 0.1);
+  color: #636337;
+}
+
+.cart-count {
+    top: -8px;
+    left: -8px;
+}
+/* استایل جدول محتویات */
+.table-of-contents {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    direction: rtl;
+}
+
+.table-of-contents h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #636337;
+    display: inline-block;
+}
+
+.table-of-contents ul {
+    list-style: none;
+    padding-right: 0;
+    margin: 0;
+}
+
+.table-of-contents li {
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.table-of-contents a {
+    color: #475569;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-block;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.table-of-contents a:hover {
+    color: #636337;
+    transform: translateX(-4px);
+}
+
+.table-of-contents .toc-level-1 {
+    padding-right: 0;
+    font-weight: 600;
+}
+
+.table-of-contents .toc-level-2 {
+    padding-right: 1.25rem;
+    font-weight: normal;
+}
+
+.table-of-contents .toc-level-3 {
+    padding-right: 2.5rem;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+#tab-description.tab-content.active #productDescriptionContent img {
+    width: 600px;
+    height: 600px;
+    object-fit: cover; /* حفظ نسبت تصویر و برش برای پر کردن کادر 800*800 */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* همچنین اگر تصاویر داخل کانتینر custom-html قرار دارند */
+#tab-description.tab-content.active .custom-html img {
+    width: 800px;
+    height: 800px;
+    object-fit: cover;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* انیمیشن اسکرول نرم */
+html {
+    scroll-behavior: smooth;
+}
+
+/* استایل برای هایلایت کردن سرتیتر هنگام اسکرول */
+.section-highlight {
+    animation: highlightFlash 0.5s ease;
+}
+
+@keyframes highlightFlash {
+    0% {
+        background-color: rgba(99, 99, 55, 0.2);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
     </style>
   </head>
   <body class="bg-white min-h-screen">
     <!-- Header -->
-    <nav
-      class="fixed top-0 right-0 left-0 bg-white shadow-md z-50 px-4 md:px-6 py-3"
-    >
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <!-- Logo -->
-        <a href="#" class="flex items-center order-2 md:order-1 h-12 md:h-14">
-          <div class="h-full overflow-hidden flex items-center">
-            <img
-              src="/logo.png"
-              alt="لوگوی اودور"
-              class="h-full w-auto object-contain"
-            />
-          </div>
-        </a>
+<%- include('./partials/navbar') %>
 
-        <!-- Desktop Menu -->
-        <div
-          class="hidden md:flex items-center space-x-8 space-x-reverse order-1 md:order-2"
-        >
-          <a
-            href="/"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >خانه</a
-          >
-          <a
-            href="/shop"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >فروشگاه</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >دسته‌بندی‌ها</a
-          >
-          <a
-            href="/weblog"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >وبلاگ</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >درباره ما</a
-          >
-          <a
-            href="#"
-            class="nav-link text-gray-800 hover:text-pink-500 transition-colors"
-            >تماس با ما</a
-          >
-        </div>
 
-        <!-- Icons -->
-        <div
-          class="flex items-center space-x-4 space-x-reverse order-1 md:order-3"
-        >
-          <div class="relative">
-            <button
-              onclick="window.location.href='/cart';"
-              class="relative text-gray-700 hover:text-pink-500 transition-colors"
-            >
-              <i class="fas fa-shopping-bag text-xl"></i>
-              <% if(user) { %>
-              <span
-                id="cartCount"
-                style="top: -8px; left: 8px"
-                class="absolute cart-count bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-              >
-                <%= toPersianDigits(cartCount) %>
-              </span>
-              <% } %>
-            </button>
-          </div>
-          <button
-            id="user-auth-button"
-            class="text-gray-700 hover:text-pink-500 transition-colors"
-          >
-            <i class="fas fa-user text-xl"></i>
-          </button>
-        </div>
-      </div>
+<style>
+  @media (min-width: 768px) {
+    .desktop-menu {
+      display: flex !important;
+    }
+    .hamburger {
+      display: none !important;
+    }
+  }
+  
+  .dropdown:hover .dropdown-menu {
+    display: block !important;
+  }
+  
+  .submenu-item:hover .submenu-level2 {
+    display: block !important;
+  }
+  
+  .dropdown-menu a:hover,
+  .submenu-level2 a:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .mobile-dropdown-menu,
+  .mobile-submenu-level2 {
+    transition: all 0.3s ease;
+  }
+  
+  /* استایل برای موبایل */
+  @media (max-width: 768px) {
+    .flex.items-center.space-x-4 {
+      gap: 12px;
+    }
+  }
+</style>
 
-      <!-- Mobile Menu -->
-      <div
-        id="mobile-menu"
-        class="md:hidden hidden bg-white absolute right-0 left-0 top-full shadow-md"
-      >
-        <div class="flex flex-col px-4 py-2">
-          <a
-            href="/"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >خانه</a
-          >
-          <a
-            href="/shop"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >فروشگاه</a
-          >
-          <a
-            href=""
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >دسته‌بندی‌ها</a
-          >
-          <a
-            href="/weblog"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >وبلاگ</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >درباره ما</a
-          >
-          <a
-            href="#"
-            class="py-2 text-gray-800 hover:text-pink-500 transition-colors"
-            >تماس با ما</a
-          >
-        </div>
-      </div>
-    </nav>
+<script>
+  // تابع کمکی برای اطمینان از وجود المنت‌ها
+  function waitForElement(selector, callback) {
+    if (document.querySelector(selector)) {
+      callback();
+      return;
+    }
+    const observer = new MutationObserver(function(mutations) {
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        callback();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    // منوی همبرگری موبایل
+    var menuBtn = document.getElementById('menu-btn');
+    var mobileMenu = document.getElementById('mobile-menu');
+    
+    if (menuBtn && mobileMenu) {
+      menuBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
+          mobileMenu.style.display = 'flex';
+        } else {
+          mobileMenu.style.display = 'none';
+        }
+      };
+    }
+    
+    
+    // ساب‌منوی موبایل
+    var mobileTriggers = document.querySelectorAll('.mobile-dropdown-trigger');
+    mobileTriggers.forEach(function(trigger) {
+      trigger.onclick = function(e) {
+        e.stopPropagation();
+        var menu = this.nextElementSibling;
+        var icon = this.querySelector('i');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+          menu.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        } else {
+          menu.style.display = 'none';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      };
+    });
+    
+    var subTriggers = document.querySelectorAll('.mobile-submenu-trigger');
+    subTriggers.forEach(function(trigger) {
+      trigger.onclick = function(e) {
+        e.stopPropagation();
+        var submenu = this.nextElementSibling;
+        var icon = this.querySelector('i');
+        if (submenu.style.display === 'none' || submenu.style.display === '') {
+          submenu.style.display = 'block';
+          icon.style.transform = 'rotate(180deg)';
+        } else {
+          submenu.style.display = 'none';
+          icon.style.transform = 'rotate(0deg)';
+        }
+      };
+    });
+    
+    // ====== بخش مهم: مدیریت پاپ‌آپ احراز هویت ======
+    var authButton = document.getElementById('user-auth-button');
+    var authPopup = document.getElementById('auth-popup');
+    
+    // اگر پاپ‌آپ در DOM وجود داشت، مدیریت کن
+    if (authButton && authPopup) {
+      authButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        authPopup.classList.remove('hidden');
+        // تابع switchTab باید قبلاً تعریف شده باشد
+        if (typeof switchTab === 'function') {
+          switchTab('login');
+        }
+      });
+      
+      // بستن پاپ‌آپ با کلیک روی پس‌زمینه
+      authPopup.addEventListener('click', function(e) {
+        if (e.target === authPopup) {
+          authPopup.classList.add('hidden');
+        }
+      });
+    } else {
+      console.warn('دکمه user-auth-button یا پاپ‌آپ auth-popup در صفحه پیدا نشد!');
+      
+      // اگر پاپ‌آپ وجود نداشت، می‌توانیم یک هشدار نمایش دهیم یا لاگ بگیریم
+      if (!authButton) console.warn('عنصر با آیدی user-auth-button یافت نشد');
+      if (!authPopup) console.warn('عنصر با آیدی auth-popup یافت نشد');
+    }
+  });
+</script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const mobileMenuButton = document.getElementById("mobile-menu-button");
@@ -391,493 +1257,894 @@
         });
       });
     </script>
-    <header
-      class="bg-white/90 backdrop-blur-md shadow-lg border-b border-pink-100 rounded-b-3xl"
-    >
-      <div class="max-w-7xl mx-auto px-6 py-5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <button
-              class="text-pink-600 hover:text-pink-800 transition-colors p-2 rounded-2xl hover:bg-pink-50"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                ></path>
-              </svg>
-            </button>
-            <h1 class="text-lg font-semibold text-gray-800">
-              بازگشت به فروشگاه
-            </h1>
-          </div>
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <button
-              class="text-pink-600 hover:text-pink-800 transition-colors p-2 rounded-2xl hover:bg-pink-50"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                ></path>
-              </svg>
-            </button>
-          </div>
+    <div id="auth-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content">
+    <!-- Tab Navigation -->
+    <div class="flex border-b">
+      <button id="login-tab" class="tab-btn flex-1 py-4 text-center font-medium transition-colors" style="color: #636337; border-bottom: 2px solid #636337;">
+        ورود
+      </button>
+      <button id="register-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent">
+        ثبت نام
+      </button>
+      <button id="forgot-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500 border-b-2 border-transparent">
+        بازیابی رمز
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-content" class="tab-content active p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">ورود به حساب کاربری</h2>
+      <form action="/api/authentication/signIn" method="post" id="login-form" class="space-y-5">
+        <div>
+          <label class="block text-gray-700 mb-2" for="login-phone">شماره موبایل</label>
+          <input type="tel" name="mobile" id="login-phone" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="09xxxxxxxxx" required />
         </div>
+        <div>
+          <label class="block text-gray-700 mb-2" for="login-password">رمز عبور</label>
+          <input type="password" name="password" id="login-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="رمز عبور خود را وارد کنید" required />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white;">
+          ورود
+        </button>
+      </form>
+    </div>
+
+    <!-- Registration Form -->
+    <div id="register-content" class="tab-content p-6">
+      <div id="register-step-1" class="form-step active">
+        <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">ایجاد حساب کاربری</h2>
+        <form action="/api/authentication/signUp" method="post" id="register-form" class="space-y-4">
+          <div>
+            <label class="block text-gray-700 mb-2" for="register-name">نام و نام خانوادگی</label>
+            <input type="text" name="fullName" id="register-name" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="نام کامل خود را وارد کنید" required />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="register-phone">شماره موبایل</label>
+            <input type="tel" name="mobile" id="register-phone" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="09xxxxxxxxx" required />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="register-email">ایمیل</label>
+            <input type="email" name="email" id="register-email" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="email@example.com" />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="register-password">رمز عبور</label>
+            <input type="password" name="password" id="register-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="حداقل 8 کاراکتر" required />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="register-confirm-password">تکرار رمز عبور</label>
+            <input type="password" name="confirmPassword" id="register-confirm-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="تکرار رمز عبور" required />
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300 mt-2" style="background-color: #636337; color: white;">
+            ثبت نام
+          </button>
+        </form>
       </div>
-    </header>
+
+      <div id="register-step-2" class="form-step">
+        <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">تایید شماره موبایل</h2>
+        <p class="text-gray-600 text-center mb-5">
+          کد تایید به شماره <span id="register-phone-display" class="font-bold" style="color: #636337;"></span> ارسال شد
+        </p>
+        <form id="register-verification-form" class="space-y-5">
+          <div class="text-center">
+            <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
+            <div class="flex justify-center gap-2 mb-3">
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+            </div>
+            <div id="register-resend-timer" class="text-sm text-gray-500 mb-3">ارسال مجدد کد تا <span>۰۲:۰۰</span></div>
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white;">
+            تایید و ورود
+          </button>
+          <button type="button" id="register-back-btn" class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300" style="color: #636337; border-color: #636337;">
+            بازگشت
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Forgot Password Form -->
+    <div id="forgot-content" class="tab-content p-6">
+      <div id="forgot-step-1" class="form-step active">
+        <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">بازیابی رمز عبور</h2>
+        <form id="forgot-form" class="space-y-5">
+          <div>
+            <label class="block text-gray-700 mb-2" for="forgot-phone">شماره موبایل</label>
+            <input type="tel" id="forgot-phone" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="09xxxxxxxxx" required />
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white;">
+            ارسال کد تایید
+          </button>
+        </form>
+      </div>
+
+      <div id="forgot-step-2" class="form-step">
+        <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">تایید کد</h2>
+        <p class="text-gray-600 text-center mb-5">
+          کد تایید به شماره <span id="forgot-phone-display" class="font-bold" style="color: #636337;"></span> ارسال شد
+        </p>
+        <form id="forgot-verification-form" class="space-y-5">
+          <div class="text-center">
+            <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
+            <div class="flex justify-center gap-2 mb-3">
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+              <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" dir="ltr" required />
+            </div>
+            <div id="forgot-resend-timer" class="text-sm text-gray-500 mb-3">ارسال مجدد کد تا <span>۰۲:۰۰</span></div>
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white;">
+            تایید
+          </button>
+          <button type="button" id="forgot-back-btn" class="w-full bg-white py-3 rounded-lg font-medium border transition-colors duration-300" style="color: #636337; border-color: #636337;">
+            بازگشت
+          </button>
+        </form>
+      </div>
+
+      <div id="forgot-step-3" class="form-step">
+        <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">تعیین رمز عبور جدید</h2>
+        <form id="new-password-form" class="space-y-5">
+          <div>
+            <label class="block text-gray-700 mb-2" for="new-password">رمز عبور جدید</label>
+            <input type="password" id="new-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="حداقل 6 کاراکتر" required />
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2" for="confirm-new-password">تکرار رمز عبور جدید</label>
+            <input type="password" id="confirm-new-password" class="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#636337] focus:border-transparent" placeholder="تکرار رمز عبور جدید" required />
+          </div>
+          <button type="submit" class="w-full py-3 rounded-lg font-medium transition-colors duration-300" style="background-color: #636337; color: white;">
+            ذخیره و ورود
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .form-step {
+    display: none;
+  }
+  .form-step.active {
+    display: block;
+  }
+  .otp-input {
+    width: 3rem;
+    height: 3.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+  }
+  .otp-input:focus {
+    border-color: #636337;
+    box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
+  }
+  .modal-content {
+    animation: modalFadeIn 0.3s ease-out;
+  }
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+// توابع مدیریت پاپ‌آپ و احراز هویت
+document.addEventListener('DOMContentLoaded', function() {
+  const authPopup = document.getElementById('auth-popup');
+  const authButton = document.getElementById('user-auth-button');
+  
+  // Tab Switching
+  const tabs = {
+    login: document.getElementById('login-tab'),
+    register: document.getElementById('register-tab'),
+    forgot: document.getElementById('forgot-tab')
+  };
+  
+  const contents = {
+    login: document.getElementById('login-content'),
+    register: document.getElementById('register-content'),
+    forgot: document.getElementById('forgot-content')
+  };
+  
+  function switchTab(activeTab) {
+    Object.values(tabs).forEach(tab => {
+      if(tab) {
+        tab.classList.remove('border-pink-500', 'text-pink-500');
+        tab.classList.add('text-gray-500');
+      }
+    });
+    Object.values(contents).forEach(content => {
+      if(content) content.classList.remove('active');
+    });
+    if(tabs[activeTab]) {
+      tabs[activeTab].classList.add('border-pink-500', 'text-pink-500');
+      tabs[activeTab].classList.remove('text-gray-500');
+    }
+    if(contents[activeTab]) contents[activeTab].classList.add('active');
+  }
+  
+  if (tabs.login) tabs.login.addEventListener('click', () => switchTab('login'));
+  if (tabs.register) tabs.register.addEventListener('click', () => switchTab('register'));
+  if (tabs.forgot) tabs.forgot.addEventListener('click', () => switchTab('forgot'));
+  
+  // باز کردن پاپ‌آپ
+  if (authButton && authPopup) {
+    authButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      authPopup.classList.remove('hidden');
+      switchTab('login');
+    });
+    
+    authPopup.addEventListener('click', function(e) {
+      if (e.target === authPopup) {
+        authPopup.classList.add('hidden');
+      }
+    });
+  }
+  
+  // OTP inputs setup
+  function setupOtpInputs(containerSelector) {
+    const inputs = Array.from(document.querySelectorAll(`${containerSelector} .otp-input`));
+    if (inputs.length === 0) return;
+    
+    inputs[inputs.length - 1].focus();
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', function() {
+        if (this.value.length === 1 && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && this.value.length === 0 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+    });
+  }
+  
+  setupOtpInputs('#register-step-2');
+  setupOtpInputs('#forgot-step-2');
+  
+  // Register form
+  const registerForm = document.getElementById('register-form');
+  const registerStep1 = document.getElementById('register-step-1');
+  const registerStep2 = document.getElementById('register-step-2');
+  const registerPhoneDisplay = document.getElementById('register-phone-display');
+  
+  if (registerForm) {
+    registerForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const phone = document.getElementById('register-phone').value;
+      if(registerPhoneDisplay) registerPhoneDisplay.textContent = phone;
+      if(registerStep1) registerStep1.classList.remove('active');
+      if(registerStep2) registerStep2.classList.add('active');
+      
+      fetch('/api/mobile/sendOtp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: phone })
+      });
+    });
+  }
+  
+  const registerBackBtn = document.getElementById('register-back-btn');
+  if (registerBackBtn) {
+    registerBackBtn.addEventListener('click', function() {
+      if(registerStep2) registerStep2.classList.remove('active');
+      if(registerStep1) registerStep1.classList.add('active');
+    });
+  }
+  
+  // Login form
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(loginForm);
+      fetch('/api/authentication/signIn', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showNotification(data.message, 'success');
+          setTimeout(() => location.reload(), 800);
+          if(authPopup) authPopup.classList.add('hidden');
+        } else {
+          showNotification(data.message, 'error');
+        }
+      });
+    });
+  }
+});
+</script>
+<br><br><br>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-6 py-10">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <!-- Product Images (Right Side) -->
-        <div class="order-1 lg:order-2">
-          <!-- Main Image -->
-          <div class="mb-8">
-            <div
-              class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
-            >
-              <img
-                id="main-image"
-                src="<%= product.images[0].url %>"
-                alt="<%= product.name %>"
-                class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl"
-              />
-            </div>
-          </div>
+<main class="max-w-7xl mx-auto px-6 py-10">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+<!-- Product Images (Right Side) -->
+<div class="order-1 lg:order-2">
+  <!-- Main Image با قابلیت کلیک برای باز شدن پاپ‌آپ -->
+  <div class="mb-8">
+    <div style=" margin-top: 64px" class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+      <img
+        id="main-image"
+        src="<%= product.images[0].url %>"
+        alt="<%= product.name %>"
+        title="<%= product.images[0].caption %>"
+        class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl cursor-pointer"
+        onclick="openGallery(0)"
+      />
+    </div>
+  </div>
 
-          <!-- Thumbnail Gallery -->
-          <div
-            class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1"
-          >
-            <% for (let image of product.images) {%>
-            <div
-              class="thumbnail active bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0"
-            >
-              <img
-                src="<%= image.url %>"
-                alt="<%= product.name %>"
-                class="w-16 h-16 object-contain rounded-xl"
-              />
-            </div>
-            <% } %>
-          </div>
-        </div>
+  <!-- Thumbnail Gallery -->
+<div class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1">
+  <% for (let i = 0; i < product.images.length; i++) { %>
+  <div class="thumbnail bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0" onclick="openGallery(<%= i %>)" style="--tw-shadow: -20px 20px 25px -5px rgba(99, 99, 55, 0.1), 0 10px 10px -5px rgba(99, 99, 55, 0.04); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);">
+      <img
+        src="<%= product.images[i].url %>"
+        alt="<%= product.name %>"
+        class="w-16 h-16 object-contain rounded-xl cursor-pointer"
+      />
+    </div>
+  <% } %>
+</div>
+  <!-- Product Description - توضیحات محصول -->
+ 
+</div>
 
+<!-- پاپ‌آپ گالری مخفی -->
+<!-- پاپ‌آپ گالری جدید -->
+<!-- پاپ‌آپ گالری -->
+<div id="gallery-popup" class="gallery-popup-container" style="display: none;">
+  <div class="gallery-popup-content">
+    <div class="gallery-popup-close" onclick="closeGallery()">✕</div>
+    <div class="gallery-popup-prev" onclick="prevImage()">❯</div>
+    <div class="gallery-popup-next" onclick="nextImage()">❮</div>
+    
+    <img id="gallery-image" class="gallery-popup-image" src="" alt="">
+    
+    <div class="gallery-popup-counter">
+      <span id="gallery-counter"></span>
+    </div>
+    
+    <div id="gallery-thumbnails" class="gallery-popup-thumbnails">
+      <!-- thumbnails به صورت داینامیک ساخته می‌شوند -->
+    </div>
+  </div>
+</div>
         <!-- Product Details (Left Side) -->
-        <div class="order-2 lg:order-1 space-y-8">
-          <!-- Product Title & Price -->
-          <div
+<!-- Product Details (Left Side) -->
+<div class="order-2 lg:order-1 space-y-8">
+  
+  <!-- Color Selector & Volume & Add to Cart (بخش خرید) -->
+  <div class="bg-white rounded-2xl p-4 shadow-md border border-gray-100 space-y-5">
+              <div
             class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
           >
             <h1 class="text-3xl font-bold text-gray-900 mb-4">
               <%= product?.name %>
             </h1>
+          <% if (product?.englishName) { %>
+            <p class="text-gray-500 text-base mb-4" dir="ltr" style="text-align: left;">
+              <%= product?.englishName %>
+            </p>
+          <% } %>
             <p class="text-gray-600 mb-5 text-lg">
-              برند: <%= product?.brand.name %>
+              برند: <%= product?.brandName %>
             </p>
             <div class="flex items-center space-x-4 space-x-reverse mb-6">
               <% if (product?.offerPrice) { %>
-              <span class="text-3xl font-bold text-pink-600"
+              <span class="text-3xl font-bold" style="color: #636337;"
                 ><%= toPersianDigits(product?.offerPrice) %> تومان</span
               >
               <span class="text-lg text-gray-400 line-through"
                 ><%= toPersianDigits(product?.price) %> تومان</span
               >
               <span
-                class="bg-pink-100 text-pink-800 text-sm font-medium px-4 py-2 rounded-full"
+                class="text-sm font-medium px-4 py-2 rounded-full" style="background-color: rgba(99, 99, 55, 0.1); color: #636337;"
               >
                 <%= toPersianDigits(product?.discount) %>% تخفیف
               </span>
               <% } else { %>
-              <span class="text-3xl font-bold text-pink-600"
+              <span class="text-3xl font-bold" style="color: #636337;"
                 ><%= toPersianDigits(product?.price) %> تومان</span
               >
               <% } %>
             </div>
-            <div class="flex items-center space-x-3 space-x-reverse">
-              <% const fullStars = Math.floor(product?.rating); %> <% const
-              halfStar = product?.rating % 1 >= 0.5; %> <% const emptyStars = 5
-              - fullStars - (halfStar ? 1 : 0); %>
-              <div class="flex text-yellow-400">
-                <% for (let i = 0; i < fullStars; i++) { %>
-                <!-- Full Star -->
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                  <path
-                    d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
-                  />
-                </svg>
-                <% } %> <% if (halfStar) { %>
-                <!-- Half Star (custom SVG or CSS) -->
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                  <defs>
-                    <linearGradient id="halfGrad">
-                      <stop offset="50%" stop-color="currentColor" />
-                      <stop offset="50%" stop-color="transparent" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
-                    fill="url(#halfGrad)"
-                  />
-                </svg>
-                <% } %> <% for (let i = 0; i < emptyStars; i++) { %>
-                <!-- Empty Star -->
-                <svg
-                  class="w-5 h-5 text-gray-300 fill-current"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
-                  />
-                </svg>
-                <% } %>
+            <div class="flex items-center space-x-3 space-x-reverse" id="rating-section">
+                <div class="flex text-yellow-400" id="stars-container"></div>
               </div>
               <span class="text-gray-600 text-sm font-medium"
-                >(<%= product?.reviewsNum %> نظر)</span
-              >
+                >(<%= product?.reviewsNum %> نظر)
+              </span>
             </div>
           </div>
-
-          <!-- Color Selector -->
-          <div
-            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
-          >
-            <h3 class="text-xl font-semibold text-gray-900 mb-6">
-              انتخاب رنگ:
-            </h3>
-            <div class="grid grid-cols-4 gap-6 mb-6">
-              <% product.colors.forEach((color, index) => { %>
-              <div class="text-center">
-                <div
-                  style="background-color: <%= color.rgb %>"
-                  class="color-swatch w-14 h-14 rounded-full mx-auto mb-3 shadow-lg border-2 border-white <%= index === 0 ? 'selected' : '' %>"
-                  data-color="<%= color.name %>"
-                ></div>
-                <span class="text-sm text-gray-600 font-medium"
-                  ><%= color.name %></span
-                >
-              </div>
-              <% }) %>
-            </div>
-            <p class="text-sm text-gray-600">
-              رنگ انتخابی:
-              <span id="selected-color" class="font-semibold text-pink-600"
-                ><%= product.colors[0].name %></span
-              >
-            </p>
-          </div>
-
-          <!-- Volume Selector -->
-          <div
-            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
-          >
-            <h3 class="text-xl font-semibold text-gray-900 mb-6">
-              انتخاب حجم:
-            </h3>
-            <div class="grid grid-cols-3 gap-4 mb-6">
-              <% product.sizes.forEach((size, index) => { %>
-              <button
-                class="volume-option bg-gray-50 hover:bg-gray-100 px-5 py-4 rounded-2xl text-center font-medium border-2 border-transparent <%= (index === 0 || product.sizes.length === 1) ? 'selected bg-gradient-to-r from-pink-500 to-rose-500 text-white' : '' %>"
-                data-volume="<%= toPersianDigitsForSizes(size.size) %>"
-              >
-                <div class="text-lg font-bold">
-                  <%= toPersianDigitsForSizes(size.size) %>
-                </div>
-                <div
-                  class="volume-usage text-xs <%= (index === 0 || product.sizes.length === 1) ? 'text-white' : 'text-gray-500' %> mt-1"
-                >
-                  <%= size.usage %>
-                </div>
-              </button>
-              <% }) %>
-            </div>
-            <p class="text-sm text-gray-600">
-              حجم انتخابی:
-              <span id="selected-volume" class="font-semibold text-pink-600"
-                ><%= toPersianDigitsForSizes(product.sizes[0].size) %></span
-              >
-            </p>
-          </div>
-
-          <!-- Key Features -->
-          <div
-            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
-          >
-            <h3 class="text-xl font-semibold text-gray-900 mb-6">
-              ویژگی‌های کلیدی:
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div
-                class="feature-card bg-gradient-to-r from-pink-50 to-rose-50 p-5 rounded-2xl border border-pink-100"
-              >
-                <div class="flex items-center space-x-4 space-x-reverse">
-                  <div
-                    class="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center"
-                  >
-                    <svg
-                      class="w-6 h-6 text-pink-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        d="M10 2L3 7v11a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V7l-7-5z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800 text-lg">
-                      ماندگاری بالا
-                    </h4>
-                    <p class="text-sm text-gray-600">تا ۱۲ ساعت</p>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="feature-card bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-2xl border border-green-100"
-              >
-                <div class="flex items-center space-x-4 space-x-reverse">
-                  <div
-                    class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center"
-                  >
-                    <svg
-                      class="w-6 h-6 text-green-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800 text-lg">
-                      فینیش مات
-                    </h4>
-                    <p class="text-sm text-gray-600">بدون براق شدن</p>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="feature-card bg-gradient-to-r from-purple-50 to-violet-50 p-5 rounded-2xl border border-purple-100"
-              >
-                <div class="flex items-center space-x-4 space-x-reverse">
-                  <div
-                    class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center"
-                  >
-                    <svg
-                      class="w-6 h-6 text-purple-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800 text-lg">
-                      وگان فرندلی
-                    </h4>
-                    <p class="text-sm text-gray-600">بدون مواد حیوانی</p>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="feature-card bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-2xl border border-blue-100"
-              >
-                <div class="flex items-center space-x-4 space-x-reverse">
-                  <div
-                    class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center"
-                  >
-                    <svg
-                      class="w-6 h-6 text-blue-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 class="font-semibold text-gray-800 text-lg">
-                      مرطوب کننده
-                    </h4>
-                    <p class="text-sm text-gray-600">حاوی ویتامین E</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Add to Cart Button -->
-          <div
-            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
-          >
-            <button
-              onclick="addToCart('<%= product.name %>', '<%= product._id %>')"
-              id="add-to-cart"
-              class="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-5 px-8 rounded-2xl font-semibold text-lg hover:from-pink-600 hover:to-rose-600 transition duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105"
-            >
-              افزودن به سبد خرید
-            </button>
-          </div>
-
-          <!-- Product Description -->
-          <div
-            class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
-          >
-            <h3 class="text-xl font-semibold text-gray-900 mb-6">
-              توضیحات محصول
-            </h3>
-            <div class="prose prose-gray max-w-none">
-              <div class="text-gray-700 leading-relaxed mb-5 text-base">
-                <%- product.description %>
-              </div>
-            </div>
-          </div>
+    <!-- رنگ -->
+    <% if (product?.colors && product?.colors.length > 0) { %>
+    <div>
+      <h3 class="text-base font-semibold text-gray-900 mb-3">انتخاب رنگ:</h3>
+      <div class="grid grid-cols-4 gap-3 mb-2">
+        <% product?.colors.forEach((color, index) => { %>
+        <div class="text-center">
+          <div style="background-color: <%= color.rgb %>" 
+               class="color-swatch w-10 h-10 rounded-full mx-auto mb-1 shadow border-2 border-white <%= index === 0 ? 'selected ring-2 ring-[#636337]' : '' %>" 
+               data-color="<%= color.name %>"></div>
+          <span class="text-xs text-gray-600"><%= color.name %></span>
         </div>
+        <% }) %>
       </div>
+      <p class="text-xs text-gray-600">رنگ انتخابی: <span id="selected-color" class="font-semibold" style="color: #636337;"><%= product?.colors[0]?.name %></span></p>
+    </div>
+    <% } %>
+
+    <% if (product?.sizes && product?.sizes.length > 0) { %>
+    <!-- حجم -->
+    <div>
+      <h3 class="text-base font-semibold text-gray-900 mb-3">انتخاب حجم:</h3>
+      <div class="grid grid-cols-3 gap-2 mb-2">
+        <% product.sizes.forEach((size, index) => { %>
+        <button style="background-color: #8a8a5a;" class="volume-option bg-gray-50 hover:bg-gray-100 py-2 rounded-xl text-center font-medium border border-gray-200 <%= (index === 0 || product.sizes.length === 1) ? 'selected text-white border-transparent' : '' %>" 
+                data-volume="<%= toPersianDigitsForSizes(size.size) %>">
+          <div class="text-base font-bold"><%= toPersianDigitsForSizes(size.size) %></div>
+          <div class="volume-usage text-xs <%= (index === 0 || product.sizes.length === 1) ? 'text-white/90' : 'text-gray-500' %>"><%= size?.usage || "" %></div>
+        </button>
+        <% }) %>
+      </div>
+      <p class="text-xs text-gray-600">حجم انتخابی: <span id="selected-volume" class="font-semibold" style="color: #636337;"><%= toPersianDigitsForSizes(product.sizes[0].size) %></span></p>
+    </div>
+    <% } %>
+
+    <!-- دکمه افزودن به سبد خرید -->
+    <% if (product.isOutOfStock || product.countInStock <= 0) { %>
+        <button disabled class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-2xl font-bold opacity-70 cursor-not-allowed shadow-lg">
+            <i class="fas fa-ban ml-2"></i>
+            ناموجود
+        </button>
+    <% } else { %>
+        <button style="background-color: #8a8a5a;" onclick="addToCart('<%= product.name %>', '<%= product._id %>')" 
+                id="add-to-cart" 
+                class="w-full text-white py-3 rounded-xl font-semibold text-sm transition duration-300 shadow hover:shadow-md active:scale-[0.98]">
+          افزودن به سبد خرید
+        </button>
+    <% } %>
+  </div>
+
+  <!-- Product Description - توضیحات محصول (انتقال به پایین بخش خرید) -->
+<!-- Product Description - توضیحات محصول (انتقال به پایین بخش خرید) -->
+
+
     </main>
-    <footer class="bg-gray-900 text-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div class="flex items-center space-x-reverse space-x-3 mb-4">
-              <div
-                class="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center"
-              >
-                <svg
-                  class="w-6 h-6 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold">وبلاگ مدرن</h3>
-            </div>
-            <p class="text-gray-400 text-sm leading-relaxed">
-              مرجع آموزش تکنولوژی، طراحی وب و برنامه‌نویسی در ایران
-            </p>
-            <p class="text-gray-400 text-sm leading-relaxed mt-2">
-              شماره تلفن: ۰۹۰۵۴۲۴۳۴۶۴
-            </p>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">دسته‌بندی‌ها</h4>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >طراحی وب</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >برنامه‌نویسی</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors">UI/UX</a>
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >هوش مصنوعی</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">لینک‌های مفید</h4>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >درباره ما</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >تماس با ما</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >حریم خصوصی</a
-                >
-              </li>
-              <li>
-                <a href="#" class="hover:text-white transition-colors"
-                  >شرایط استفاده</a
-                >
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-bold mb-4">شبکه‌های اجتماعی</h4>
-            <div class="flex space-x-reverse space-x-4">
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"
-                  />
-                </svg>
-              </a>
-              <a
-                href="#"
-                class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
-                  />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div
-          class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400"
-        >
-          <p>&amp;copy; ۱۴۰۳ وبلاگ مدرن. تمامی حقوق محفوظ است.</p>
+    
+
+    <!-- بخش توضیحات محصول با تب‌ها -->
+    <div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mt-8" style="margin: 20px;">
+      <!-- تب‌ها -->
+      <div class="flex border-b border-gray-200 mb-6">
+        <button class="tab-button active px-6 py-3 text-base font-medium" style="color: #636337;" data-tab="description">
+          توضیحات محصول
+        </button>
+        <button class="tab-button px-6 py-3 text-base font-medium text-gray-500 hover:text-gray-700" data-tab="features">
+          ویژگی‌های کلیدی
+        </button>
+      </div>
+
+      <div id="productTOC" class="mb-6"></div>
+
+      <!-- محتوای تب توضیحات محصول -->
+      <div id="tab-description" class="tab-content active">
+        <div id="productDescriptionContent" class="text-gray-700 leading-relaxed text-base">
+          <%- product.description %>
         </div>
       </div>
-    </footer>
+      
+      <!-- محتوای تب ویژگی‌های کلیدی -->
+<div id="tab-features" class="tab-content">
+  <div class="overflow-x-auto">
+    <table class="key-features-table w-full">
+      <tbody>
+        <% if (product.specifications && product.specifications.length > 0) { %>
+          <% product.specifications.forEach(spec => { %>
+            <tr>
+              <td class="px-4 py-3 font-semibold text-gray-700 bg-gray-50 rounded-r-xl w-1/3">
+                <%= spec.key %>
+              </td>
+              <td class="px-4 py-3 text-gray-600 rounded-l-xl">
+                <%= spec.value %>
+              </td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="2" class="px-4 py-8 text-center text-gray-400">
+              <i class="fas fa-info-circle ml-2"></i>
+              هیچ ویژگی کلیدی برای این محصول ثبت نشده است.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+    </div>
+    
+    <!-- بخش نظرات محصول -->
+<!-- بخش نظرات محصول -->
+<!-- بخش نظرات محصول -->
+<div class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mt-8">
+  <div class="flex items-center justify-between border-b border-gray-200 pb-4 mb-6">
+    <h3 class="text-xl font-semibold text-gray-900">نظرات کاربران</h3>
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <i class="fas fa-star text-yellow-400"></i>
+      <span id="average-rating-display">۰</span>
+      <span>از ۵</span>
+      <span class="mx-2">|</span>
+      <i class="far fa-comment"></i>
+      <span id="comments-count-display">۰</span>
+      <span>نظر</span>
+    </div>
+  </div>
+
+  <!-- فرم ثبت نظر -->
+  <div class="bg-gray-50 rounded-2xl p-6 mb-8">
+    <h4 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      <i class="far fa-edit" style="color: #636337;"></i>
+      ثبت نظر جدید
+    </h4>
+    
+    <form id="comment-form" class="space-y-4">
+      <!-- امتیازدهی با ستاره -->
+      <div>
+        <label class="block text-gray-700 mb-2 text-sm">امتیاز شما به این محصول</label>
+        <div class="flex flex-row-reverse justify-end gap-1 rating-stars">
+          <input type="radio" name="rating" value="5" id="star5" class="hidden">
+          <label for="star5" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 transition-colors">★</label>
+          
+          <input type="radio" name="rating" value="4" id="star4" class="hidden">
+          <label for="star4" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 transition-colors">★</label>
+          
+          <input type="radio" name="rating" value="3" id="star3" class="hidden">
+          <label for="star3" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 transition-colors">★</label>
+          
+          <input type="radio" name="rating" value="2" id="star2" class="hidden">
+          <label for="star2" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 transition-colors">★</label>
+          
+          <input type="radio" name="rating" value="1" id="star1" class="hidden">
+          <label for="star1" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 transition-colors">★</label>
+        </div>
+      </div>
+      
+      <!-- نام کاربر -->
+      <div>
+        <label for="comment-name" class="block text-gray-700 mb-2 text-sm">نام شما</label>
+        <input type="text" id="comment-name" placeholder="نام خود را وارد کنید" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#636337] focus:outline-none focus:ring-2 focus:ring-[#636337]/20 transition">
+      </div>
+      
+      <!-- متن نظر -->
+      <div>
+        <label for="comment-text" class="block text-gray-700 mb-2 text-sm">متن نظر</label>
+        <textarea id="comment-text" rows="3" placeholder="نظر خود را بنویسید..." class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-[#636337] focus:outline-none focus:ring-2 focus:ring-[#636337]/20 transition resize-none"></textarea>
+      </div>
+      
+      <!-- دکمه ثبت -->
+      <button style="background-color: #8a8a5a;" type="submit" class="bg-gradient-to-r from-[#636337] to-[#8a8a5a] text-white px-6 py-2 rounded-xl font-medium  transition shadow-md hover:shadow-lg">
+        ثبت نظر
+      </button>
+    </form>
+  </div>
+
+  <!-- لیست نظرات -->
+  <div id="comments-list" class="space-y-4">
+    <div class="text-center text-gray-400 py-8" id="no-comments-message">
+      <i class="far fa-comment-dots text-4xl mb-2 block"></i>
+      <p>هنوز نظری ثبت نشده است. اولین نفری باشید که نظر می‌دهید!</p>
+    </div>
+  </div>
+  
+  <!-- دکمه بارگذاری بیشتر -->
+  <div class="text-center mt-6 hidden" id="load-more-container">
+    <button id="load-more-comments" class="text-sm font-medium transition" style="color: #636337;">
+      مشاهده نظرات بیشتر <i class="fas fa-chevron-down mr-1"></i>
+    </button>
+  </div>
+</div>
+<%- include('./partials/footer') %>
+
 
     <script>
+    // ==================== بخش نظرات محصول ====================
+const productIdForComments = '<%= product?._id %>';
+
+let allComments = [];
+let currentPage = 1;
+const commentsPerPage = 5;
+
+// تبدیل اعداد به فارسی
+function toPersianDigitsForComments(num) {
+  if (num === undefined || num === null) return '۰';
+  return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+// تابع escape برای جلوگیری از XSS
+function escapeHtmlForComments(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// بارگذاری نظرات از سرور
+async function loadComments(page = 1) {
+  try {
+    const response = await fetch(`/api/comments/product/${productIdForComments}?page=${page}&limit=${commentsPerPage}`);
+    const data = await response.json();
+    
+    if (data.success) {
+      if (page === 1) {
+        allComments = data.comments;
+      } else {
+        allComments = [...allComments, ...data.comments];
+      }
+      
+      currentPage = page;
+      
+      // به‌روزرسانی نمایش امتیاز و تعداد نظرات
+      const commentsCountDisplay = document.getElementById('comments-count-display');
+      const averageRatingDisplay = document.getElementById('average-rating-display');
+      
+      if (commentsCountDisplay) {
+        commentsCountDisplay.textContent = toPersianDigitsForComments(data.totalComments);
+      }
+      
+      if (averageRatingDisplay) {
+        averageRatingDisplay.textContent = data.averageRating ? data.averageRating.toFixed(1) : '۰';
+      }
+      
+      // نمایش نظرات
+      renderComments(allComments);
+      
+      // مدیریت دکمه بارگذاری بیشتر
+      const loadMoreContainer = document.getElementById('load-more-container');
+      if (data.hasMore) {
+        loadMoreContainer.classList.remove('hidden');
+      } else {
+        loadMoreContainer.classList.add('hidden');
+      }
+    }
+  } catch (error) {
+    console.error('خطا در بارگذاری نظرات:', error);
+  }
+}
+
+// رندر کردن نظرات
+function renderComments(comments) {
+  const commentsList = document.getElementById('comments-list');
+  const noCommentsMessage = document.getElementById('no-comments-message');
+  
+  if (!commentsList) return;
+  
+  if (comments.length === 0) {
+    if (noCommentsMessage) noCommentsMessage.style.display = 'block';
+    commentsList.innerHTML = '';
+    if (noCommentsMessage) commentsList.appendChild(noCommentsMessage);
+    return;
+  }
+  
+  if (noCommentsMessage) noCommentsMessage.style.display = 'none';
+  
+  let commentsHtml = '';
+  
+  comments.forEach(comment => {
+    // ساخت ستاره‌های امتیاز
+    let starsHtml = '';
+    const rating = comment.rating || 0;
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rating) {
+        starsHtml += '<i class="fas fa-star text-yellow-400 text-sm"></i>';
+      } else {
+        starsHtml += '<i class="far fa-star text-gray-300 text-sm"></i>';
+      }
+    }
+    
+    // تاریخ
+    const commentDate = new Date(comment.createdAt);
+    const persianDate = `${toPersianDigitsForComments(commentDate.getFullYear())}/${toPersianDigitsForComments(commentDate.getMonth() + 1)}/${toPersianDigitsForComments(commentDate.getDate())}`;
+    
+    commentsHtml += `
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div class="flex justify-between items-start mb-2">
+          <div class="flex items-center gap-2">
+            <div style="background-color: #8a8a5a;" class="w-8 h-8  rounded-full flex items-center justify-center text-white text-sm font-bold">
+              ${comment.userName ? comment.userName.charAt(0).toUpperCase() : 'ک'}
+            </div>
+            <div>
+              <span class="font-semibold text-gray-800">${escapeHtmlForComments(comment.userName || 'کاربر مهمان')}</span>
+              <div class="flex items-center gap-1 mt-0.5">
+                ${starsHtml}
+              </div>
+            </div>
+          </div>
+          <span class="text-xs text-gray-400">${persianDate}</span>
+        </div>
+        <p class="text-gray-600 text-sm leading-relaxed pr-10 mr-1">${escapeHtmlForComments(comment.text)}</p>
+      </div>
+    `;
+  });
+  
+  commentsList.innerHTML = commentsHtml;
+}
+
+// ثبت نظر جدید
+async function submitComment(event) {
+  event.preventDefault();
+  
+  const ratingInput = document.querySelector('input[name="rating"]:checked');
+  const rating = ratingInput ? parseInt(ratingInput.value) : 0;
+  const userName = document.getElementById('comment-name')?.value.trim();
+  const commentText = document.getElementById('comment-text')?.value.trim();
+  
+  // اعتبارسنجی
+  if (rating === 0) {
+    showNotificationForComments('لطفاً به محصول امتیاز دهید', 'error');
+    return;
+  }
+  
+  if (!userName) {
+    showNotificationForComments('لطفاً نام خود را وارد کنید', 'error');
+    return;
+  }
+  
+  if (!commentText) {
+    showNotificationForComments('لطفاً متن نظر را وارد کنید', 'error');
+    return;
+  }
+  
+  if (commentText.length < 5) {
+    showNotificationForComments('متن نظر باید حداقل ۵ کاراکتر باشد', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/comments/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        productId: productIdForComments,
+        userName: userName,
+        rating: rating,
+        text: commentText
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      showNotificationForComments('نظر شما با موفقیت ثبت شد', 'success');
+      
+      document.getElementById('comment-form').reset();
+      document.querySelectorAll('.rating-stars label').forEach(label => {
+        label.classList.remove('text-yellow-400');
+        label.classList.add('text-gray-300');
+      });
+      
+      await loadComments(1);
+    } else {
+      showNotificationForComments(data.message || 'خطا در ثبت نظر', 'error');
+    }
+  } catch (error) {
+    console.error('خطا در ثبت نظر:', error);
+    showNotificationForComments('مشکلی در ارتباط با سرور به وجود آمده است', 'error');
+  }
+}
+
+// نوتیفیکیشن
+function showNotificationForComments(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
+    type === 'success' ? 'bg-green-500' :
+    type === 'error' ? 'bg-red-500' :
+    'bg-blue-500'
+  } top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6 w-[calc(100%-2rem)] max-w-xs sm:max-w-sm`;
+  
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  notification.classList.add('transform', 'transition-all', 'duration-300', 'translate-y-2', 'opacity-0');
+  setTimeout(() => {
+    notification.classList.remove('translate-y-2', 'opacity-0');
+  }, 10);
+  
+  setTimeout(() => {
+    notification.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => notification.remove(), 300);
+  }, 800);
+}
+
+// راه‌اندازی ستاره‌های ریتینگ
+function setupRatingStars() {
+  const starsContainer = document.querySelector('.rating-stars');
+  if (!starsContainer) return;
+  
+  const stars = starsContainer.querySelectorAll('label');
+  
+  stars.forEach((star, index) => {
+    star.addEventListener('click', () => {
+      stars.forEach(s => {
+        s.classList.remove('text-yellow-400');
+        s.classList.add('text-gray-300');
+      });
+      for (let i = stars.length - 1; i >= index; i--) {
+        stars[i].classList.remove('text-gray-300');
+        stars[i].classList.add('text-yellow-400');
+      }
+    });
+  });
+}
+
+// مقداردهی اولیه
+function initCommentsSection() {
+  if (!productIdForComments || productIdForComments === 'undefined') {
+    console.warn('productId برای بخش نظرات موجود نیست');
+    return;
+  }
+  
+  setupRatingStars();
+  loadComments(1);
+  
+  const commentForm = document.getElementById('comment-form');
+  if (commentForm) {
+    commentForm.addEventListener('submit', submitComment);
+  }
+  
+  const loadMoreBtn = document.getElementById('load-more-comments');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      loadComments(currentPage + 1);
+    });
+  }
+}
+
+// اجرا بعد از بارگذاری صفحه
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCommentsSection);
+} else {
+  initCommentsSection();
+}
       document.addEventListener('DOMContentLoaded', function() {
           // Image gallery functionality
           const thumbnails = document.querySelectorAll('.thumbnail');
           const mainImage = document.getElementById('main-image');
 
-          const productImages = <%- JSON.stringify(product.images) %>;
+          const productImages = <%- JSON.stringify(product.images.map(img => img.url)) %>;
 
           thumbnails.forEach((thumb, index) => {
               thumb.addEventListener('click', () => {
@@ -891,13 +2158,18 @@
           const colorSwatches = document.querySelectorAll('.color-swatch');
           const selectedColorSpan = document.getElementById('selected-color');
 
-          colorSwatches.forEach(swatch => {
-              swatch.addEventListener('click', () => {
-                  colorSwatches.forEach(s => s.classList.remove('selected'));
-                  swatch.classList.add('selected');
-                  selectedColorSpan.textContent = swatch.dataset.color;
-              });
-          });
+            if (colorSwatches.length > 0 && selectedColorSpan) {
+                colorSwatches.forEach(swatch => {
+                    swatch.addEventListener('click', () => {
+                        colorSwatches.forEach(s => s.classList.remove('selected'));
+                        swatch.classList.add('selected');
+                        selectedColorSpan.textContent = swatch.dataset.color;
+                    });
+                });
+            } else if (selectedColorSpan) {
+                // اگر رنگی وجود ندارد، متن رنگ انتخابی را مخفی یا خالی کن
+                selectedColorSpan.parentElement.style.display = 'none';
+            }
 
           // Volume selector functionality
           const volumeOptions = document.querySelectorAll('.volume-option');
@@ -907,7 +2179,7 @@
           // اگر فقط یک گزینه وجود دارد، آن را به صورت خودکار انتخاب کنید
           if (volumeOptions.length === 1) {
               const singleOption = volumeOptions[0];
-              singleOption.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+              singleOption.classList.add('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white');
               singleOption.classList.remove('bg-gray-50', 'hover:bg-gray-100');
 
               const singleUsage = singleOption.querySelector('.volume-usage');
@@ -920,7 +2192,7 @@
           volumeOptions.forEach(option => {
               option.addEventListener('click', () => {
                   volumeOptions.forEach(opt => {
-                      opt.classList.remove('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+                      opt.classList.remove('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white');
                       if(!opt.classList.contains('bg-gray-50')) {
                           opt.classList.add('bg-gray-50', 'hover:bg-gray-100');
                       }
@@ -931,7 +2203,7 @@
                       usage.classList.add('text-gray-500');
                   });
 
-                  option.classList.add('selected', 'bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'text-white');
+                  option.classList.add('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white');
                   option.classList.remove('bg-gray-50', 'hover:bg-gray-100');
 
                   const selectedUsage = option.querySelector('.volume-usage');
@@ -941,6 +2213,86 @@
                   selectedVolumeSpan.textContent = option.dataset.volume;
               });
           });
+          
+          // ==================== بخش تب‌ها ====================
+          const tabButtons = document.querySelectorAll('.tab-button');
+          const tabContents = {
+            description: document.getElementById('tab-description'),
+            features: document.getElementById('tab-features')
+          };
+          const tocContainer = document.getElementById('productTOC');
+          
+           function clearTOC() {
+                if (tocContainer) {
+                    tocContainer.innerHTML = '';
+                    tocContainer.style.display = 'none';
+                }
+            }
+          
+          function switchTab(tabId) {
+            // غیرفعال کردن همه تب‌ها
+            tabButtons.forEach(btn => {
+              btn.classList.remove('active', 'text-pink-500');
+              btn.classList.add('text-gray-500');
+            });
+            
+            // مخفی کردن همه محتواها
+            Object.values(tabContents).forEach(content => {
+                if (content) {
+                    content.classList.remove('active');
+                    // اگر محتوای تب شامل المنت TOC است، آن را پاک کن
+                    const tocInside = content.querySelector('#productTOC');
+                    if (tocInside) {
+                        tocInside.innerHTML = '';
+                        tocInside.style.display = 'none';
+                    }
+                }
+            });
+            
+            // فعال کردن تب انتخاب شده
+            const activeButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+            if (activeButton) {
+              activeButton.classList.add('active', 'text-pink-500');
+              activeButton.classList.remove('text-gray-500');
+            }
+            
+            // نمایش محتوای مربوطه
+            if (tabContents[tabId]) {
+              tabContents[tabId].classList.add('active');
+            }
+            
+            
+            if (tabId === 'description') {
+                setTimeout(function() {
+                    // ابتدا TOC را پاک کن تا مطمئن شویم از شر محتوای قبلی خلاص شده‌ایم
+                    if (tocContainer) {
+                        tocContainer.innerHTML = '';
+                    }
+                    // دوباره تولید کن
+                    if (typeof generateTableOfContents === 'function') {
+                        generateTableOfContents('#productDescriptionContent', '#productTOC');
+                    }
+                }, 100);
+            } else if (tabId === 'features') {
+                // اطمینان از پنهان بودن TOC در تب ویژگی‌ها
+                setTimeout(function() {
+                    if (tocContainer) {
+                        tocContainer.innerHTML = '';
+                        tocContainer.style.display = 'none';
+                    }
+                }, 50);
+            }
+          }
+          
+          // اضافه کردن event listener به دکمه‌های تب
+          tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+              const tabId = button.getAttribute('data-tab');
+              if (tabId) switchTab(tabId);
+            });
+          });
+
+          // switchTab('description');
       });
 
       function toEnglishDigits(str) {
@@ -956,28 +2308,40 @@
       }
 
       function addToCart(productName, id) {
-          const selectedColor = document.querySelector('.color-swatch.selected').dataset.color;
-          const selectedSize = toEnglishDigits(document.querySelector('.volume-option.selected').dataset.volume);
+            const colorSwatch = document.querySelector('.color-swatch.selected');
+            const selectedColor = colorSwatch ? colorSwatch.dataset.color : null;
+
+          const volumeOption = document.querySelector('.volume-option.selected');
+          const selectedSize = volumeOption ? toEnglishDigits(volumeOption.dataset.volume) : null;
+          
+          const requestBody = {
+            productId: id,
+            quantity: 1,
+            };
+            
+            // فقط اگر رنگ وجود داشت، به body اضافه کن
+            if (selectedColor) {
+                requestBody.selectedColor = selectedColor.trim();
+            }
+            
+          if (selectedSize) {
+            requestBody.selectedSize = selectedSize.trim();
+          }
 
           fetch("/api/cart/add", {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
               },
-              body: JSON.stringify({
-                  productId: id,
-                  quantity: 1,
-                  selectedColor: selectedColor.trim(),
-                  selectedSize: selectedSize.trim()
-              }),
+              body: JSON.stringify(requestBody),
           })
           .then((res) => res.json())
           .then((data) => {
               if (data.success) {
-                  showNotification(`محصول ${productName} با رنگ ${selectedColor} و سایز ${selectedSize} به سبد خرید اضافه شد`, 'success');
+                  showNotification(`محصول مورد نظر به سبد خرید اضافه شد`, 'success');
                   setTimeout(() => {
                       location.reload();
-                  }, 2000);
+                  }, 800);
               } else {
                   showNotification(data.message, 'error');
               }
@@ -1017,8 +2381,331 @@
           setTimeout(() => {
               notification.classList.add('opacity-0', 'translate-y-2');
               setTimeout(() => notification.remove(), 300);
-          }, 2000);
+          }, 800);
       }
+      
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.getElementById('product-gallery')) {
+    lightGallery(document.getElementById('product-gallery'), {
+      selector: '.gallery-item',
+      thumbnail: true,
+      download: false,
+      counter: true,
+      zoom: true,
+      speed: 500,
+      actualSize: false
+    });
+  }
+    setTimeout(function() {
+        if (typeof generateTableOfContents === 'function') {
+            generateTableOfContents('#productDescriptionContent', '#productTOC');
+        }
+    }, 200);
+});
+// گالری تصاویر
+// گالری تصاویر پیشرفته
+// گالری تصاویر پیشرفته با فول اسکرین
+let currentImageIndex = 0;
+let galleryImages = <%- JSON.stringify(product.images.map(img => img.url)) %>;
+
+function openGallery(index) {
+  currentImageIndex = index;
+  
+  // به‌روزرسانی تصویر اصلی
+  const mainImage = document.getElementById('main-image');
+  if (mainImage) {
+    mainImage.src = galleryImages[currentImageIndex];
+  }
+  
+  // آپدیت کردن کلاس active تامبنیل‌ها
+  const thumbnails = document.querySelectorAll('.thumbnail');
+  thumbnails.forEach((thumb, i) => {
+    if (i === currentImageIndex) {
+      thumb.classList.add('active');
+    } else {
+      thumb.classList.remove('active');
+    }
+  });
+  
+  // باز کردن پاپ‌آپ گالری
+  openGalleryPopup(currentImageIndex);
+}
+
+function openGalleryPopup(index) {
+  const popup = document.getElementById('gallery-popup');
+  if (!popup) return;
+  
+  currentImageIndex = index;
+  
+  // ساخت thumbnails داخل پاپ‌آپ
+  const thumbnailsContainer = document.getElementById('gallery-thumbnails');
+  if (thumbnailsContainer && galleryImages.length > 0) {
+    thumbnailsContainer.innerHTML = '';
+    galleryImages.forEach((img, i) => {
+      const thumbImg = document.createElement('img');
+      thumbImg.src = img;
+      thumbImg.alt = `تصویر ${i + 1}`;
+      thumbImg.onclick = (function(idx) {
+        return function() { 
+          currentImageIndex = idx;
+          updateGalleryImage();
+        };
+      })(i);
+      if (i === currentImageIndex) {
+        thumbImg.classList.add('active');
+      }
+      thumbnailsContainer.appendChild(thumbImg);
+    });
+  }
+  
+  // تنظیم تصویر اصلی پاپ‌آپ
+  const galleryImage = document.getElementById('gallery-image');
+  const galleryCounter = document.getElementById('gallery-counter');
+  
+  if (galleryImage) {
+    galleryImage.src = galleryImages[currentImageIndex];
+  }
+  if (galleryCounter) {
+    galleryCounter.textContent = `${toPersianDigits(currentImageIndex + 1)} از ${toPersianDigits(galleryImages.length)}`;
+  }
+  
+  // نمایش پاپ‌آپ با انیمیشن
+  popup.style.display = 'flex';
+  popup.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  // اضافه کردن event listener برای کلیدهای کیبورد
+  document.addEventListener('keydown', handleGalleryKeydown);
+}
+
+function closeGallery() {
+  const popup = document.getElementById('gallery-popup');
+  if (popup) {
+    popup.classList.remove('active');
+    popup.style.display = 'none';
+  }
+  document.body.style.overflow = 'auto';
+  document.removeEventListener('keydown', handleGalleryKeydown);
+}
+
+function nextImage() {
+  if (!galleryImages.length) return;
+  currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+  updateGalleryImage();
+}
+
+function prevImage() {
+  if (!galleryImages.length) return;
+  currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+  updateGalleryImage();
+}
+
+function updateGalleryImage() {
+  const galleryImage = document.getElementById('gallery-image');
+  const galleryCounter = document.getElementById('gallery-counter');
+  const thumbnails = document.querySelectorAll('#gallery-thumbnails img');
+  
+  if (galleryImage) {
+    galleryImage.src = galleryImages[currentImageIndex];
+  }
+  if (galleryCounter) {
+    galleryCounter.textContent = `${toPersianDigits(currentImageIndex + 1)} از ${toPersianDigits(galleryImages.length)}`;
+  }
+  
+  // آپدیت active thumbnail
+  thumbnails.forEach((thumb, i) => {
+    if (i === currentImageIndex) {
+      thumb.classList.add('active');
+    } else {
+      thumb.classList.remove('active');
+    }
+  });
+}
+
+function handleGalleryKeydown(e) {
+  if (e.key === 'Escape') {
+    closeGallery();
+  } else if (e.key === 'ArrowRight') {
+    nextImage();
+  } else if (e.key === 'ArrowLeft') {
+    prevImage();
+  }
+}
+
+// تابع تبدیل اعداد به فارسی
+function toPersianDigits(str) {
+  if (str === undefined || str === null) return '۰';
+  const num = str.toString();
+  return num.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+// تابع تولید جدول محتویات خودکار
+function generateTableOfContents(contentSelector, tocContainerSelector) {
+    const contentElement = document.querySelector(contentSelector);
+    const tocContainer = document.querySelector(tocContainerSelector);
+    
+    if (tocContainer && tocContainer.closest('#tab-features')) {
+        tocContainer.style.display = 'none';
+        tocContainer.innerHTML = ''; // خالی کردن محتوا
+        return;
+    }
+    
+    if (!contentElement || !tocContainer) return;
+    
+    // پیدا کردن تمام هدینگ‌ها (h1, h2, h3)
+    const headings = contentElement.querySelectorAll('h1, h2, h3');
+    
+    if (headings.length === 0) {
+        tocContainer.style.display = 'none';
+        return;
+    }
+    
+    tocContainer.style.display = 'block';
+    
+    // ساخت HTML جدول محتویات
+    let tocHTML = '<div class="table-of-contents">';
+    tocHTML += '<h4>📑 فهرست مطالب</h4>';
+    tocHTML += '<ul>';
+    
+    headings.forEach((heading, index) => {
+        // ایجاد id یکتا برای هر هدینگ
+        const id = `heading-${index}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+        heading.id = id;
+        
+        // اضافه کردن کلاس برای استایل‌بندی
+        const level = heading.tagName.toLowerCase();
+        heading.classList.add(`toc-heading-${level}`);
+        
+        // ساخت لینک در TOC
+        const text = heading.textContent;
+        const levelClass = `toc-level-${level}`;
+        
+        tocHTML += `
+            <li class="${levelClass}">
+                <a href="#${id}" class="toc-link" data-target="${id}">
+                    ${level === 'h1' ? '📌 ' : level === 'h2' ? '• ' : '◦ '}
+                    ${text}
+                </a>
+            </li>
+        `;
+    });
+    
+    tocHTML += '</ul></div>';
+    
+    tocContainer.innerHTML = tocHTML;
+    
+   const tocLinks = document.querySelectorAll('.toc-link');
+    tocLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.dataset.target;
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                // اسکرول نرم به بخش مورد نظر
+                const offset = 80; // فاصله از بالا (برای navbar)
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // هایلایت کردن بخش
+                targetElement.classList.add('section-highlight');
+                setTimeout(() => {
+                    targetElement.classList.remove('section-highlight');
+                }, 1000);
+                
+                // آپدیت URL بدون رفرش
+                history.pushState(null, null, `#${targetId}`);
+            }
+        });
+    });
+}
+
+// تابع برای اسکرول به بخش مورد نظر از URL (وقتی صفحه لود میشه)
+function scrollToHeadingFromUrl() {
+    if (window.location.hash) {
+        const targetId = window.location.hash.substring(1);
+        const targetElement = document.getElementById(targetId);
+        
+        if (targetElement) {
+            setTimeout(() => {
+                const offset = 80;
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+                
+                targetElement.classList.add('section-highlight');
+                setTimeout(() => {
+                    targetElement.classList.remove('section-highlight');
+                }, 1000);
+            }, 500);
+        }
+    }
+}
+
+function renderStars(rating, reviewsNum) {
+  const starsContainer = document.getElementById('stars-container');
+  if (!starsContainer) return;
+  
+  const fullStars = Math.floor(rating || 0);
+  const halfStar = (rating || 0) % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+  
+  let starsHtml = '';
+  
+  // ستاره‌های پر
+  for (let i = 0; i < fullStars; i++) {
+    starsHtml += `<svg class="w-5 h-5 fill-current text-yellow-400" viewBox="0 0 20 20">
+      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+    </svg>`;
+  }
+  
+  // نیم ستاره
+  if (halfStar) {
+    starsHtml += `<svg class="w-5 h-5 fill-current text-yellow-400" viewBox="0 0 20 20">
+      <defs>
+        <linearGradient id="halfGrad">
+          <stop offset="50%" stop-color="currentColor"/>
+          <stop offset="50%" stop-color="#e5e7eb"/>
+        </linearGradient>
+      </defs>
+      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" fill="url(#halfGrad)"/>
+    </svg>`;
+  }
+  
+  // ستاره‌های خالی
+  for (let i = 0; i < emptyStars; i++) {
+    starsHtml += `<svg class="w-5 h-5 fill-current text-gray-300" viewBox="0 0 20 20">
+      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+    </svg>`;
+  }
+  
+  starsContainer.innerHTML = starsHtml;
+  
+  const reviewsSpan = document.getElementById('reviews-count');
+  if (reviewsSpan) {
+    reviewsSpan.textContent = `(${toPersianDigitsForComments(reviewsNum || 0)} نظر)`;
+  }
+}
+
+// اجرا کن بعد از لود صفحه
+document.addEventListener('DOMContentLoaded', function() {
+  const productRating = <%= product?.rating || 0 %>;
+  const productReviews = <%= product?.reviewsNum || 0 %>;
+  renderStars(productRating, productReviews);
+});
+
+
+</script>
   </body>
 </html>

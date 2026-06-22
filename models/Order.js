@@ -61,11 +61,10 @@ const orderSchema = new Schema(
         },
         selectedColor: {
           type: String,
-          required: true,
+          default: null
         },
         selectedSize: {
           type: String,
-          required: true,
         },
       },
     ],

@@ -14,6 +14,8 @@ const https = require("https");
 
 // Models
 const User = require("../models/User");
+const Admin = require("../models/Admins");
+const RecentAction = require("../models/RecentAction");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 
 const errorResponse = (res, status, message, details = {}) => {
@@ -27,33 +29,20 @@ const errorResponse = (res, status, message, details = {}) => {
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
+// اگر از express-validator استفاده می‌کنید، مطمئن شوید:
 const validateSignUp = [
-  body("fullName").trim().notEmpty().withMessage("نام کامل الزامی است"),
-  body("mobile")
-    .trim()
-    .isLength({ min: 11, max: 11 })
-    .withMessage("شماره موبایل باید ۱۱ رقم باشد")
-    .isNumeric()
-    .withMessage("شماره موبایل باید عددی باشد"),
-  body("email")
-    .trim()
-    .isEmail()
-    .withMessage("ایمیل معتبر نیست")
-    .normalizeEmail(),
-  body("password")
-    .isLength({ min: 8 })
-    .withMessage("رمز عبور باید حداقل ۸ کاراکتر باشد")
-    .matches(/^[a-zA-Z0-9]+$/)
-    .withMessage("رمز عبور باید شامل حروف انگلیسی و اعداد باشد"),
-  body("confirmPassword")
-    .custom((value, { req }) => value === req.body.password)
-    .withMessage("رمز عبور و تکرار آن مطابقت ندارند"),
+  body('fullName').notEmpty().withMessage('نام کامل الزامی است'),
+  body('mobile').matches(/^09\d{9}$/).withMessage('شماره موبایل نامعتبر است'),
+  body('email').isEmail().withMessage('ایمیل نامعتبر است'),
+  body('password').isLength({ min: 8 }).withMessage('رمز عبور باید حداقل ۸ کاراکتر باشد'),
+  // ... سایر اعتبارسنجی‌ها
 ];
 
 router.post("/signUp", upload.none(), validateSignUp, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array()); // اضافه کنید
       return errorResponse(res, 400, "خطا در اعتبارسنجی", {
         errors: errors.array(),
       });
@@ -422,5 +411,162 @@ router.patch("/resetPassword/:token", async (req, res) => {
     });
   }
 });
+
+router.post("/admin/logout", async (req, res) => {
+  try {
+    if (req.session.adminId) {
+      const admin = await Admin.findById(req.session.adminId);
+      if (admin) {
+        const recentAction = new RecentAction({
+          action: 'admin_logout',
+          targetType: 'admin',
+          targetId: admin._id,
+          targetName: admin.fullName,
+          adminId: admin._id,
+          adminName: admin.fullName,
+          ipAddress: req.ip
+        });
+        await recentAction.save();
+      }
+    }
+    
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: "خطا در خروج از سیستم"
+        });
+      }
+      res.clearCookie('connect.sid');
+      return res.status(200).json({
+        success: true,
+        message: "با موفقیت خارج شدید"
+      });
+    });
+  } catch (error) {
+    console.error("Admin logout error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "خطا در خروج از سیستم"
+    });
+  }
+});
+
+router.post("/admin/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+        
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "ایمیل و رمز عبور الزامی است"
+      });
+    }
+    
+    // پیدا کردن ادمین با select password
+    const admin = await Admin.findOne({ email }).select('+password');
+       
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: "ایمیل یا رمز عبور اشتباه است"
+      });
+    }
+    
+    if (!admin.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: "حساب کاربری شما غیرفعال شده است"
+      });
+    }
+    
+    // بررسی رمز عبور
+    const isValidPassword = await admin.comparePassword(password);
+        
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "ایمیل یا رمز عبور اشتباه است"
+      });
+    }
+    
+    // بروزرسانی آخرین لاگین
+    admin.lastLoginAt = new Date();
+    admin.lastLoginIP = req.ip;
+    await admin.save();
+    
+    // ذخیره در سشن
+    req.session.adminId = admin._id;
+    req.session.adminRole = admin.role;
+
+    const recentAction = new RecentAction({
+      action: 'admin_login',
+      targetType: 'admin',
+      targetId: admin._id,
+      targetName: admin.fullName,
+      adminId: admin._id,
+      adminName: admin.fullName,
+      ipAddress: req.ip
+    });
+    await recentAction.save();
+
+    
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({
+          success: false,
+          message: "خطا در ایجاد نشست کاربری"
+        });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: "ورود موفقیت‌آمیز بود",
+        admin: {
+          id: admin._id,
+          fullName: admin.fullName,
+          email: admin.email,
+          role: admin.role,
+          permissions: admin.permissions
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.error("Admin login error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "خطا در ورود به سیستم",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// خروج ادمین
+router.post("/logout", async (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: "خطا در خروج از سیستم"
+        });
+      }
+      res.clearCookie('connect.sid');
+      return res.status(200).json({
+        success: true,
+        message: "با موفقیت خارج شدید"
+      });
+    });
+  } catch (error) {
+    console.error("Admin logout error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "خطا در خروج از سیستم"
+    });
+  }
+});
+
 
 module.exports = router;
