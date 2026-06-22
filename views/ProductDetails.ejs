@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow">
     <title><%= product?.name %></title>
     <meta
       name="description"
@@ -82,11 +81,8 @@
 </script>
 
 
-<% if (product && product.slug) { %>
   <link rel="canonical" href="https://odour.ir/productDetails/<%= product.slug %>" />
-<% } else { %>
-  <link rel="canonical" href="https://odour.ir<%= req.originalUrl.split('?')[0] %>" />
-<% } %>
+
 
     <!-- <link
       href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"

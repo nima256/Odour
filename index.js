@@ -53,11 +53,6 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.raw({ limit: "50mb" }));
 
-app.use((req, res, next) => {
-  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-  next();
-});
-
 process.env.BSON_BUFFER_SIZE = 1024 * 1024 * 50; // 50MB
 
 // Models
@@ -87,6 +82,14 @@ app.use(
     name: 'sessionId' // نام کوکی
   })
 );
+
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] !== 'https' && process.env.NODE_ENV === 'production') {
+    return res.redirect(301, 'https://' + req.headers.host + req.url);
+  }
+  next();
+});
+
 
 // Basic Setup
 // app.use(
@@ -1253,31 +1256,99 @@ app.get('/weblog/:slug', async (req, res) => {
 });
 
 
+
+
 app.get("/sitemap.xml", async (req, res) => {
   try {
+    // کش ساده (اختیاری ولی خیلی خوبه)
+    if (global.sitemapCache && global.sitemapCacheTime > Date.now() - 3600000) {
+      res.header("Content-Type", "application/xml");
+      return res.send(global.sitemapCache);
+    }
+
     const smStream = new SitemapStream({
-      hostname: process.env.SITE_URL,
+      hostname: process.env.SITE_URL || 'https://www.kidle.ir',
     });
 
-    res.header("Content-Type", "application/xml");
-    res.header("Content-Encoding", "gzip");
+    const staticPages = [
+      { url: '/', changefreq: 'daily', priority: 1.0 },
+      { url: '/shop', changefreq: 'daily', priority: 0.9 },
+      { url: '/weblog', changefreq: 'weekly', priority: 0.8 },
+      { url: '/about-us', changefreq: 'monthly', priority: 0.5 },
+      { url: '/connect-us', changefreq: 'monthly', priority: 0.5 },
+      { url: '/contact-us', changefreq: 'monthly', priority: 0.5 },
+      { url: '/terms-and-conditions', changefreq: 'yearly', priority: 0.3 },
+      { url: '/privacy-policy', changefreq: 'yearly', priority: 0.3 },
+    ];
 
-    const products = await Product.find({});
-    products.forEach((product) => {
+    for (const page of staticPages) {
+      // اگه userProfile هست و noindex داری، داخل سایتمپ نذار
+      if (page.url !== '/userProfile') {
+        smStream.write({
+          url: page.url,
+          changefreq: page.changefreq,
+          priority: page.priority,
+          lastmod: new Date().toISOString()
+        });
+      }
+    }
+
+    const products = await Product.find({ 
+      isPublished: true  // فقط محصولات منتشر شده
+    }).select('slug updatedAt');
+    
+    for (const product of products) {
       smStream.write({
         url: `/productDetails/${product.slug}`,
-        changefreq: "weekly",
+        changefreq: 'weekly',
         priority: 0.8,
+        lastmod: product.updatedAt ? product.updatedAt.toISOString() : new Date().toISOString()
       });
-    });
+    }
 
+    const productCategories = await Category.find({ 
+      categoryType: 'product',
+      isActive: true 
+    }).select('slug');
+    
+    for (const category of productCategories) {
+      smStream.write({
+        url: `/category/${category.slug}`,
+        changefreq: 'weekly',
+        priority: 0.7,
+        lastmod: new Date().toISOString()
+      });
+    }
+
+    const weblogs = await Weblog.find({ 
+      isPublished: true 
+    }).select('slug updatedAt');
+    
+    for (const weblog of weblogs) {
+      smStream.write({
+        url: `/weblog/${weblog.slug}`,
+        changefreq: 'weekly',
+        priority: 0.7,
+        lastmod: weblog.updatedAt ? weblog.updatedAt.toISOString() : new Date().toISOString()
+      });
+    }
     smStream.end();
-    streamToPromise(smStream.pipe(createGzip())).then((sm) => res.send(sm));
+    
+    const sitemap = await streamToPromise(smStream);
+    
+    // ذخیره در کش
+    global.sitemapCache = sitemap;
+    global.sitemapCacheTime = Date.now();
+    
+    res.header("Content-Type", "application/xml");
+    res.send(sitemap);
+    
   } catch (err) {
-    console.error(err);
-    res.status(500).end();
+    console.error("Sitemap generation error:", err);
+    res.status(500).send("Error generating sitemap");
   }
 });
+
 
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");

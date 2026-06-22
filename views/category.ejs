@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow">
     <meta name="keywords" content="<%= currentCategory.metaKeywords || currentCategory.name + '، خرید ' + currentCategory.name + '، قیمت ' + currentCategory.name %>" />
     <% if(currentCategory.metaDescription) { %>
     <meta name="description" content="<%= currentCategory.metaDescription %>">
@@ -14,6 +13,7 @@
     />
     <% } %>
      <title>محصولات <%= currentCategory.name %></title>
+      <meta property="og:title" content="محصولات <%= currentCategory.name %>">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -30,7 +30,7 @@
       "@context": "https://schema.org",
       "@type": "CollectionPage",
       "name": "<%= currentCategory.name %>",
-      "description": "خرید <%= currentCategory.name %> از فروشگاه لوازم آرایشی اودر. قیمت <%= currentCategory.name %> با کیفیت عالی و تنوع بالا. بهترین مدل‌های <%= currentCategory.name %> را اینجا ببینید و بخرید.",
+      "description": "<%= currentCategory.metaDescription %>",
       "url": "https://odour.ir/category/<%= currentCategory.slug %>",
       "numberOfItems": "<%= products.length %>",
       "itemListElement": [

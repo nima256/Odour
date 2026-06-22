@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow">
     <title>پروفایل کاربری</title>
     <link
       rel="stylesheet"
@@ -13,6 +12,51 @@
      <link rel="stylesheet" href="/tailwind.min.css">
      <link rel="canonical" href="https://odour.ir/userProfile" />
       
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "name": "پروفایل کاربری",
+      "description": "مدیریت حساب کاربری، مشاهده سفارشات، اطلاعات شخصی و تاریخچه خرید در فروشگاه اودر",
+      "url": "https://odour.ir/userProfile",
+      "inLanguage": "fa-IR",
+      "dateModified": "2026-01-15T10:00:00+03:30",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "اودر",
+        "url": "https://odour.ir"
+      },
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "خانه",
+            "item": "https://odour.ir"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "حساب کاربری",
+            "item": "https://odour.ir/userProfile"
+          }
+        ]
+      },
+      "mainEntity": {
+        "@type": "Person",
+        "name": "<%= user.fullName %>",
+        "email": "<%= user.email %>",
+        "telephone": "<%= user.mobile %>",
+        "memberSince": "<%= user.createdAt ? user.createdAt.toISOString().split('T')[0] : '2024-01-01' %>",
+        "mainEntityOfPage": {
+          "@type": "ProfilePage",
+          "@id": "https://odour.ir/userProfile"
+        }
+      }
+    }
+    </script>
+
 
     <!-- <link
       href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
