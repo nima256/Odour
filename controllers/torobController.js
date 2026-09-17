@@ -1,290 +1,526 @@
-const Product = require("../models/Product");
 const mongoose = require("mongoose");
+const Product = require("../models/Product");
+const {
+  getProductGender,
+  buildVariantTitle,
+} = require("../helper/torobProductMeta");
 
-const formatProductForTorob = (product) => {
-  // تاریخ انتشار به فرمت ISO 8601 با timezone
-  const getDateAdded = () => {
-    if (product.publishedAt) {
-      return new Date(product.publishedAt).toISOString();
-    }
-    if (product.createdAt) {
-      return new Date(product.createdAt).toISOString();
-    }
-    return new Date().toISOString();
-  };
+const BASE_URL = (process.env.SITE_BASE_URL || process.env.SITE_URL || "https://odour.ir")
+  .replace(/\/+$/, "");
+const PAGE_SIZE = 100;
+const BASE_VARIANT_ID = "base";
 
-  // تاریخ به‌روزرسانی
-  const getDateUpdated = () => {
-    if (product.updatedAt) {
-      return new Date(product.updatedAt).toISOString();
-    }
-    return getDateAdded();
-  };
+const safeIsoDate = (value, fallback = new Date()) => {
+  const date = value ? new Date(value) : fallback;
+  return Number.isNaN(date.getTime()) ? fallback.toISOString() : date.toISOString();
+};
 
-  // تبدیل مشخصات از آرایه به آبجکت
-  const buildSpec = () => {
-    const specObj = {};
-    if (product.specifications && Array.isArray(product.specifications)) {
-      product.specifications.forEach((item) => {
-        if (item.key && item.value) {
-          specObj[item.key] = item.value;
-        }
+const getDateAdded = (product) =>
+  safeIsoDate(product.publishedAt || product.createdAt || new Date());
+
+const getDateUpdated = (product) =>
+  safeIsoDate(product.updatedAt || product.publishedAt || product.createdAt || new Date());
+
+const getImageUrl = (image) => {
+  const rawUrl = typeof image === "string" ? image : image?.url;
+  if (!rawUrl) return null;
+
+  if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
+  if (rawUrl.startsWith("/")) return `${BASE_URL}${rawUrl}`;
+  return `${BASE_URL}/${rawUrl.replace(/^\/+/, "")}`;
+};
+
+const getCategoryName = (product) => {
+  if (product.catName) return product.catName;
+  if (product.subCat) return product.subCat;
+
+  const categoryDetails = product.categoryDetails;
+  if (Array.isArray(categoryDetails)) {
+    return categoryDetails[0]?.name || "";
+  }
+
+  return categoryDetails?.name || "";
+};
+
+const getOptionId = (option, fallback) => {
+  if (!option) return "";
+  if (option._id) return String(option._id);
+  if (option.variantId) return String(option.variantId);
+  return fallback;
+};
+
+const getVariantKey = ({ colorId = "", sizeId = "" } = {}) => {
+  if (colorId && sizeId) return `${colorId}--size-${sizeId}`;
+  if (colorId) return colorId;
+  if (sizeId) return `size-${sizeId}`;
+  return BASE_VARIANT_ID;
+};
+
+const getProductVariants = (product) => {
+  const colors = Array.isArray(product.colors)
+    ? product.colors.filter((color) => String(color?.name || "").trim())
+    : [];
+  const sizes = Array.isArray(product.sizes)
+    ? product.sizes.filter((size) => String(size?.size || "").trim())
+    : [];
+
+  if (!colors.length && !sizes.length) {
+    return [{
+      color: null,
+      size: null,
+      colorId: "",
+      sizeId: "",
+      variantKey: BASE_VARIANT_ID,
+      index: 0,
+    }];
+  }
+
+  const colorOptions = colors.length ? colors : [null];
+  const sizeOptions = sizes.length ? sizes : [null];
+  const variants = [];
+
+  colorOptions.forEach((color, colorIndex) => {
+    sizeOptions.forEach((size, sizeIndex) => {
+      const colorId = getOptionId(color, `color-${colorIndex + 1}`);
+      const sizeId = getOptionId(size, `size-${sizeIndex + 1}`);
+      variants.push({
+        color,
+        size,
+        colorId,
+        sizeId,
+        variantKey: getVariantKey({ colorId, sizeId }),
+        index: variants.length,
       });
+    });
+  });
+
+  return variants;
+};
+
+const hasStockValue = (value) =>
+  value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+
+const getVariantAvailability = (product, descriptor = {}) => {
+  const options = [descriptor.color, descriptor.size].filter(Boolean);
+
+  if (options.some((option) => option?.isOutOfStock === true)) return false;
+
+  const optionStocks = options
+    .map((option) => option?.countInStock)
+    .filter(hasStockValue)
+    .map(Number);
+
+  // موجودی تنوع، در صورت ثبت، بر موجودی کلی محصول اولویت دارد.
+  if (optionStocks.length > 0) {
+    return optionStocks.every((stock) => stock > 0);
+  }
+
+  return product.isOutOfStock !== true && Number(product.countInStock || 0) > 0;
+};
+
+const buildSpec = (product, color = null, size = null) => {
+  const spec = {};
+
+  if (Array.isArray(product.specifications)) {
+    for (const item of product.specifications) {
+      const key = String(item?.key || "").trim();
+      const value = String(item?.value || "").trim();
+      if (key && value) spec[key] = value;
     }
-    // اضافه کردن مشخصات اضافی
-    if (product.weight) specObj["وزن"] = product.weight;
-    if (product.colors && product.colors.length) {
-      specObj["رنگ‌ها"] = product.colors.map((c) => c.name).join(", ");
-    }
-    if (product.sizes && product.sizes.length) {
-      specObj["سایزها"] = product.sizes.map((s) => s.size).join(", ");
-    }
-    return specObj;
+  }
+
+  if (color?.name) spec["رنگ"] = String(color.name).trim();
+  if (size?.size) spec["سایز"] = String(size.size).trim();
+
+  const gender = getProductGender(product);
+  if (gender && !spec["جنسیت"]) spec["جنسیت"] = gender;
+
+  if (product.weight !== undefined && product.weight !== null && product.weight !== "") {
+    const weight = String(product.weight);
+    spec["وزن"] = /گرم/.test(weight) ? weight : `${weight} گرم`;
+  }
+
+  return spec;
+};
+
+const buildPageUrl = (product, descriptorOrVariantId = null, maybeSizeId = "") => {
+  const slugOrId = product.slug || String(product._id);
+  const url = new URL(`/productDetails/${encodeURIComponent(slugOrId)}`, BASE_URL);
+
+  let colorId = "";
+  let sizeId = "";
+  if (descriptorOrVariantId && typeof descriptorOrVariantId === "object") {
+    colorId = descriptorOrVariantId.colorId || "";
+    sizeId = descriptorOrVariantId.sizeId || "";
+  } else {
+    colorId = descriptorOrVariantId && descriptorOrVariantId !== BASE_VARIANT_ID
+      ? String(descriptorOrVariantId)
+      : "";
+    sizeId = String(maybeSizeId || "");
+  }
+
+  if (colorId) url.searchParams.set("variant", colorId);
+  if (sizeId) url.searchParams.set("size", sizeId);
+  return url.toString();
+};
+
+const buildImageLinks = (product, color) => {
+  const links = [];
+  const addImage = (image) => {
+    const url = getImageUrl(image);
+    if (url && !links.includes(url)) links.push(url);
   };
 
-  // قیمت فعلی (با اولویت قیمت تخفیف خورده)
-  const currentPrice = product.offerPrice && product.offerPrice > 0 
-    ? product.offerPrice
-    : product.price;
+  if (color?.image) addImage(color.image);
+  if (Array.isArray(product.images)) product.images.forEach(addImage);
+  return links;
+};
 
-  // قیمت قدیم (قیمت اصلی اگر تخفیف دارد)
-  const oldPrice = (product.offerPrice && product.offerPrice > 0 && product.price > product.offerPrice)
-    ? product.price
+const formatProductForTorob = (product, variantDescriptor = null) => {
+  const descriptor = variantDescriptor || getProductVariants(product)[0];
+  const color = descriptor?.color || null;
+  const size = descriptor?.size || null;
+  const colorName = String(color?.name || "").trim();
+  const sizeName = String(size?.size || "").trim();
+  const availability = getVariantAvailability(product, descriptor);
+  const regularPrice = Number(product.price || 0);
+  const salePrice = Number(product.offerPrice || 0);
+  const effectivePrice = salePrice > 0 ? salePrice : regularPrice;
+  const currentPrice = availability ? effectivePrice : 0;
+  const oldPrice = availability && salePrice > 0 && regularPrice > salePrice
+    ? regularPrice
     : null;
 
-  // ساخت آدرس تصاویر (تبدیل نسبی به مطلق)
-  const getImageUrl = (imagePath) => {
-    if (!imagePath || !imagePath.url) return null;
-    if (imagePath.url.startsWith("http")) return imagePath.url;
-    if (imagePath.url.startsWith("/uploads")) {
-      // آدرس دامنه خود را جایگزین کنید
-      return `https://kidle.ir${imagePath.url}`;
-    }
-    return imagePath.url;
-  };
-
-  const imageLinks = product.images
-    .map((img) => getImageUrl(img))
-    .filter((url) => url !== null);
-
-  // ساخت page_unique یکتا (ترکیبی از id و slug)
-  const pageUnique = `${product._id}_${product.slug || Date.now()}`;
+  const subtitleParts = [product.lilDescription || ""];
+  if (colorName) subtitleParts.push(`رنگ ${colorName}`);
+  if (sizeName) subtitleParts.push(`سایز ${sizeName}`);
 
   return {
-    page_unique: pageUnique,
-    page_url: `https://kidle.ir/productDetails/${product.slug || product._id}`,
-    product_group_id: product.product_group_id || product._id.toString(),
-    title: product.name,
-    subtitle: product.lilDescription || "",
-    current_price: currentPrice,
-    old_price: oldPrice,
-    availability: !product.isOutOfStock && product.countInStock > 0,
-    category_name: product.catName || product.subCat || "",
-    image_links: imageLinks,
-    spec: buildSpec(),
-    guarantee: product.guarantee || "",
+    page_unique: `${product._id}_${descriptor.variantKey}`,
+    page_url: buildPageUrl(product, descriptor),
+    product_group_id: String(product.product_group_id || product._id),
+    title: buildVariantTitle(product, color, size),
+    subtitle: subtitleParts.filter(Boolean).join(" - "),
+    current_price: Math.max(0, Math.trunc(currentPrice)),
+    old_price: oldPrice === null ? null : Math.max(0, Math.trunc(oldPrice)),
+    availability,
+    category_name: getCategoryName(product),
+    image_links: buildImageLinks(product, color),
+    spec: buildSpec(product, color, size),
+    guarantee: product.guarantee || "گارانتی اصالت و سلامت فیزیکی کالا",
     short_desc: product.lilDescription || "",
-    date_added: getDateAdded(),
-    date_updated: getDateUpdated(),
+    date_added: getDateAdded(product),
+    date_updated: getDateUpdated(product),
   };
 };
 
-// اندپوینت اصلی ترب
+const findVariantByKey = (product, variantKey) =>
+  getProductVariants(product).find((item) => item.variantKey === String(variantKey)) || null;
+
+const findVariant = (product, variantId = "", sizeId = "") => {
+  const variants = getProductVariants(product);
+  const normalizedColorId = String(variantId || "");
+  const normalizedSizeId = String(sizeId || "");
+
+  if (!normalizedColorId && !normalizedSizeId) return variants[0] || null;
+
+  return variants.find((item) => {
+    const colorMatches = normalizedColorId ? item.colorId === normalizedColorId : true;
+    const sizeMatches = normalizedSizeId ? item.sizeId === normalizedSizeId : true;
+    return colorMatches && sizeMatches;
+  }) || null;
+};
+
+const parseProductPageUrl = (rawUrl) => {
+  try {
+    const url = new URL(rawUrl, BASE_URL);
+    const match = url.pathname.match(/^\/productDetails\/([^/?#]+)\/?$/i);
+    if (!match) return null;
+
+    let slugOrId = match[1];
+    try {
+      slugOrId = decodeURIComponent(slugOrId);
+    } catch (_) {
+      // Keep raw path segment when decoding fails.
+    }
+
+    return {
+      slugOrId,
+      variantId: url.searchParams.get("variant") || "",
+      sizeId: url.searchParams.get("size") || "",
+    };
+  } catch (_) {
+    return null;
+  }
+};
+
+const findPublishedProductBySlugOrId = async (slugOrId) => {
+  const or = [{ slug: slugOrId }, { oldSlugs: slugOrId }];
+  if (mongoose.Types.ObjectId.isValid(slugOrId)) or.push({ _id: slugOrId });
+
+  return Product.findOne({ isPublished: true, $or: or })
+    .populate("categoryDetails")
+    .populate("brandDetails")
+    .lean();
+};
+
+const buildResponse = ({ products, currentPage = 1, total = products.length, maxPages = 1 }) => ({
+  api_version: "torob_api_v3",
+  current_page: currentPage,
+  total,
+  max_pages: maxPages,
+  products,
+});
+
+const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+
+const validateRequestMode = (body) => {
+  const hasUrls = hasOwn(body, "page_urls");
+  const hasUniques = hasOwn(body, "page_uniques");
+  const hasPagination = hasOwn(body, "page") || hasOwn(body, "sort");
+  const modeCount = [hasUrls, hasUniques, hasPagination].filter(Boolean).length;
+
+  if (modeCount !== 1) {
+    return { error: "Provide exactly one request mode: page_urls, page_uniques, or page with sort" };
+  }
+
+  if (hasUrls) {
+    if (!Array.isArray(body.page_urls) || body.page_urls.length < 1) {
+      return { error: "page_urls must be a non-empty array" };
+    }
+    if (body.page_urls.some((value) => typeof value !== "string" || !value.trim())) {
+      return { error: "every page_urls item must be a non-empty string" };
+    }
+    return { mode: "urls" };
+  }
+
+  if (hasUniques) {
+    if (!Array.isArray(body.page_uniques) || body.page_uniques.length < 1) {
+      return { error: "page_uniques must be a non-empty array" };
+    }
+    if (body.page_uniques.some((value) => typeof value !== "string" || !value.trim())) {
+      return { error: "every page_uniques item must be a non-empty string" };
+    }
+    return { mode: "uniques" };
+  }
+
+  if (!hasOwn(body, "page")) return { error: "page parameter is not provided" };
+  if (!hasOwn(body, "sort")) return { error: "sort parameter is not provided" };
+
+  const page = Number.parseInt(body.page, 10);
+  if (!Number.isInteger(page) || page < 1 || String(page) !== String(body.page).trim()) {
+    return { error: "page must be a positive integer" };
+  }
+  if (!["date_added_desc", "date_updated_desc"].includes(body.sort)) {
+    return { error: "sort parameter must be date_added_desc or date_updated_desc" };
+  }
+
+  return { mode: "pagination", page, sort: body.sort };
+};
+
 exports.torobApiV3 = async (req, res) => {
   try {
-      
-    console.log("=== Torob API Request ===");
-    console.log("Body:", req.body);
-    console.log("Content-Type:", req.headers['content-type']);
+    const requestBody = req.body && typeof req.body === "object" && !Array.isArray(req.body)
+      ? req.body
+      : {};
+    const validation = validateRequestMode(requestBody);
+    if (validation.error) return res.status(400).json({ error: validation.error });
 
-    const requestBody = req.body || {};
-
-    if (Object.keys(requestBody).length === 0) {
-      console.log("Empty body received - returning error");
-      return res.status(400).json({
-        error: "Request body is required. Please provide {page: 1, sort: 'date_added_desc'} or {page_urls: [...]} or {page_uniques: [...]}"
-      });
-    }
-
-    // حالت 1: دریافت محصولات با آدرس‌های صفحه
-    if (requestBody.page_urls && Array.isArray(requestBody.page_urls)) {
-      const urls = requestBody.page_urls;
+    if (validation.mode === "urls") {
       const products = [];
+      for (const rawUrl of requestBody.page_urls.slice(0, PAGE_SIZE)) {
+        const parsed = parseProductPageUrl(rawUrl);
+        if (!parsed) continue;
 
-      for (const url of urls) {
-        // استخراج slug از آدرس
-        const slugMatch = url.match(/\/productDetails\/([^\/?#]+)/);
-        if (slugMatch) {
-          const slug = slugMatch[1];
-          const product = await Product.findOne({ slug, isPublished: true })
-            .populate("categoryDetails")
-            .populate("brandDetails")
-            .lean();
+        const product = await findPublishedProductBySlugOrId(parsed.slugOrId);
+        if (!product) continue;
 
-          if (product) {
-            products.push(formatProductForTorob(product));
-          }
-        }
+        const variant = findVariant(product, parsed.variantId, parsed.sizeId);
+        if (!variant) continue;
+        products.push(formatProductForTorob(product, variant));
       }
-
-      return res.json({
-        api_version: "torob_api_v3",
-        current_page: 1,
-        total: products.length,
-        max_pages: 1,
-        products: products,
-      });
+      return res.json(buildResponse({ products }));
     }
 
-    // حالت 2: دریافت محصولات با شناسه یکتا
-    else if (requestBody.page_uniques && Array.isArray(requestBody.page_uniques)) {
-      const uniques = requestBody.page_uniques;
+    if (validation.mode === "uniques") {
       const products = [];
+      for (const unique of requestBody.page_uniques.slice(0, PAGE_SIZE)) {
+        const separatorIndex = String(unique).indexOf("_");
+        if (separatorIndex <= 0) continue;
 
-      for (const unique of uniques) {
-        const [productId] = unique.split("_");
-        if (mongoose.Types.ObjectId.isValid(productId)) {
-          const product = await Product.findById(productId)
-            .populate("categoryDetails")
-            .populate("brandDetails")
-            .lean();
+        const productId = String(unique).slice(0, separatorIndex);
+        const variantKey = String(unique).slice(separatorIndex + 1);
+        if (!mongoose.Types.ObjectId.isValid(productId) || !variantKey) continue;
 
-          if (product && product.isPublished) {
-            products.push(formatProductForTorob(product));
-          }
-        }
-      }
-
-      return res.json({
-        api_version: "torob_api_v3",
-        current_page: 1,
-        total: products.length,
-        max_pages: 1,
-        products: products,
-      });
-    }
-
-    // حالت 3: دریافت صفحه‌بندی شده با مرتب‌سازی
-    else if (requestBody.page && requestBody.sort) {
-      const page = parseInt(requestBody.page) || 1;
-      const sort = requestBody.sort;
-      const limit = 100; // ترب هر صفحه حداکثر 100 محصول می‌خواهد
-      const skip = (page - 1) * limit;
-
-      // تنظیم مرتب‌سازی
-      let sortQuery = {};
-      if (sort === "date_added_desc") {
-        sortQuery = { publishedAt: -1, createdAt: -1 };
-      } else if (sort === "date_updated_desc") {
-        sortQuery = { updatedAt: -1 };
-      } else {
-        return res.status(400).json({
-          error: "sort parameter must be date_added_desc or date_updated_desc",
-        });
-      }
-
-      // دریافت محصولات منتشر شده
-      const query = { isPublished: true };
-      
-      const [products, total] = await Promise.all([
-        Product.find(query)
-          .sort(sortQuery)
-          .skip(skip)
-          .limit(limit)
+        const product = await Product.findOne({ _id: productId, isPublished: true })
           .populate("categoryDetails")
           .populate("brandDetails")
-          .lean(),
-        Product.countDocuments(query),
-      ]);
+          .lean();
+        if (!product) continue;
 
-      const formattedProducts = products.map(formatProductForTorob);
-      const maxPages = Math.ceil(total / limit);
-
-      return res.json({
-        api_version: "torob_api_v3",
-        current_page: page,
-        total: total,
-        max_pages: maxPages,
-        products: formattedProducts,
-      });
-    }
-    
-    else {
-      return res.status(400).json({
-        error: "Invalid request. Provide (page and sort) OR (page_urls array) OR (page_uniques array)"
-      });
+        const variant = findVariantByKey(product, variantKey);
+        if (!variant) continue;
+        products.push(formatProductForTorob(product, variant));
+      }
+      return res.json(buildResponse({ products }));
     }
 
-    // درخواست نامعتبر
-    return res.status(400).json({
-      error: "Invalid request. Provide page_urls, page_uniques, or (page and sort)",
-    });
+    const sortQuery = validation.sort === "date_added_desc"
+      ? { publishedAt: -1, createdAt: -1, _id: -1 }
+      : { updatedAt: -1, _id: -1 };
+
+    const sourceProducts = await Product.find({ isPublished: true })
+      .sort(sortQuery)
+      .populate("categoryDetails")
+      .populate("brandDetails")
+      .lean();
+
+    const allVariants = [];
+    for (const product of sourceProducts) {
+      for (const variant of getProductVariants(product)) {
+        allVariants.push(formatProductForTorob(product, variant));
+      }
+    }
+
+    const total = allVariants.length;
+    const maxPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const start = (validation.page - 1) * PAGE_SIZE;
+    const products = allVariants.slice(start, start + PAGE_SIZE);
+
+    return res.json(buildResponse({
+      products,
+      currentPage: validation.page,
+      total,
+      maxPages,
+    }));
   } catch (error) {
     console.error("Torob API Error:", error);
-    console.error("Error stack:", error.stack);
     return res.status(500).json({
       error: "Internal server error",
-      details: error.message // در دیباگ، جزئیات خطا را هم برگردانید
+      ...(process.env.NODE_ENV === "development" ? { details: error.message } : {}),
     });
   }
 };
 
-// اندپوینت sitemap ساده بدون جاوااسکریپت
-exports.torobSitemap = async (req, res) => {
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+const escapeXml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+
+const loadAllFormattedVariants = async () => {
+  const sourceProducts = await Product.find({ isPublished: true })
+    .sort({ publishedAt: -1, createdAt: -1, _id: -1 })
+    .select(
+      "name englishName slug colors sizes images price offerPrice countInStock isOutOfStock lilDescription specifications weight guarantee product_group_id publishedAt createdAt updatedAt catName subCat"
+    )
+    .lean();
+
+  const variants = [];
+  for (const product of sourceProducts) {
+    for (const variant of getProductVariants(product)) {
+      variants.push(formatProductForTorob(product, variant));
+    }
+  }
+  return variants;
+};
+
+exports.torobSitemapXml = async (req, res) => {
   try {
-    const products = await Product.find({ isPublished: true })
-      .sort({ publishedAt: -1, createdAt: -1 })
-      .select("slug name updatedAt")
-      .lean();
+    const variants = await loadAllFormattedVariants();
+    const urls = variants
+      .map(
+        (item) => `  <url>\n    <loc>${escapeXml(item.page_url)}</loc>\n    <lastmod>${escapeXml(
+          item.date_updated
+        )}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>`
+      )
+      .join("\n");
 
-    const baseUrl = "https://kidle.ir";
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store, max-age=0");
+    return res.send(xml);
+  } catch (error) {
+    console.error("Torob XML Sitemap Error:", error);
+    return res.status(500).type("text/plain").send("خطا در تولید نقشه سایت ترب");
+  }
+};
 
-    let html = `<!DOCTYPE html>
+exports.torobSitemapHtml = async (req, res) => {
+  try {
+    const variants = await loadAllFormattedVariants();
+    const items = variants
+      .map(
+        (item, index) => `
+        <li class="product-item">
+          <span>${index + 1}.</span>
+          <a href="${escapeHtml(item.page_url)}">${escapeHtml(item.title)}</a>
+          <span class="date">${escapeHtml(
+            new Date(item.date_updated).toLocaleDateString("fa-IR")
+          )}</span>
+        </li>`
+      )
+      .join("");
+
+    const html = `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نقشه سایت فروشگاه - جدیدترین محصولات</title>
-    <style>
-        body { font-family: Tahoma, Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
-        h1 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
-        .product-list { list-style: none; padding: 0; }
-        .product-item { margin: 10px 0; padding: 10px; border-bottom: 1px solid #eee; }
-        .product-item a { text-decoration: none; color: #2196F3; font-size: 16px; }
-        .product-item a:hover { text-decoration: underline; }
-        .date { color: #666; font-size: 12px; margin-right: 15px; }
-        .count { background: #4CAF50; color: white; padding: 5px 10px; border-radius: 20px; font-size: 14px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,follow">
+  <title>فهرست تنوع‌های ترب</title>
+  <style>
+    body { font-family: Tahoma, Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+    h1 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+    .product-list { list-style: none; padding: 0; }
+    .product-item { margin: 10px 0; padding: 10px; border-bottom: 1px solid #eee; }
+    .product-item a { text-decoration: none; color: #2196F3; font-size: 16px; }
+    .date { color: #666; font-size: 12px; margin-right: 15px; }
+    .count { background: #4CAF50; color: white; padding: 5px 10px; border-radius: 20px; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📦 نقشه سایت فروشگاه - جدیدترین محصولات</h1>
-        <p>تعداد کل محصولات: <span class="count">${products.length}</span></p>
-        <ul class="product-list">`;
-
-    products.forEach((product, index) => {
-      const date = product.updatedAt 
-        ? new Date(product.updatedAt).toLocaleDateString("fa-IR")
-        : "";
-      html += `
-        <li class="product-item">
-            <span>${index + 1}.</span>
-            <a href="${baseUrl}/product/${product.slug}">${product.name}</a>
-            <span class="date">${date}</span>
-        </li>`;
-    });
-
-    html += `
-        </ul>
-    </div>
+  <div class="container">
+    <h1>فهرست محصولات و تنوع‌های رنگ/سایز</h1>
+    <p>تعداد کل URLها: <span class="count">${variants.length}</span></p>
+    <p><a href="/torob-sitemap.xml">مشاهده sitemap XML</a></p>
+    <ul class="product-list">${items}</ul>
+  </div>
 </body>
 </html>`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.send(html);
   } catch (error) {
-    console.error("Sitemap Error:", error);
-    return res.status(500).send("خطا در تولید نقشه سایت");
+    console.error("Torob HTML Sitemap Error:", error);
+    return res.status(500).send("خطا در تولید فهرست ترب");
   }
+};
+
+exports.torobSitemap = exports.torobSitemapXml;
+
+exports._private = {
+  formatProductForTorob,
+  getProductVariants,
+  getVariantAvailability,
+  getVariantKey,
+  findVariant,
+  findVariantByKey,
+  parseProductPageUrl,
+  buildVariantTitle,
+  getProductGender,
+  buildSpec,
+  buildPageUrl,
+  validateRequestMode,
 };

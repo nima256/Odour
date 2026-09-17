@@ -12,12 +12,6 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [3, "نام کامل نمی‌تواند کمتر از ۳ کاراکتر باشد"],
       maxlength: [50, "نام کامل نمی‌تواند بیشتر از ۵۰ کاراکتر باشد"],
-      validate: {
-        validator: function (v) {
-          return /^[\u0600-\u06FF\s]+$/.test(v); // Persian characters and spaces
-        },
-        message: "نام کامل باید شامل حروف فارسی باشد",
-      },
     },
     mobile: {
       type: String,
@@ -65,7 +59,13 @@ const userSchema = new mongoose.Schema(
         selectedColor: {
           type: String,
         },
+        selectedVariantId: {
+          type: String,
+        },
         selectedSize: {
+          type: String,
+        },
+        selectedSizeId: {
           type: String,
         },
       },

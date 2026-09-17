@@ -26,6 +26,16 @@ const errorResponse = (res, status, message, details = {}) => {
   });
 };
 
+const regenerateSession = (req) =>
+  new Promise((resolve, reject) => {
+    req.session.regenerate((error) => (error ? reject(error) : resolve()));
+  });
+
+const saveSession = (req) =>
+  new Promise((resolve, reject) => {
+    req.session.save((error) => (error ? reject(error) : resolve()));
+  });
+
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
@@ -72,7 +82,9 @@ router.post("/signUp", upload.none(), validateSignUp, async (req, res) => {
     });
     await user.save();
 
+    await regenerateSession(req);
     req.session.userId = user._id;
+    await saveSession(req);
 
     return res.status(201).json({
       success: true,
@@ -111,7 +123,7 @@ const validateSignIn = [
     .withMessage("رمز عبور باید حداقل ۸ کاراکتر باشد"),
 ];
 
-router.post("/signIn", upload.none(), async (req, res) => {
+router.post("/signIn", upload.none(), validateSignIn, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -136,7 +148,9 @@ router.post("/signIn", upload.none(), async (req, res) => {
       return errorResponse(res, 401, "شماره موبایل یا رمز عبور اشتباه است");
     }
 
+    await regenerateSession(req);
     req.session.userId = user._id;
+    await saveSession(req);
 
     return res.status(200).json({
       success: true,
@@ -177,8 +191,35 @@ router.post("/forgotPassword", async (req, res) => {
       });
     }
 
-    // 2. Generate OTP and save it
+    const existingOtp = await Otp.findOne({
+      mobile,
+      purpose: "password_reset",
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (existingOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "کد تأیید قبلی هنوز معتبر است. لطفاً منتظر بمانید.",
+      });
+    }
+
+
     const otp = Math.floor(10000 + Math.random() * 90000).toString();
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+    
+    await Otp.findOneAndUpdate(
+      { mobile, purpose: "password_reset" },
+      {
+        code: otp,
+        expiresAt,
+        attempts: 0,
+        lastSentAt: new Date(),
+        purpose: "password_reset",
+      },
+      { upsert: true, new: true }
+    );
+
 
     const data = JSON.stringify({
       bodyId: 347717,
@@ -235,6 +276,7 @@ router.post("/forgotPassword", async (req, res) => {
 
     reqSms.on("error", (error) => {
       console.error(error);
+      Otp.deleteOne({ mobile, purpose: "password_reset" }).catch(console.error);
       return res
         .status(500)
         .json({ success: false, message: "خطا در اتصال به سامانه پیامک" });
@@ -437,7 +479,7 @@ router.post("/admin/logout", async (req, res) => {
           message: "خطا در خروج از سیستم"
         });
       }
-      res.clearCookie('connect.sid');
+      res.clearCookie('sessionId');
       return res.status(200).json({
         success: true,
         message: "با موفقیت خارج شدید"
@@ -553,7 +595,7 @@ router.post("/logout", async (req, res) => {
           message: "خطا در خروج از سیستم"
         });
       }
-      res.clearCookie('connect.sid');
+      res.clearCookie('sessionId');
       return res.status(200).json({
         success: true,
         message: "با موفقیت خارج شدید"

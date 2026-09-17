@@ -44,20 +44,9 @@ const categorySchema = mongoose.Schema(
         message: "اسلاگ باید فقط شامل حروف فارسی، اعداد و خط تیره (-) باشد",
       },
     },
-    images: [
-      {
+    img: {
         type: String,
-        validate: {
-          validator: function (v) {
-            return validator.isURL(v, {
-              protocols: ["http", "https"],
-              require_protocol: true,
-            });
-          },
-          message: "آدرس تصویر نامعتبر است",
-        },
-      },
-    ],
+    },
     color: {
       type: String,
       default: "#ffffff",

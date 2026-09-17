@@ -6,6 +6,24 @@ const Product = require("../models/Product");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 const { body, param, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
+const {
+  normalizeVariantValue,
+  findColorVariant,
+  findSizeVariant,
+  getAvailableQuantity,
+} = require("../services/variantStock");
+
+const Order = require("../models/Order");
+const { getCheckoutUnitPriceToman, hasSpecialPrice } = require("../services/orderPricing");
+
+const ODOUR256_CODE = "ODOUR256";
+
+const normalizePaymentProvider = (value) => {
+  const normalized = String(value || "zarinpal").trim().toLowerCase();
+  if (["snappay", "snapp-pay", "اسنپ‌پی", "اسنپ پی"].includes(normalized)) return "snappay";
+  if (["torobpay", "torob-pay", "ترب‌پی", "ترب پی"].includes(normalized)) return "torobpay";
+  return "zarinpal";
+};
 
 // For access to req.body
 router.use(express.json());
@@ -36,7 +54,7 @@ const validateQuantity = [
 
 router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req, res) => {
   try {
-    const { productId, quantity, selectedColor, selectedSize } = req.body;
+    const { productId, quantity, selectedColor, selectedVariantId, selectedSize, selectedSizeId } = req.body;
 
     // تغییر: فقط بررسی کن اگر سایز ارسال شده باشد
     if (selectedSize === undefined || selectedSize === null) {
@@ -51,43 +69,37 @@ router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req,
       return errorResponse(res, 404, "محصول یافت نشد");
     }
 
-    if (product.countInStock < quantity) {
-      return errorResponse(res, 400, `موجودی محصول کافی نیست (موجودی: ${product.countInStock})`);
+    if (Array.isArray(product.colors) && product.colors.length > 0 && !selectedColor && !selectedVariantId) {
+      return errorResponse(res, 400, "لطفاً رنگ محصول را انتخاب کنید");
+    }
+    if (Array.isArray(product.sizes) && product.sizes.length > 0 && !selectedSize && !selectedSizeId) {
+      return errorResponse(res, 400, "لطفاً سایز محصول را انتخاب کنید");
     }
 
-    const normalizeString = (str) => {
-      if (!str) return '';
-      return str
-        .replace(/[\u0660-\u0669\u06F0-\u06F9]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x0660))
-        .trim()
-        .toLowerCase();
-    };
-
-    // بررسی رنگ (اختیاری)
-    let isValidColor = true;
-    if (selectedColor) {
-      isValidColor = product.colors && product.colors.some(c => 
-        normalizeString(c.name) === normalizeString(selectedColor)
-      );
-      
-      if (!isValidColor) {
-        return errorResponse(res, 400, "رنگ انتخاب شده معتبر نیست");
-      }
+    const colorVariant = findColorVariant(product, { selectedColor, selectedVariantId });
+    if ((selectedColor || selectedVariantId) && !colorVariant) {
+      return errorResponse(res, 400, "رنگ انتخاب شده معتبر نیست");
     }
 
-    // بررسی سایز (اختیاری)
-    let isValidSize = true;
-    if (selectedSize && product.sizes && product.sizes.length > 0) {
-      isValidSize = product.sizes.some(s => 
-        normalizeString(s.size) === normalizeString(selectedSize)
-      );
-      
-      if (!isValidSize) {
-        return errorResponse(res, 400, "سایز انتخاب شده معتبر نیست");
-      }
+    const sizeVariant = findSizeVariant(product, { selectedSize, selectedSizeId });
+    if (selectedSize && product.sizes && product.sizes.length > 0 && !sizeVariant) {
+      return errorResponse(res, 400, "سایز انتخاب شده معتبر نیست");
     } else if (selectedSize && (!product.sizes || product.sizes.length === 0)) {
       // اگر محصول سایز ندارد ولی کاربر سایز ارسال کرده
       return errorResponse(res, 400, "این محصول سایز ندارد");
+    }
+
+    const normalizedSelectedColor = colorVariant?.name || selectedColor || null;
+    const normalizedSelectedSize = sizeVariant?.size || selectedSize || null;
+    const availableQuantity = getAvailableQuantity(product, colorVariant, sizeVariant);
+    if (availableQuantity < quantity) {
+      return errorResponse(
+        res,
+        400,
+        availableQuantity <= 0
+          ? "رنگ یا سایز انتخاب‌شده ناموجود است"
+          : `موجودی تنوع انتخاب‌شده کافی نیست (موجودی: ${availableQuantity})`
+      );
     }
 
     // جستجوی آیتم تکراری در سبد خرید
@@ -96,9 +108,9 @@ router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req,
       
       // مقایسه سایز (اگر وجود داشته باشد)
       let isSameSize = true;
-      if (selectedSize && item.selectedSize) {
-        isSameSize = item.selectedSize === selectedSize;
-      } else if (!selectedSize && !item.selectedSize) {
+      if (normalizedSelectedSize && item.selectedSize) {
+        isSameSize = normalizeVariantValue(item.selectedSize) === normalizeVariantValue(normalizedSelectedSize);
+      } else if (!normalizedSelectedSize && !item.selectedSize) {
         isSameSize = true;
       } else {
         isSameSize = false;
@@ -106,9 +118,9 @@ router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req,
       
       // مقایسه رنگ (اگر وجود داشته باشد)
       let isSameColor = true;
-      if (selectedColor && item.selectedColor) {
-        isSameColor = item.selectedColor === selectedColor;
-      } else if (!selectedColor && !item.selectedColor) {
+      if (normalizedSelectedColor && item.selectedColor) {
+        isSameColor = normalizeVariantValue(item.selectedColor) === normalizeVariantValue(normalizedSelectedColor);
+      } else if (!normalizedSelectedColor && !item.selectedColor) {
         isSameColor = true;
       } else {
         isSameColor = false;
@@ -119,8 +131,8 @@ router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req,
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
-      if (product.countInStock < newQuantity) {
-        return errorResponse(res, 400, `تعداد درخواستی بیشتر از موجودی است (موجودی: ${product.countInStock})`);
+      if (availableQuantity < newQuantity) {
+        return errorResponse(res, 400, `تعداد درخواستی بیشتر از موجودی تنوع انتخاب‌شده است (موجودی: ${availableQuantity})`);
       }
       existingItem.quantity = newQuantity;
     } else {
@@ -130,13 +142,19 @@ router.post("/add", isLoggedIn, validateProductId, validateQuantity, async (req,
       };
       
       // فقط اگر رنگ وجود داشت اضافه کن
-      if (selectedColor) {
-        newCartItem.selectedColor = selectedColor;
+      if (normalizedSelectedColor) {
+        newCartItem.selectedColor = normalizedSelectedColor;
+      }
+      if (colorVariant?._id) {
+        newCartItem.selectedVariantId = String(colorVariant._id);
       }
       
       // فقط اگر سایز وجود داشت اضافه کن
-      if (selectedSize) {
-        newCartItem.selectedSize = selectedSize;
+      if (normalizedSelectedSize) {
+        newCartItem.selectedSize = normalizedSelectedSize;
+      }
+      if (sizeVariant?._id) {
+        newCartItem.selectedSizeId = String(sizeVariant._id);
       }
       
       user.cart.push(newCartItem);
@@ -216,7 +234,7 @@ router.put(
         });
       }
 
-      const { productId, quantity, selectedColor, selectedSize } = req.body;
+      const { productId, quantity, selectedColor, selectedVariantId, selectedSize, selectedSizeId } = req.body;
       const user = await User.findById(req.session.userId);
 
       const product = await Product.findById(productId);
@@ -224,11 +242,30 @@ router.put(
         return errorResponse(res, 404, "محصول یافت نشد");
       }
 
-      if (product.countInStock < quantity) { //注意: 使用 countInStock 而不是 stock
+      if (Array.isArray(product.colors) && product.colors.length > 0 && !selectedColor && !selectedVariantId) {
+        return errorResponse(res, 400, "رنگ انتخاب‌شده مشخص نیست");
+      }
+      if (Array.isArray(product.sizes) && product.sizes.length > 0 && !selectedSize && !selectedSizeId) {
+        return errorResponse(res, 400, "سایز انتخاب‌شده مشخص نیست");
+      }
+
+      const colorVariant = findColorVariant(product, { selectedColor, selectedVariantId });
+      const sizeVariant = findSizeVariant(product, { selectedSize, selectedSizeId });
+      if ((selectedColor || selectedVariantId) && !colorVariant) {
+        return errorResponse(res, 400, "رنگ انتخاب شده معتبر نیست");
+      }
+      if (selectedSize && !sizeVariant) {
+        return errorResponse(res, 400, "سایز انتخاب شده معتبر نیست");
+      }
+
+      const availableQuantity = getAvailableQuantity(product, colorVariant, sizeVariant);
+      if (availableQuantity < quantity) {
         return errorResponse(
           res,
           400,
-          `موجودی محصول کافی نیست (موجودی: ${product.countInStock})`
+          availableQuantity <= 0
+            ? "رنگ یا سایز انتخاب‌شده ناموجود است"
+            : `موجودی تنوع انتخاب‌شده کافی نیست (موجودی: ${availableQuantity})`
         );
       }
 
@@ -238,10 +275,10 @@ router.put(
         
         if (selectedColor && item.selectedColor) {
           return isSameProduct && 
-                 item.selectedSize === selectedSize && 
-                 item.selectedColor === selectedColor;
+                 normalizeVariantValue(item.selectedSize) === normalizeVariantValue(selectedSize) &&
+                 normalizeVariantValue(item.selectedColor) === normalizeVariantValue(selectedColor);
         } else if (!selectedColor && !item.selectedColor) {
-          return isSameProduct && item.selectedSize === selectedSize;
+          return isSameProduct && normalizeVariantValue(item.selectedSize) === normalizeVariantValue(selectedSize);
         }
         return false;
       });
@@ -265,6 +302,32 @@ router.put(
   }
 );
 
+
+const removeDiscountHandler = async (req, res) => {
+  try {
+    delete req.session.discount;
+
+    // ذخیره صریح سشن تا حذف تخفیف قبل از پاسخ قطعی شود.
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => (err ? reject(err) : resolve()));
+    });
+
+    return res.json({
+      success: true,
+      message: "کد تخفیف با موفقیت حذف شد",
+    });
+  } catch (error) {
+    console.error("Discount removal error:", error);
+    return errorResponse(res, 500, "خطا در حذف کد تخفیف");
+  }
+};
+
+// مسیر جدید با POST برای سازگاری بیشتر با سرور/پروکسی.
+router.post("/remove-discount", isLoggedIn, removeDiscountHandler);
+
+// مسیر قبلی را هم نگه می‌داریم تا سازگاری عقب‌رو حفظ شود.
+router.delete("/discount", isLoggedIn, removeDiscountHandler);
+
 router.post(
   "/apply-discount",
   [
@@ -273,6 +336,7 @@ router.post(
       .isFloat({ min: 0 })
       .withMessage("مبلغ سبد خرید نامعتبر است")
       .toFloat(),
+    body("paymentMethod").optional().trim(),
   ],
   async (req, res) => {
     try {
@@ -283,14 +347,53 @@ router.post(
         });
       }
 
-      const { discountCode, subtotal } = req.body;
-      const user = await User.findById(req.session.userId);
+      const { discountCode } = req.body;
+      const normalizedDiscountCode = String(discountCode || "").trim().toUpperCase();
+      const paymentProvider = normalizePaymentProvider(req.body.paymentMethod);
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return errorResponse(res, 401, "لطفاً ابتدا وارد حساب کاربری خود شوید");
+      }
 
+      const user = await User.findById(req.session.userId).populate("cart.productId");
+      
+     if (!user) {
+        return errorResponse(res, 404, "کاربر یافت نشد");
+      }
+      
       if (!user.cart.length) {
         return errorResponse(res, 400, "سبد خرید شما خالی است");
       }
 
-      const discount = await DiscountCode.findOne({ code: discountCode });
+      const discount = await DiscountCode.findOne({ code: normalizedDiscountCode });
+
+      const cartPricing = user.cart.reduce(
+        (result, item) => {
+          const product = item.productId;
+          if (!product) return result;
+
+          const quantity = Number(item.quantity || 0);
+          const special = hasSpecialPrice(product.price, product.offerPrice);
+          const unitPrice = getCheckoutUnitPriceToman({
+            regularPrice: product.price,
+            offerPrice: product.offerPrice,
+            paymentProvider,
+          });
+          const lineTotal = unitPrice * quantity;
+
+          result.subtotal += lineTotal;
+          if (!special) result.odour256EligibleSubtotal += lineTotal;
+          return result;
+        },
+        { subtotal: 0, odour256EligibleSubtotal: 0 }
+      );
+
+      const subtotal = cartPricing.subtotal;
+      const discountBaseSubtotal = normalizedDiscountCode === ODOUR256_CODE
+        ? cartPricing.odour256EligibleSubtotal
+        : subtotal;
+
       const now = new Date();
 
       if (!discount || !discount.isActive) {
@@ -300,48 +403,98 @@ router.post(
       if (discount.expireDate && discount.expireDate < now) {
         return errorResponse(res, 400, "کد تخفیف منقضی شده است");
       }
+      
+     if (discount.usageLimit && discount.usedCount >= discount.usageLimit) {
+        return errorResponse(res, 400, "تعداد استفاده از این کد تخفیف به پایان رسیده است");
+      }
+
 
       if (discount.usageLimit && discount.usedCount >= discount.usageLimit) {
         return errorResponse(res, 400, "محدودیت استفاده از کد تخفیف");
       }
 
-      if (discount.minOrderAmount && subtotal < discount.minOrderAmount) {
+      if (normalizedDiscountCode === ODOUR256_CODE && discountBaseSubtotal <= 0) {
+        return errorResponse(
+          res,
+          400,
+          "کد تخفیف odour256 روی محصولات دارای قیمت ویژه قابل استفاده نیست"
+        );
+      }
+
+      if (discount.minOrderAmount && discountBaseSubtotal < discount.minOrderAmount) {
         return errorResponse(
           res,
           400,
           `حداقل مبلغ سفارش برای این کد تخفیف ${discount.minOrderAmount} تومان است`
         );
       }
+          
+      if (discount.oneTimePerUser) {
+        // بررسی در سفارشات پرداخت شده
+        const alreadyUsed = await Order.findOne({
+          user: userId,
+          "discount.code": { $regex: new RegExp('^' + discount.code + '$', 'i') },
+          paymentStatus: "پرداخت شده"
+        });
 
-      let discountAmount =
-        discount.type === "percent"
-          ? Math.min(
-              Math.floor((subtotal * discount.amount) / 100),
-              discount.maxDiscountAmount || Infinity
-            )
-          : discount.amount;
+        if (alreadyUsed) {
+          return errorResponse(
+            res, 
+            400, 
+            "شما قبلاً از این کد تخفیف استفاده کرده‌اید و هر کاربر فقط یک بار می‌تواند از آن استفاده کند"
+          );
+        }
+        
+        // همچنین بررسی کنید که آیا کاربر در سشن قبلاً این کد رو اعمال کرده (برای جلوگیری از اعمال مجدد در یک جلسه)
+        if (
+          req.session.discount &&
+          String(req.session.discount.code || "").toUpperCase() === String(discount.code || "").toUpperCase()
+        ) {
+          return errorResponse(
+            res,
+            400,
+            "شما قبلاً از این کد تخفیف استفاده کرده اید"
+        );
+        }
+      }
+      
+      let discountAmount = 0;
+      if (discount.type === "percent") {
+        discountAmount = Math.floor((discountBaseSubtotal * discount.amount) / 100);
+        // اعمال سقف تخفیف (اگر وجود داشته باشد)
+        if (discount.maxDiscountAmount) {
+          discountAmount = Math.min(discountAmount, discount.maxDiscountAmount);
+        }
+      } else {
+        // تخفیف مبلغ ثابت
+        discountAmount = Math.min(discount.amount, discountBaseSubtotal);
+      }
 
       req.session.discount = {
         type: discount.type,
         amount: discount.amount,
         code: discount.code,
         calculatedAmount: discountAmount,
+        discountId: discount._id,
+        oneTimePerUser: discount.oneTimePerUser,
+        minOrderAmount: discount.minOrderAmount || 0,
+        maxDiscountAmount: discount.maxDiscountAmount || null,
       };
 
       res.json({
         success: true,
-        message: "کد تخفیف اعمال شد",
+        message: "کد تخفیف با موفقیت اعمال شد",
         discount: {
           type: discount.type,
-          originalValue:
-            discount.type === "percent"
-              ? `${discount.amount}%`
-              : `${discount.amount} تومان`,
+          originalValue: discount.type === "percent" 
+            ? `${discount.amount}%` 
+            : `${discount.amount.toLocaleString()} تومان`,
           amount: discount.amount,
-          calculatedAmount: discountAmount, // این مقدار محاسبه شده
+          calculatedAmount: discountAmount,
           code: discount.code,
           minOrderAmount: discount.minOrderAmount,
           maxDiscountAmount: discount.maxDiscountAmount,
+          oneTimePerUser: discount.oneTimePerUser, // ✅ اضافه شد
         },
         finalTotal: subtotal - discountAmount,
       });

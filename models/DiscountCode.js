@@ -116,6 +116,26 @@ const discountCodeSchema = new mongoose.Schema(
     updateTarikh: {
       type: String,
     },
+    usedByUsers: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        usedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        orderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Order",
+        },
+      },
+    ],
+    oneTimePerUser: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -166,5 +186,110 @@ discountCodeSchema.virtual("isValid").get(function () {
     (this.remainingUses > 0 || !this.usageLimit)
   );
 });
+
+discountCodeSchema.methods.hasUserUsed = function (userId) {
+  return this.usedByUsers.some(
+    (entry) => entry.userId && entry.userId.toString() === userId.toString()
+  );
+};
+
+discountCodeSchema.methods.registerUserUsage = async function (userId, orderId) {
+  if (!userId || !orderId) {
+    throw new Error("شناسه کاربر و سفارش برای ثبت استفاده از کد تخفیف الزامی است");
+  }
+
+  const DiscountCode = this.constructor;
+  const normalizedUserId = new mongoose.Types.ObjectId(userId.toString());
+  const normalizedOrderId = new mongoose.Types.ObjectId(orderId.toString());
+
+  // اگر callback درگاه تکرار شد، استفاده همان سفارش دوباره شمرده نشود.
+  const existingUsage = await DiscountCode.findOne({
+    _id: this._id,
+    "usedByUsers.orderId": normalizedOrderId,
+  });
+
+  if (existingUsage) {
+    return existingUsage;
+  }
+
+  const filter = {
+    _id: this._id,
+    "usedByUsers.orderId": { $ne: normalizedOrderId },
+  };
+
+  if (this.oneTimePerUser) {
+    filter["usedByUsers.userId"] = { $ne: normalizedUserId };
+  }
+
+  if (this.usageLimit) {
+    filter.usedCount = { $lt: this.usageLimit };
+  }
+
+  const updatedDiscount = await DiscountCode.findOneAndUpdate(
+    filter,
+    {
+      $push: {
+        usedByUsers: {
+          userId: normalizedUserId,
+          orderId: normalizedOrderId,
+          usedAt: new Date(),
+        },
+      },
+      $inc: { usedCount: 1 },
+      $set: { updateTarikh: getPersianDate() },
+    },
+    { new: true, runValidators: true }
+  );
+
+  if (updatedDiscount) {
+    return updatedDiscount;
+  }
+
+  // علت رد شدن آپدیت اتمیک را با پیام مناسب مشخص می‌کنیم.
+  const latestDiscount = await DiscountCode.findById(this._id);
+
+  if (!latestDiscount) {
+    throw new Error("کد تخفیف یافت نشد");
+  }
+
+  const usageForSameOrder = latestDiscount.usedByUsers.some(
+    (entry) =>
+      entry.orderId && entry.orderId.toString() === normalizedOrderId.toString()
+  );
+
+  if (usageForSameOrder) {
+    return latestDiscount;
+  }
+
+  if (
+    latestDiscount.oneTimePerUser &&
+    latestDiscount.hasUserUsed(normalizedUserId)
+  ) {
+    throw new Error("این کاربر قبلاً از این کد تخفیف استفاده کرده است");
+  }
+
+  if (
+    latestDiscount.usageLimit &&
+    latestDiscount.usedCount >= latestDiscount.usageLimit
+  ) {
+    throw new Error("تعداد استفاده از این کد تخفیف به پایان رسیده است");
+  }
+
+  throw new Error("ثبت استفاده از کد تخفیف انجام نشد");
+};
+
+discountCodeSchema.methods.isValidForUser = function (userId) {
+  // بررسی اعتبار کلی
+  if (!this.isActive) return false;
+  if (this.isExpired) return false;
+  if (this.usageLimit && this.usedCount >= this.usageLimit) return false;
+
+  if (this.oneTimePerUser && this.hasUserUsed(userId)) {
+    return false;
+  }
+
+  return true;
+};
+
 
 module.exports = mongoose.model("DiscountCode", discountCodeSchema);

@@ -261,6 +261,7 @@ const orderRoutes = require("./routes/order");
 const adminRoutes = require("./routes/admin");
 const weblogRoutes = require('./routes/weblog');
 const torobRoutes = require("./routes/torobRoutes");
+const { getProductVariants, buildPageUrl } = require("./controllers/torobController")._private;
 const { isLoggedIn } = require("./middlewares/isLoggedIn");
 
 // app.use("/api/", apiLimiter);
@@ -358,14 +359,177 @@ app.get("/", async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(4);
       
-    const isFeaturedProducts = await Product.find({ isFeatured: true })
-      .sort({ createdAt: -1 })
+    // SPECIAL OFFER: در حالت جدید، ۶ جایگاه به‌صورت دستی از پنل مدیریت تعیین می‌شوند.
+    // برای سازگاری با داده‌های قدیمی، تا وقتی هیچ جایگاه دستی ثبت نشده باشد
+    // از محصولات قدیمی isFeatured (فقط در صورت داشتن تخفیف واقعی) استفاده می‌کنیم.
+    let isFeaturedProducts = await Product.find({
+      isPublished: true,
+      specialOfferPosition: { $gte: 1, $lte: 6 },
+      offerPrice: { $gt: 0 },
+      $expr: { $lt: ["$offerPrice", "$price"] },
+    })
+      .sort({ specialOfferPosition: 1 })
       .limit(6);
+
+    if (isFeaturedProducts.length === 0) {
+      isFeaturedProducts = await Product.find({
+        isPublished: true,
+        isFeatured: true,
+        offerPrice: { $gt: 0 },
+        $expr: { $lt: ["$offerPrice", "$price"] },
+      })
+        .sort({ createdAt: -1 })
+        .limit(6);
+    }
       
     const isNewProduct = await Product.find({ isNewProduct: true })
       .sort({ createdAt: -1 })
-      .limit(4);
+      .limit(10);
       
+     const perfumeProducts = await Product.aggregate([
+      {
+        $lookup: {
+          from: 'categories', // اسم کالکشن Categories در دیتابیس
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryDetails'
+        }
+      },
+      {
+        $unwind: {
+          path: '$categoryDetails',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'categoryDetails.name': 'ادکلن',
+          isPublished: true
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $limit: 4
+      },
+      {
+        $project: {
+          // فیلدهایی که می‌خواهید برگردانده شوند
+          name: 1,
+          price: 1,
+          slug: 1,
+          images: 1,
+          categoryDetails: 1,
+          createdAt: 1
+        }
+      }
+    ]);
+    
+     const haircareProducts = await Product.aggregate([
+      {
+        $lookup: {
+          from: 'categories', // اسم کالکشن Categories در دیتابیس
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryDetails'
+        }
+      },
+      {
+        $unwind: {
+          path: '$categoryDetails',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'categoryDetails.name': 'مراقبت مو',
+          isPublished: true
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $limit: 4
+      },
+      {
+        $project: {
+          // فیلدهایی که می‌خواهید برگردانده شوند
+          name: 1,
+          price: 1,
+          slug: 1,
+          images: 1,
+          categoryDetails: 1,
+          createdAt: 1
+        }
+      }
+    ]);
+    
+     const skincareProducts = await Product.aggregate([
+      {
+        $lookup: {
+          from: 'categories', // اسم کالکشن Categories در دیتابیس
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryDetails'
+        }
+      },
+      {
+        $unwind: {
+          path: '$categoryDetails',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'categoryDetails.name': 'مراقبت پوستی',
+          isPublished: true
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $limit: 4
+      },
+      {
+        $project: {
+          // فیلدهایی که می‌خواهید برگردانده شوند
+          name: 1,
+          slug: 1,
+          price: 1,
+          images: 1,
+          categoryDetails: 1,
+          createdAt: 1
+        }
+      }
+    ]);
+    
+    
+    const beautyCategory = await Category.findOne({
+      name: "آرایشی",
+      categoryType: "product",
+      isActive: true
+    });
+    
+    let beautycareProducts = [];
+    
+    if (beautyCategory) {
+      // آیدی خود آرایشی + تمام زیر‌دسته‌های آن
+      const beautyCategoryIds = await getAllCategoryIds(beautyCategory._id);
+    
+      beautycareProducts = await Product.find({
+        category: { $in: beautyCategoryIds },
+        isPublished: true
+      })
+        .sort({ createdAt: -1 })
+        .limit(4);
+    
+    } else {
+      console.log("دسته آرایشی پیدا نشد");
+    }
+    
     const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
     const user = await User.findById(req.session.userId);
     const cartCount = user?.cart?.length || 0;
@@ -408,6 +572,10 @@ app.get("/", async (req, res) => {
       cartCount,
       isFeaturedProducts,
       isNewProduct,
+      perfumeProducts,
+      haircareProducts,
+      skincareProducts,
+      beautycareProducts,
     });
     
   } catch (error) {
@@ -423,9 +591,9 @@ app.get(
   "/shop",
   asyncHandler(async (req, res) => {
     const products = await Product.find({ isPublished: true })
+      .sort({ createdAt: -1 })
       .populate("category")
-      .populate("brand");
-    const categories = await Category.find({ categoryType: "product" });
+      .populate("brand");    const categories = await Category.find({ categoryType: "product" });
     const brands = await Brand.find({});
     const user = await User.findById(req.session.userId);
 
@@ -505,12 +673,18 @@ app.get("/api/products/filtered", async (req, res) => {
       brands = [],
       maxPrice,
       searchQuery,
+      discountOnly,
       sortBy,
       page = 1,
       limit = 12,
     } = req.query;
 
-    let query = {};
+    let query = { isPublished: true };
+
+    if (String(discountOnly) === "true") {
+      query.offerPrice = { $gt: 0 };
+      query.$expr = { $lt: ["$offerPrice", "$price"] };
+    }
 
     // فیلتر دسته‌بندی‌ها
     if (categories.length > 0) {
@@ -590,7 +764,8 @@ app.get("/productDetails/:slug", async (req, res, next) => {
       // شاید این اسلاگ، اسلاگ قدیمی یک محصول باشد
       const redirectedProduct = await Product.findOne({ oldSlugs: slug });
       if (redirectedProduct) {
-        return res.redirect(301, `/productDetails/${redirectedProduct.slug}`);
+        const queryString = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+        return res.redirect(301, `/productDetails/${redirectedProduct.slug}${queryString}`);
       }
       return res.status(404).render("404"); // یا هر چیزی که الان برای ۴۰۴ داری
     }
@@ -670,19 +845,38 @@ app.get(
       })
       .filter((item) => item !== null);
 
-    const subtotal = cartItems.reduce(
-      (sum, item) => sum + (item.offerPrice || item.price) * item.quantity,
-      0
-    );
+    const subtotal = cartItems.reduce((sum, item) => {
+      const hasSpecialPrice =
+        Number(item.offerPrice) > 0 && Number(item.offerPrice) < Number(item.price);
+      const unitPrice = hasSpecialPrice ? Number(item.offerPrice) : Number(item.price);
+      return sum + unitPrice * Number(item.quantity || 0);
+    }, 0);
 
     let discountAmount = 0;
 
     if (req.session.discount) {
-      const { type, amount } = req.session.discount;
-      discountAmount = type === "percent" ? (subtotal * amount) / 100 : amount;
+      const { type, amount, code, maxDiscountAmount } = req.session.discount;
+      const isOdour256 = String(code || "").trim().toUpperCase() === "ODOUR256";
+      const discountBaseSubtotal = isOdour256
+        ? cartItems.reduce((sum, item) => {
+            const hasSpecialPrice =
+              Number(item.offerPrice) > 0 && Number(item.offerPrice) < Number(item.price);
+            if (hasSpecialPrice) return sum;
+            return sum + Number(item.price || 0) * Number(item.quantity || 0);
+          }, 0)
+        : subtotal;
+
+      if (type === "percent") {
+        discountAmount = Math.floor((discountBaseSubtotal * Number(amount || 0)) / 100);
+        if (maxDiscountAmount) {
+          discountAmount = Math.min(discountAmount, Number(maxDiscountAmount));
+        }
+      } else {
+        discountAmount = Math.min(Number(amount || 0), discountBaseSubtotal);
+      }
     }
 
-    const finalTotal = subtotal - discountAmount;
+    const finalTotal = Math.max(0, subtotal - discountAmount);
 
     if (!req.session.OrderNum) {
       req.session.OrderNum = generateOrderNumber();
@@ -719,6 +913,7 @@ app.get(
       discountAmount,
       finalTotal,
       discountCode: req.session.discount?.code || null,
+      activeDiscount: req.session.discount || null,
       cartCount,
       menuCategories,
     });
@@ -1267,7 +1462,7 @@ app.get("/sitemap.xml", async (req, res) => {
     }
 
     const smStream = new SitemapStream({
-      hostname: process.env.SITE_URL || 'https://www.kidle.ir',
+      hostname: process.env.SITE_BASE_URL || process.env.SITE_URL || 'https://www.odour.ir',
     });
 
     const staticPages = [
@@ -1293,17 +1488,23 @@ app.get("/sitemap.xml", async (req, res) => {
       }
     }
 
-    const products = await Product.find({ 
+    const products = await Product.find({
       isPublished: true  // فقط محصولات منتشر شده
-    }).select('slug updatedAt');
-    
+    }).select('slug updatedAt colors sizes');
+
     for (const product of products) {
-      smStream.write({
-        url: `/productDetails/${product.slug}`,
-        changefreq: 'weekly',
-        priority: 0.8,
-        lastmod: product.updatedAt ? product.updatedAt.toISOString() : new Date().toISOString()
-      });
+      const variants = getProductVariants(product.toObject ? product.toObject() : product);
+      for (const variant of variants) {
+        const variantPageUrl = new URL(buildPageUrl(product, variant));
+        smStream.write({
+          // برای محصول متغیر، هر رنگ/سایز URL مستقل خودش را در sitemap اصلی دارد.
+          // این همان sitemapی است که در robots.txt معرفی شده و ترب آن را برای discovery می‌خواند.
+          url: `${variantPageUrl.pathname}${variantPageUrl.search}`,
+          changefreq: 'daily',
+          priority: 0.8,
+          lastmod: product.updatedAt ? product.updatedAt.toISOString() : new Date().toISOString()
+        });
+      }
     }
 
     const productCategories = await Category.find({ 
@@ -1352,11 +1553,13 @@ app.get("/sitemap.xml", async (req, res) => {
 
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain");
+  const siteUrl = (process.env.SITE_BASE_URL || process.env.SITE_URL || "https://www.odour.ir").replace(/\/+$/, "");
   res.send(`
     User-agent: *
     Allow: /
     Disallow: /admin/
-    Sitemap: ${process.env.SITE_URL}/sitemap.xml
+    Sitemap: ${siteUrl}/sitemap.xml
+    Sitemap: ${siteUrl}/torob-sitemap.xml
   `);
 });
 

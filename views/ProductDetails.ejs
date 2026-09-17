@@ -1,18 +1,192 @@
+<%
+  const torobColors = Array.isArray(product?.colors) ? product.colors : [];
+  const torobSizes = Array.isArray(product?.sizes) ? product.sizes : [];
+
+  const requestedVariantId = typeof requestedTorobVariantId !== "undefined"
+    ? String(requestedTorobVariantId || "")
+    : "";
+  const requestedSizeId = typeof requestedTorobSizeId !== "undefined"
+    ? String(requestedTorobSizeId || "")
+    : "";
+
+  let torobSelectedColorIndex = torobColors.findIndex((color) =>
+    String(color?._id || color?.variantId || "") === requestedVariantId
+  );
+  if (torobSelectedColorIndex < 0 && torobColors.length > 0) {
+    torobSelectedColorIndex = 0;
+  }
+
+  let torobSelectedSizeIndex = torobSizes.findIndex((size) =>
+    String(size?._id || size?.variantId || "") === requestedSizeId
+  );
+  if (torobSelectedSizeIndex < 0 && torobSizes.length > 0) {
+    torobSelectedSizeIndex = 0;
+  }
+
+  const torobSelectedColor = torobSelectedColorIndex >= 0
+    ? torobColors[torobSelectedColorIndex]
+    : null;
+  const torobSelectedSize = torobSelectedSizeIndex >= 0
+    ? torobSizes[torobSelectedSizeIndex]
+    : null;
+
+  const torobSelectedVariantId = torobSelectedColor
+    ? String(torobSelectedColor._id || torobSelectedColor.variantId || "")
+    : "";
+  const torobSelectedSizeId = torobSelectedSize
+    ? String(torobSelectedSize._id || torobSelectedSize.variantId || "")
+    : "";
+
+  const torobVariantKey = torobSelectedVariantId && torobSelectedSizeId
+    ? `${torobSelectedVariantId}--size-${torobSelectedSizeId}`
+    : torobSelectedVariantId
+      ? torobSelectedVariantId
+      : torobSelectedSizeId
+        ? `size-${torobSelectedSizeId}`
+        : "base";
+
+  const metaHelper = typeof torobMetaHelper !== "undefined"
+    ? torobMetaHelper
+    : null;
+
+  const torobGender = metaHelper?.getProductGender
+    ? metaHelper.getProductGender(product)
+    : "زنانه";
+
+  const torobColorName = String(torobSelectedColor?.name || "").trim();
+  const torobSizeName = String(torobSelectedSize?.size || torobSelectedSize?.name || "").trim();
+  const torobVisibleTitle = metaHelper?.buildPersianVariantTitle
+    ? metaHelper.buildPersianVariantTitle(product, torobSelectedColor, torobSelectedSize)
+    : [
+        product?.name,
+        torobColorName ? `رنگ ${torobColorName}` : null,
+        torobSizeName ? `سایز ${torobSizeName}` : null,
+        torobGender,
+      ].filter(Boolean).join(" - ");
+  const torobPageTitle = metaHelper?.buildVariantTitle
+    ? metaHelper.buildVariantTitle(product, torobSelectedColor, torobSelectedSize)
+    : torobVisibleTitle;
+  const torobEnglishName = String(product?.englishName || "").trim();
+
+  const torobBaseUrl = String(
+    typeof siteBaseUrl !== "undefined" ? siteBaseUrl : "https://www.odour.ir"
+  ).replace(/\/+$/, "");
+  const torobSlugOrId = String(product?.slug || product?._id || "");
+  const torobCanonical = new URL(
+    `/productDetails/${encodeURIComponent(torobSlugOrId)}`,
+    torobBaseUrl
+  );
+  if (torobSelectedVariantId) {
+    torobCanonical.searchParams.set("variant", torobSelectedVariantId);
+  }
+  if (torobSelectedSizeId) {
+    torobCanonical.searchParams.set("size", torobSelectedSizeId);
+  }
+  const torobCanonicalUrl = torobCanonical.toString();
+
+  const makeAbsoluteProductUrl = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return `${torobBaseUrl}/images/default.jpg`;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `${torobBaseUrl}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  };
+
+  const torobSelectedImage = makeAbsoluteProductUrl(
+    torobSelectedColor?.image?.url || product?.images?.[0]?.url
+  );
+  const torobDescription = [
+    product?.lilDescription || "",
+    torobColorName ? `رنگ ${torobColorName}` : "",
+    torobSizeName ? `سایز ${torobSizeName}` : "",
+    torobGender ? `مناسب ${torobGender}` : "",
+  ].filter(Boolean).join(" - ");
+  const torobCurrentPrice = Number(product?.offerPrice) > 0
+    ? Number(product.offerPrice)
+    : Number(product?.price || 0);
+  const torobOldPrice = Number(product?.offerPrice) > 0 && Number(product?.price) > Number(product?.offerPrice)
+    ? Number(product.price)
+    : null;
+  const torobPriceInIrr = typeof priceInIRR !== "undefined"
+    ? priceInIRR
+    : torobCurrentPrice;
+
+  const torobHasStockValue = (value) =>
+    value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  const torobSelectedOptions = [torobSelectedColor, torobSelectedSize].filter(Boolean);
+  const torobOptionStockValues = torobSelectedOptions
+    .map((option) => option?.countInStock)
+    .filter(torobHasStockValue)
+    .map(Number);
+  const torobVariantAvailable = torobSelectedOptions.some((option) => option?.isOutOfStock === true)
+    ? false
+    : torobOptionStockValues.length > 0
+      ? torobOptionStockValues.every((stock) => stock > 0)
+      : product?.isOutOfStock !== true && Number(product?.countInStock || 0) > 0;
+
+  const torobVariantUnique = `${product?._id}_${torobVariantKey}`;
+  const torobBrandName = String(
+    product?.brandName || product?.brand?.name || product?.brandDetails?.name || "اودور"
+  ).trim();
+
+  const torobJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: torobPageTitle,
+    image: [torobSelectedImage],
+    description: torobDescription,
+    sku: torobVariantUnique,
+    mpn: torobVariantUnique,
+    brand: {
+      "@type": "Brand",
+      name: torobBrandName,
+    },
+    color: torobColorName || undefined,
+    size: torobSizeName || undefined,
+    audience: torobGender ? {
+      "@type": "PeopleAudience",
+      suggestedGender: torobGender,
+    } : undefined,
+    offers: {
+      "@type": "Offer",
+      price: String(torobPriceInIrr),
+      priceCurrency: "IRR",
+      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString().split("T")[0],
+      availability: torobVariantAvailable
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: torobCanonicalUrl,
+      seller: {
+        "@type": "Organization",
+        name: "اودور",
+      },
+    },
+  };
+%>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= product?.name %></title>
-    <meta
-      name="description"
-      content="<%= product?.lilDescription %>"
-    />
+    <title><%= torobPageTitle %></title>
+    <meta name="description" content="<%= torobDescription %>" />
 
-    <meta name="product_id" content="<%= product?._id %>">
-    <meta name="product_name" content="<%= product?.name %>">
-    <meta name="product_price" content="<%= (product?.offerPrice && product.offerPrice > 0) ? product.offerPrice : product?.price %>">
-    <meta name="availability" content="<%= product?.isOutOfStock ? 'outofstock' : 'instock' %>">
+    <meta id="torob-product-id" name="product_id" content="<%= torobVariantUnique %>">
+    <meta id="product-name-meta" name="product_name" content="<%= torobPageTitle %>">
+    <meta name="product_price" content="<%= torobCurrentPrice %>">
+    <% if (torobOldPrice) { %><meta name="product_old_price" content="<%= torobOldPrice %>"><% } %>
+    <meta name="availability" content="<%= torobVariantAvailable ? 'instock' : 'outofstock' %>">
+    <meta id="torob-variant-id" name="product_variant_id" content="<%= torobVariantKey %>">
+    <meta name="product_group_id" content="<%= product?.product_group_id || product?._id %>">
+    <% if (torobColorName) { %>
+      <meta id="torob-color-spec" name="spec" content="رنگ: <%= torobColorName %>">
+    <% } %>
+    <% if (torobSizeName) { %>
+      <meta id="torob-size-spec" name="spec" content="سایز: <%= torobSizeName %>">
+    <% } %>
+    <% if (torobGender) { %>
+      <meta id="torob-gender-spec" name="spec" content="جنسیت: <%= torobGender %>">
+    <% } %>
     <% if (product?.guarantee) { %>
       <meta name="guarantee" content="<%= product.guarantee %>">
     <% } else { %>
@@ -20,11 +194,13 @@
     <% } %>
     
 
-    <meta property="og:title" content="<%= product?.name || 'نام محصول' %>">
-    <meta property="og:description" content="<%= product?.lilDescription || 'توضیحات محصول' %>">
-    <meta property="og:image" content="<%= product?.images?.[0]?.url || '/default-image.jpg' %>">
-    <meta property="og:type" content="website">
+    <meta id="og-title-meta" property="og:title" content="<%= torobPageTitle %>">
+    <meta property="og:description" content="<%= torobDescription %>">
+    <meta id="og-image-meta" property="og:image" content="<%= torobSelectedImage %>">
+    <meta id="og-url-meta" property="og:url" content="<%= torobCanonicalUrl %>">
+    <meta property="og:type" content="product">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/css/lightgallery.min.css">
+    <link rel="icon" type="image/x-icon" href="/logo.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/lightgallery.min.js"></script>
 
     <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
@@ -38,50 +214,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/plugins/zoom/lg-zoom.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.1/plugins/thumbnail/lg-thumbnail.min.js"></script>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "<%= product.name %>",
-  "image": "<%= product.images && product.images[0] ? 'https://odour.ir' + product.images[0].url : 'https://odour.ir/images/default.jpg' %>",
-  "description": "<%= product.lilDescription || product.description?.substring(0, 150) %>",
-  "sku": "<%= product._id %>",
-  "mpn": "<%= product._id %>",
-  "brand": {
-    "@type": "Brand",
-    "name": "<%= product.brand?.name || 'کیدل' %>"
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": "<%= priceInIRR %>",
-    "priceCurrency": "IRR",
-    "priceValidUntil": "<%= new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0] %>",
-    "availability": "<%= product.isOutOfStock ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock' %>",
-    "url": "https://odour.ir/productDetails/<%= product.slug %>",
-    "seller": {
-      "@type": "Organization",
-      "name": "کیدل"
-    }
-  },
-  "color": [
-    <% if(product?.colors && product?.colors?.length) { %>
-      <% product?.colors.forEach(function(color, index) { %>
-        "<%= color.name %>"<%= index < product?.colors.length-1 ? ',' : '' %>
-      <% }) %>
-    <% } %>
-  ],
-  "size": [
-    <% if(product?.sizes && product?.sizes.length) { %>
-      <% product?.sizes.forEach(function(size, index) { %>
-        "<%= size.size %>"<%= index < product?.sizes.length-1 ? ',' : '' %>
-      <% }) %>
-    <% } %>
-  ]
-}
-</script>
+<script id="torob-product-jsonld" type="application/ld+json"><%- JSON.stringify(torobJsonLd).replace(/</g, "\\u003c") %></script>
 
 
-  <link rel="canonical" href="https://odour.ir/productDetails/<%= product.slug %>" />
+  <link id="torob-canonical" rel="canonical" href="<%= torobCanonicalUrl %>" />
 
 
     <!-- <link
@@ -117,6 +253,83 @@
         text-align: right;
         background: linear-gradient(135deg, #FFF1DB 0%, #fff7ef 48%, #FFF1DB 100%);
         }
+
+      /* Snapp!Pay PDP component - aligned with the provided PDP guideline */
+      @font-face {
+        font-family: "SnappPdpFont";
+        src: url("/fonts/Vazirmatn-Regular.ttf");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "SnappPdpFont";
+        src: url("/fonts/Vazirmatn-Bold.ttf");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      .snapp-pdp {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        width: fit-content;
+        max-width: 100%;
+        direction: rtl;
+        font-family: "SnappPdpFont", "MyFont", sans-serif;
+      }
+      .snapp-pdp__logo {
+        display: block;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .snapp-pdp__logo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .snapp-pdp__content {
+        min-width: 0;
+      }
+      .snapp-pdp__title {
+        color: #1A1C23;
+        font-size: 14px;
+        line-height: 1.75;
+        font-weight: 700;
+      }
+      .snapp-pdp__description {
+        margin-top: 2px;
+        color: #616475;
+        font-size: 12px;
+        line-height: 1.7;
+        font-weight: 400;
+      }
+      @media (max-width: 359px) {
+        .snapp-pdp {
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+        .snapp-pdp__logo {
+          flex-basis: 24px;
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+        }
+        .snapp-pdp__title {
+          font-size: 13px;
+          line-height: 1.65;
+        }
+        .snapp-pdp__description {
+          margin-top: 0;
+          font-size: 11px;
+          line-height: 1.6;
+        }
+      }
 
       .main-image {
         transition: all 0.4s ease;
@@ -1590,11 +1803,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <div style=" margin-top: 64px" class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
       <img
         id="main-image"
-        src="<%= product.images[0].url %>"
-        alt="<%= product.name %>"
-        title="<%= product.images[0].caption %>"
+        src="<%= torobSelectedColor?.image?.url || product.images[0].url %>"
+        alt="<%= torobPageTitle %>"
+        title="<%= torobSelectedColor?.name || product.images[0].caption || product.name %>"
         class="main-image w-full h-80 lg:h-96 object-contain rounded-2xl cursor-pointer"
-        onclick="openGallery(0)"
+        data-gallery-index="0"
+        onclick="openGallery(Number(this.dataset.galleryIndex || 0))"
       />
     </div>
   </div>
@@ -1602,7 +1816,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Thumbnail Gallery -->
 <div class="flex space-x-4 space-x-reverse overflow-x-auto pb-4 pt-1 ps-1">
   <% for (let i = 0; i < product.images.length; i++) { %>
-  <div class="thumbnail bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0" onclick="openGallery(<%= i %>)" style="--tw-shadow: -20px 20px 25px -5px rgba(99, 99, 55, 0.1), 0 10px 10px -5px rgba(99, 99, 55, 0.04); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);">
+  <div class="thumbnail bg-white rounded-2xl p-4 shadow-xl border-2 border-transparent flex-shrink-0" data-image-url="<%= product.images[i].url %>" onclick="openGallery(<%= i %>)" style="--tw-shadow: -20px 20px 25px -5px rgba(99, 99, 55, 0.1), 0 10px 10px -5px rgba(99, 99, 55, 0.04); box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);">
       <img
         src="<%= product.images[i].url %>"
         alt="<%= product.name %>"
@@ -1644,8 +1858,8 @@ document.addEventListener('DOMContentLoaded', function() {
               <div
             class="section-card bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
           >
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">
-              <%= product?.name %>
+            <h1 id="product-page-title" class="text-3xl font-bold text-gray-900 mb-4">
+              <%= torobVisibleTitle %>
             </h1>
           <% if (product?.englishName) { %>
             <p class="text-gray-500 text-base mb-4" dir="ltr" style="text-align: left;">
@@ -1674,6 +1888,39 @@ document.addEventListener('DOMContentLoaded', function() {
               >
               <% } %>
             </div>
+            <%
+              const snappPdpRegularPrice = Number(product?.price || 0);
+              const snappPdpOfferPrice = Number(product?.offerPrice || 0);
+              const snappPdpHasSpecialPrice =
+                snappPdpOfferPrice > 0 && snappPdpOfferPrice < snappPdpRegularPrice;
+
+              // Keep PDP installment pricing in sync with checkout:
+              // SnappPay keeps 50% of the product's existing special-price discount.
+              const snappPdpPayablePrice = snappPdpHasSpecialPrice
+                ? snappPdpRegularPrice - Math.floor((snappPdpRegularPrice - snappPdpOfferPrice) / 2)
+                : snappPdpRegularPrice;
+
+              const snappPdpInstallmentCount = 4;
+              const snappPdpInstallmentAmount = Math.ceil(
+                snappPdpPayablePrice / snappPdpInstallmentCount
+              );
+            %>
+            <% if (snappPdpPayablePrice >= 5000) { %>
+              <div id="product-snapp-pay" class="snapp-pdp" aria-label="شرایط پرداخت اقساطی اسنپ‌پی">
+                <picture class="snapp-pdp__logo" aria-hidden="true">
+                  <source media="(max-width: 359px)" srcset="/images/snapp-pay-mobile.png" />
+                  <img src="/images/snapp-pay.svg" alt="" width="40" height="40" />
+                </picture>
+                <div class="snapp-pdp__content">
+                  <div class="snapp-pdp__title">
+                    هر قسط با اسنپ‌پی: <%= snappPdpInstallmentAmount.toLocaleString('fa-IR') %> تومان
+                  </div>
+                  <div class="snapp-pdp__description">
+                    <%= snappPdpInstallmentCount.toLocaleString('fa-IR') %> قسط ماهانه. بدون سود، چک و ضامن.
+                  </div>
+                </div>
+              </div>
+            <% } %>
             <div class="flex items-center space-x-3 space-x-reverse" id="rating-section">
                 <div class="flex text-yellow-400" id="stars-container"></div>
               </div>
@@ -1688,15 +1935,20 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3 class="text-base font-semibold text-gray-900 mb-3">انتخاب رنگ:</h3>
       <div class="grid grid-cols-4 gap-3 mb-2">
         <% product?.colors.forEach((color, index) => { %>
+        <% const colorUnavailable = Boolean(color.isOutOfStock) || (color.countInStock !== undefined && color.countInStock !== null && Number(color.countInStock) <= 0); %>
         <div class="text-center">
           <div style="background-color: <%= color.rgb %>" 
-               class="color-swatch w-10 h-10 rounded-full mx-auto mb-1 shadow border-2 border-white <%= index === 0 ? 'selected ring-2 ring-[#636337]' : '' %>" 
-               data-color="<%= color.name %>"></div>
-          <span class="text-xs text-gray-600"><%= color.name %></span>
+               class="color-swatch w-10 h-10 rounded-full mx-auto mb-1 shadow border-2 border-white <%= colorUnavailable ? 'opacity-35 cursor-not-allowed grayscale' : 'cursor-pointer' %> <%= (!colorUnavailable && index === torobSelectedColorIndex) ? 'selected ring-2 ring-[#636337]' : '' %>" 
+               data-color="<%= color.name %>"
+               data-variant-id="<%= color._id %>"
+               data-unavailable="<%= colorUnavailable ? 'true' : 'false' %>"
+               data-image="<%= color.image?.url || '' %>"
+               data-variant-title="<%= metaHelper?.buildPersianVariantTitle ? metaHelper.buildPersianVariantTitle(product, color) : [product?.name, `رنگ ${color.name}`, torobGender].filter(Boolean).join(' - ') %>"></div>
+          <span class="text-xs <%= colorUnavailable ? 'text-gray-400' : 'text-gray-600' %>"><%= color.name %><%= colorUnavailable ? ' - ناموجود' : '' %></span>
         </div>
         <% }) %>
       </div>
-      <p class="text-xs text-gray-600">رنگ انتخابی: <span id="selected-color" class="font-semibold" style="color: #636337;"><%= product?.colors[0]?.name %></span></p>
+      <p class="text-xs text-gray-600">رنگ انتخابی: <span id="selected-color" class="font-semibold" style="color: #636337;"><%= torobSelectedColor?.name || product?.colors[0]?.name %></span></p>
     </div>
     <% } %>
 
@@ -1706,10 +1958,14 @@ document.addEventListener('DOMContentLoaded', function() {
       <h3 class="text-base font-semibold text-gray-900 mb-3">انتخاب حجم:</h3>
       <div class="grid grid-cols-3 gap-2 mb-2">
         <% product.sizes.forEach((size, index) => { %>
-        <button style="background-color: #8a8a5a;" class="volume-option bg-gray-50 hover:bg-gray-100 py-2 rounded-xl text-center font-medium border border-gray-200 <%= (index === 0 || product.sizes.length === 1) ? 'selected text-white border-transparent' : '' %>" 
-                data-volume="<%= toPersianDigitsForSizes(size.size) %>">
+        <% const sizeUnavailable = Boolean(size.isOutOfStock) || (size.countInStock !== undefined && size.countInStock !== null && Number(size.countInStock) <= 0); %>
+        <button type="button" class="volume-option bg-gray-50 py-2 rounded-xl text-center font-medium border border-gray-200 <%= sizeUnavailable ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100' %>" 
+                data-volume="<%= toPersianDigitsForSizes(size.size) %>"
+                data-size-id="<%= size._id %>"
+                data-unavailable="<%= sizeUnavailable ? 'true' : 'false' %>"
+                <%= sizeUnavailable ? 'disabled' : '' %>>
           <div class="text-base font-bold"><%= toPersianDigitsForSizes(size.size) %></div>
-          <div class="volume-usage text-xs <%= (index === 0 || product.sizes.length === 1) ? 'text-white/90' : 'text-gray-500' %>"><%= size?.usage || "" %></div>
+          <div class="volume-usage text-xs text-gray-500"><%= sizeUnavailable ? 'ناموجود' : (size?.usage || "") %></div>
         </button>
         <% }) %>
       </div>
@@ -2147,69 +2403,297 @@ if (document.readyState === 'loading') {
                   thumbnails.forEach(t => t.classList.remove('active'));
                   thumb.classList.add('active');
                   mainImage.src = productImages[index];
+                  mainImage.dataset.galleryIndex = String(index);
               });
           });
 
-          // Color selector functionality
-          const colorSwatches = document.querySelectorAll('.color-swatch');
+          // Color selector + Torob variant query functionality
+          const colorSwatches = Array.from(document.querySelectorAll('.color-swatch'));
           const selectedColorSpan = document.getElementById('selected-color');
+          const colorSpecMeta = document.getElementById('torob-color-spec');
+          const genderSpecMeta = document.getElementById('torob-gender-spec');
+          const variantMeta = document.getElementById('torob-variant-id');
+          const productIdMeta = document.getElementById('torob-product-id');
+          const sizeSpecMeta = document.getElementById('torob-size-spec');
+          const productNameMeta = document.getElementById('product-name-meta');
+          const ogTitleMeta = document.getElementById('og-title-meta');
+          const ogImageMeta = document.getElementById('og-image-meta');
+          const ogUrlMeta = document.getElementById('og-url-meta');
+          const canonicalLink = document.getElementById('torob-canonical');
+          const pageTitleHeading = document.getElementById('product-page-title');
+          const productJsonLd = document.getElementById('torob-product-jsonld');
+          const torobProductBaseName = <%- JSON.stringify(product?.name || '') %>;
+          const torobProductEnglishName = <%- JSON.stringify(product?.englishName || '') %>;
+          const torobProductGender = <%- JSON.stringify(torobGender || '') %>;
+          const torobProductId = <%- JSON.stringify(String(product?._id || '')) %>;
 
-            if (colorSwatches.length > 0 && selectedColorSpan) {
-                colorSwatches.forEach(swatch => {
-                    swatch.addEventListener('click', () => {
-                        colorSwatches.forEach(s => s.classList.remove('selected'));
-                        swatch.classList.add('selected');
-                        selectedColorSpan.textContent = swatch.dataset.color;
-                    });
-                });
-            } else if (selectedColorSpan) {
-                // اگر رنگی وجود ندارد، متن رنگ انتخابی را مخفی یا خالی کن
-                selectedColorSpan.parentElement.style.display = 'none';
-            }
+          const normalizeImageUrl = (value) => {
+              if (!value) return '';
+              try {
+                  return new URL(value, window.location.origin).href;
+              } catch (_) {
+                  return String(value);
+              }
+          };
+
+          const updateVariantQuery = (variantId) => {
+              const url = new URL(window.location.href);
+              if (variantId) {
+                  url.searchParams.set('variant', variantId);
+              } else {
+                  url.searchParams.delete('variant');
+              }
+              // پارامترهای ورودی ترب مانند utm_source و torob_clid دست‌نخورده می‌مانند.
+              window.history.replaceState({ variantId, sizeId: url.searchParams.get('size') || '' }, '', url.toString());
+          };
+
+          const updateSizeQuery = (sizeId) => {
+              const url = new URL(window.location.href);
+              if (sizeId) {
+                  url.searchParams.set('size', sizeId);
+              } else {
+                  url.searchParams.delete('size');
+              }
+              window.history.replaceState({ variantId: url.searchParams.get('variant') || '', sizeId }, '', url.toString());
+          };
+
+          const getCurrentSizeState = () => {
+              const allOptions = Array.from(document.querySelectorAll('.volume-option'));
+              const requestedSizeId = new URLSearchParams(window.location.search).get('size') || '';
+              const option =
+                  allOptions.find(item => item.classList.contains('selected')) ||
+                  allOptions.find(item => item.dataset.unavailable !== 'true' && item.dataset.sizeId === requestedSizeId) ||
+                  allOptions.find(item => item.dataset.unavailable !== 'true') ||
+                  null;
+              return {
+                  sizeId: option?.dataset.sizeId || requestedSizeId,
+                  sizeName: option?.dataset.volume || '',
+              };
+          };
+
+          const buildClientVariantTitle = (colorName, sizeName) => {
+              const parts = [torobProductBaseName];
+              if (colorName) parts.push(`رنگ ${colorName}`);
+              if (sizeName) parts.push(`سایز ${sizeName}`);
+              if (torobProductGender && !parts.some(part => part.includes(torobProductGender))) {
+                  parts.push(torobProductGender);
+              }
+              const visibleTitle = parts.filter(Boolean).join(' - ');
+              return {
+                  visibleTitle,
+                  pageTitle: torobProductEnglishName
+                      ? `${visibleTitle} | ${torobProductEnglishName}`
+                      : visibleTitle,
+              };
+          };
+
+          const updateClientSeo = ({ colorName, variantId, imageUrl }) => {
+              const { sizeId, sizeName } = getCurrentSizeState();
+              const titles = buildClientVariantTitle(colorName, sizeName);
+              const variantKey = variantId && sizeId
+                  ? `${variantId}--size-${sizeId}`
+                  : variantId
+                      ? variantId
+                      : sizeId
+                          ? `size-${sizeId}`
+                          : 'base';
+              const variantUnique = `${torobProductId}_${variantKey}`;
+
+              document.title = titles.pageTitle;
+              if (pageTitleHeading) pageTitleHeading.textContent = titles.visibleTitle;
+              if (productNameMeta) productNameMeta.setAttribute('content', titles.pageTitle);
+              if (productIdMeta) productIdMeta.setAttribute('content', variantUnique);
+              if (variantMeta) variantMeta.setAttribute('content', variantKey);
+              if (ogTitleMeta) ogTitleMeta.setAttribute('content', titles.pageTitle);
+              if (genderSpecMeta && torobProductGender) {
+                  genderSpecMeta.setAttribute('content', `جنسیت: ${torobProductGender}`);
+              }
+              if (sizeSpecMeta && sizeName) {
+                  sizeSpecMeta.setAttribute('content', `سایز: ${sizeName}`);
+              }
+
+              const canonicalUrl = new URL(window.location.pathname, window.location.origin);
+              if (variantId) canonicalUrl.searchParams.set('variant', variantId);
+              if (sizeId) canonicalUrl.searchParams.set('size', sizeId);
+              if (canonicalLink) canonicalLink.setAttribute('href', canonicalUrl.toString());
+              if (ogUrlMeta) ogUrlMeta.setAttribute('content', canonicalUrl.toString());
+
+              if (productJsonLd) {
+                  try {
+                      const schema = JSON.parse(productJsonLd.textContent || '{}');
+                      schema.name = titles.pageTitle;
+                      schema.color = colorName || undefined;
+                      schema.size = sizeName || undefined;
+                      schema.sku = variantUnique;
+                      schema.mpn = variantUnique;
+                      if (imageUrl) schema.image = [normalizeImageUrl(imageUrl)];
+                      if (schema.offers) schema.offers.url = canonicalUrl.toString();
+                      productJsonLd.textContent = JSON.stringify(schema);
+                  } catch (error) {
+                      console.warn('Unable to update Product JSON-LD:', error);
+                  }
+              }
+          };
+
+          const selectColorSwatch = (swatch, { updateUrl = false } = {}) => {
+              if (!swatch || swatch.dataset.unavailable === 'true') return;
+
+              colorSwatches.forEach(item => {
+                  item.classList.remove('selected', 'ring-2', 'ring-[#636337]');
+              });
+              swatch.classList.add('selected', 'ring-2', 'ring-[#636337]');
+
+              const colorName = swatch.dataset.color || '';
+              const variantId = swatch.dataset.variantId || '';
+              const imageUrl = swatch.dataset.image || '';
+
+              if (selectedColorSpan) selectedColorSpan.textContent = colorName;
+              if (colorSpecMeta) colorSpecMeta.setAttribute('content', `رنگ: ${colorName}`);
+              if (variantMeta) variantMeta.setAttribute('content', variantId || 'base');
+              updateClientSeo({ colorName, variantId, imageUrl });
+
+              if (imageUrl && mainImage) {
+                  mainImage.src = imageUrl;
+                  if (ogImageMeta) ogImageMeta.setAttribute('content', imageUrl);
+
+                  const normalizedSelectedImage = normalizeImageUrl(imageUrl);
+                  let matchIndex = productImages.findIndex(
+                      image => normalizeImageUrl(image) === normalizedSelectedImage
+                  );
+
+                  // اگر عکس اختصاصی رنگ در آرایه اصلی محصول نبود، آن را فقط برای گالری
+                  // سمت کاربر اضافه می‌کنیم تا کلیک روی تصویر اصلی نیز همان عکس را باز کند.
+                  if (matchIndex === -1 && typeof galleryImages !== 'undefined') {
+                      matchIndex = galleryImages.findIndex(
+                          image => normalizeImageUrl(image) === normalizedSelectedImage
+                      );
+                      if (matchIndex === -1) {
+                          galleryImages.push(imageUrl);
+                          matchIndex = galleryImages.length - 1;
+                      }
+                  }
+
+                  thumbnails.forEach(item => item.classList.remove('active'));
+                  if (matchIndex > -1 && thumbnails[matchIndex]) {
+                      thumbnails[matchIndex].classList.add('active');
+                  }
+                  mainImage.dataset.galleryIndex = String(Math.max(matchIndex, 0));
+              }
+
+              if (updateUrl) updateVariantQuery(variantId);
+          };
+
+          if (colorSwatches.length > 0 && selectedColorSpan) {
+              colorSwatches.forEach(swatch => {
+                  swatch.addEventListener('click', () => {
+                      if (swatch.dataset.unavailable === 'true') return;
+                      selectColorSwatch(swatch, { updateUrl: true });
+                      updateVariantPurchaseState();
+                  });
+              });
+
+              const query = new URLSearchParams(window.location.search);
+              const requestedVariantId = query.get('variant');
+              const requestedColorName = query.get('color');
+              const initialSwatch =
+                  colorSwatches.find(item => item.dataset.unavailable !== 'true' && item.dataset.variantId === requestedVariantId) ||
+                  colorSwatches.find(item => item.dataset.unavailable !== 'true' && item.dataset.color === requestedColorName) ||
+                  colorSwatches.find(item => item.dataset.unavailable !== 'true');
+
+              if (initialSwatch) {
+                  selectColorSwatch(initialSwatch, { updateUrl: false });
+              } else if (selectedColorSpan) {
+                  selectedColorSpan.textContent = 'ناموجود';
+              }
+          } else if (selectedColorSpan) {
+              selectedColorSpan.parentElement.style.display = 'none';
+          }
+
 
           // Volume selector functionality
-          const volumeOptions = document.querySelectorAll('.volume-option');
+          const volumeOptions = Array.from(document.querySelectorAll('.volume-option'));
           const selectedVolumeSpan = document.getElementById('selected-volume');
-          const volumeUsages = document.querySelectorAll('.volume-usage');
+          const addToCartButton = document.getElementById('add-to-cart');
 
-          // اگر فقط یک گزینه وجود دارد، آن را به صورت خودکار انتخاب کنید
-          if (volumeOptions.length === 1) {
-              const singleOption = volumeOptions[0];
-              singleOption.classList.add('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white');
-              singleOption.classList.remove('bg-gray-50', 'hover:bg-gray-100');
+          const selectVolumeOption = (option) => {
+              if (!option || option.dataset.unavailable === 'true') return;
 
-              const singleUsage = singleOption.querySelector('.volume-usage');
-              singleUsage.classList.add('text-white');
-              singleUsage.classList.remove('text-gray-500');
+              volumeOptions.forEach(opt => {
+                  opt.classList.remove('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white', 'border-transparent');
+                  if (opt.dataset.unavailable !== 'true') {
+                      opt.classList.add('bg-gray-50', 'hover:bg-gray-100');
+                  }
+                  const usage = opt.querySelector('.volume-usage');
+                  if (usage) {
+                      usage.classList.remove('text-white', 'text-white/90');
+                      usage.classList.add('text-gray-500');
+                  }
+              });
 
-              selectedVolumeSpan.textContent = singleOption.dataset.volume;
+              option.classList.add('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white', 'border-transparent');
+              option.classList.remove('bg-gray-50', 'hover:bg-gray-100');
+
+              const selectedUsage = option.querySelector('.volume-usage');
+              if (selectedUsage) {
+                  selectedUsage.classList.add('text-white');
+                  selectedUsage.classList.remove('text-gray-500');
+              }
+
+              if (selectedVolumeSpan) selectedVolumeSpan.textContent = option.dataset.volume;
+          };
+
+          const availableVolumeOptions = volumeOptions.filter(option => option.dataset.unavailable !== 'true');
+          const requestedSizeId = new URLSearchParams(window.location.search).get('size');
+          const initialVolumeOption =
+              availableVolumeOptions.find(option => option.dataset.sizeId === requestedSizeId) ||
+              availableVolumeOptions[0] ||
+              null;
+
+          if (initialVolumeOption) {
+              selectVolumeOption(initialVolumeOption);
+              const activeColor = document.querySelector('.color-swatch.selected');
+              updateClientSeo({
+                  colorName: activeColor?.dataset.color || '',
+                  variantId: activeColor?.dataset.variantId || '',
+                  imageUrl: activeColor?.dataset.image || '',
+              });
+          } else if (selectedVolumeSpan && volumeOptions.length > 0) {
+              selectedVolumeSpan.textContent = 'ناموجود';
           }
 
           volumeOptions.forEach(option => {
               option.addEventListener('click', () => {
-                  volumeOptions.forEach(opt => {
-                      opt.classList.remove('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white');
-                      if(!opt.classList.contains('bg-gray-50')) {
-                          opt.classList.add('bg-gray-50', 'hover:bg-gray-100');
-                      }
+                  if (option.dataset.unavailable === 'true') return;
+                  selectVolumeOption(option);
+                  updateSizeQuery(option.dataset.sizeId || '');
+                  const activeColor = document.querySelector('.color-swatch.selected');
+                  updateClientSeo({
+                      colorName: activeColor?.dataset.color || '',
+                      variantId: activeColor?.dataset.variantId || '',
+                      imageUrl: activeColor?.dataset.image || '',
                   });
-
-                  volumeUsages.forEach(usage => {
-                      usage.classList.remove('text-white');
-                      usage.classList.add('text-gray-500');
-                  });
-
-                  option.classList.add('selected', 'bg-gradient-to-r', 'from-[#636337]', 'to-[#8a8a5a]', 'text-white');
-                  option.classList.remove('bg-gray-50', 'hover:bg-gray-100');
-
-                  const selectedUsage = option.querySelector('.volume-usage');
-                  selectedUsage.classList.add('text-white');
-                  selectedUsage.classList.remove('text-gray-500');
-
-                  selectedVolumeSpan.textContent = option.dataset.volume;
+                  updateVariantPurchaseState();
               });
           });
-          
+
+          function updateVariantPurchaseState() {
+              if (!addToCartButton) return;
+              const hasColorVariants = colorSwatches.length > 0;
+              const hasSizeVariants = volumeOptions.length > 0;
+              const selectedColor = document.querySelector('.color-swatch.selected');
+              const selectedSize = document.querySelector('.volume-option.selected');
+              const selectionUnavailable =
+                  (hasColorVariants && (!selectedColor || selectedColor.dataset.unavailable === 'true')) ||
+                  (hasSizeVariants && (!selectedSize || selectedSize.dataset.unavailable === 'true'));
+
+              addToCartButton.disabled = selectionUnavailable;
+              addToCartButton.classList.toggle('opacity-50', selectionUnavailable);
+              addToCartButton.classList.toggle('cursor-not-allowed', selectionUnavailable);
+              addToCartButton.textContent = selectionUnavailable ? 'تنوع انتخابی ناموجود است' : 'افزودن به سبد خرید';
+          }
+
+          updateVariantPurchaseState();
+
           // ==================== بخش تب‌ها ====================
           const tabButtons = document.querySelectorAll('.tab-button');
           const tabContents = {
@@ -2309,6 +2793,12 @@ if (document.readyState === 'loading') {
 
           const volumeOption = document.querySelector('.volume-option.selected');
           const selectedSize = volumeOption ? toEnglishDigits(volumeOption.dataset.volume) : null;
+
+          if ((colorSwatch && colorSwatch.dataset.unavailable === 'true') ||
+              (volumeOption && volumeOption.dataset.unavailable === 'true')) {
+              showNotification('تنوع انتخاب‌شده ناموجود است', 'error');
+              return;
+          }
           
           const requestBody = {
             productId: id,
@@ -2319,9 +2809,18 @@ if (document.readyState === 'loading') {
             if (selectedColor) {
                 requestBody.selectedColor = selectedColor.trim();
             }
+
+            const selectedVariantId = colorSwatch ? colorSwatch.dataset.variantId : null;
+            if (selectedVariantId) {
+                requestBody.selectedVariantId = selectedVariantId;
+            }
             
           if (selectedSize) {
             requestBody.selectedSize = selectedSize.trim();
+          }
+          const selectedSizeId = volumeOption ? volumeOption.dataset.sizeId : null;
+          if (selectedSizeId) {
+            requestBody.selectedSizeId = selectedSizeId;
           }
 
           fetch("/api/cart/add", {
@@ -2699,6 +3198,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const productRating = <%= product?.rating || 0 %>;
   const productReviews = <%= product?.reviewsNum || 0 %>;
   renderStars(productRating, productReviews);
+
+  // SnappPay PDP is rendered without calling the eligible service.
+
 });
 
 

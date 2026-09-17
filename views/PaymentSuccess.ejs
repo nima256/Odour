@@ -8,6 +8,7 @@
     <meta property="og:title" content="پرداخت موفق">
     <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
      <link rel="stylesheet" href="/tailwind.min.css">
+     <link rel="icon" type="image/x-icon" href="/logo.ico">
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -204,11 +205,23 @@
       <p class="text-gray-600 mb-6">
         از خرید شما متشکریم. جزئیات سفارش به ایمیل شما ارسال خواهد شد.
       </p>
-      <div class="bg-gray-50 p-4 rounded-lg mb-6">
+      <div class="bg-gray-50 p-4 rounded-lg mb-6 space-y-2">
         <p class="text-gray-700 font-bold">
           شماره سفارش:
           <span class="font-normal" id="order-number"><%= OrderNum %></span>
         </p>
+        <% if (paymentMethod) { %>
+          <p class="text-gray-700 font-bold">
+            روش پرداخت:
+            <span class="font-normal"><%= paymentMethod %></span>
+          </p>
+        <% } %>
+        <% if (transactionId) { %>
+          <p class="text-gray-700 font-bold">
+            شناسه تراکنش:
+            <span class="font-normal select-all" id="payment-transaction-id"><%= transactionId %></span>
+          </p>
+        <% } %>
       </div>
       <a href="/userProfile">
         <button

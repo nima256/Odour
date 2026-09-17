@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
-const { getPersianDate } = require("../helper/getPersianDate");
-const slugify = require("slugify");
 const validator = require("validator");
+const { getPersianDate } = require("../helper/getPersianDate");
 
-const productSchema = mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -22,18 +21,11 @@ const productSchema = mongoose.Schema(
       unique: true,
       sparse: true,
       validate: {
-        validator: function (v) {
-          // اجازه حروف انگلیسی (a-z A-Z)، حروف فارسی (ا-ی)، اعداد (0-9 و ۰-۹) و خط تیره (-)
-          return /^[a-zA-Z\u0600-\u06FF0-9\-]+$/.test(v);
-        },
+        validator: (value) => /^[a-zA-Z\u0600-\u06FF0-9\-]+$/.test(value),
         message: "اسلاگ باید فقط شامل حروف انگلیسی، فارسی، اعداد و خط تیره (-) باشد",
       },
     },
-    oldSlugs: [
-      {
-        type: String,
-      },
-    ],
+    oldSlugs: [{ type: String }],
     lilDescription: {
       type: String,
       maxlength: [160, "توضیح کوتاه نمی‌تواند بیشتر از ۱۶۰ کاراکتر باشد"],
@@ -41,7 +33,7 @@ const productSchema = mongoose.Schema(
     },
     description: {
       type: String,
-      maxlength: 1000000
+      maxlength: 1000000,
     },
     images: [
       {
@@ -49,25 +41,17 @@ const productSchema = mongoose.Schema(
           type: String,
           required: true,
           validate: {
-            validator: function (v) {
-              // Allow both relative paths (/uploads/) and full URLs
-              return (
-                v.startsWith("/uploads/") ||
-                /^https?:\/\//.test(v) ||
-                validator.isURL(v, {
-                  protocols: ["http", "https"],
-                  require_protocol: true,
-                })
-              );
-            },
-            message:
-              "آدرس تصویر باید با /uploads/ شروع شود یا یک URL معتبر باشد",
+            validator: (value) =>
+              value.startsWith("/uploads/") ||
+              /^https?:\/\//.test(value) ||
+              validator.isURL(value, {
+                protocols: ["http", "https"],
+                require_protocol: true,
+              }),
+            message: "آدرس تصویر باید با /uploads/ شروع شود یا یک URL معتبر باشد",
           },
         },
-        filename: {
-          type: String,
-          required: true,
-        },
+        filename: { type: String, required: true },
         caption: String,
         alt: String,
       },
@@ -79,27 +63,13 @@ const productSchema = mongoose.Schema(
     },
     offerPrice: {
       type: Number,
+      min: [0, "قیمت تخفیف‌خورده نمی‌تواند منفی باشد"],
     },
-    catName: {
-      type: String,
-      default: "",
-    },
-    brandName: {
-      type: String,
-      default: "",
-    },
-    catId: {
-      type: String,
-      default: "",
-    },
-    subCatId: {
-      type: String,
-      default: "",
-    },
-    subCat: {
-      type: String,
-      default: "",
-    },
+    catName: { type: String, default: "" },
+    brandName: { type: String, default: "" },
+    catId: { type: String, default: "" },
+    subCatId: { type: String, default: "" },
+    subCat: { type: String, default: "" },
     category: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -120,21 +90,35 @@ const productSchema = mongoose.Schema(
       min: [0, "موجودی نمی‌تواند منفی باشد"],
       default: 0,
     },
+    isOutOfStock: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     rating: {
       type: Number,
       min: [0, "امتیاز نمی‌تواند کمتر از ۰ باشد"],
       max: [5, "امتیاز نمی‌تواند بیشتر از ۵ باشد"],
       default: 0,
     },
-    isFeatured: {
-      type: Boolean,
-      default: false,
+    isFeatured: { type: Boolean, default: false },
+    // جایگاه دستی محصول در اسلایدر SPECIAL OFFER صفحه اصلی (۱ تا ۶).
+    // null یعنی این محصول در بخش پیشنهاد ویژه نمایش داده نشود.
+    specialOfferPosition: {
+      type: Number,
+      min: [1, "جایگاه پیشنهاد ویژه باید بین ۱ تا ۶ باشد"],
+      max: [6, "جایگاه پیشنهاد ویژه باید بین ۱ تا ۶ باشد"],
+      default: null,
+      index: true,
     },
+
+    // وزن باید در مدل و JSON عدد باقی بماند تا داخل input[type=number]
+    // بدون تبدیل و مشکل نمایش داده شود.
     weight: {
-      type: Number, // Changed to Number for calculations
+      type: Number,
       min: [0, "وزن نمی‌تواند منفی باشد"],
-      get: (v) => (v ? `${v} گرم` : null),
     },
+
     reviewsNum: {
       type: Number,
       min: [0, "تعداد نظرات نمی‌تواند منفی باشد"],
@@ -142,85 +126,72 @@ const productSchema = mongoose.Schema(
     },
     colors: [
       {
-        name: {
-          type: String,
-          trim: true,
-        },
+        // _id این subdocument شناسه پایدار هر تنوع رنگی برای ترب است.
+        name: { type: String, trim: true },
         rgb: { type: String, required: true },
+        image: {
+          url: { type: String },
+          filename: { type: String },
+        },
+        // موجودی اختیاری هر رنگ؛ اگر خالی باشد از موجودی کلی محصول استفاده می‌شود.
+        countInStock: { type: Number, min: 0 },
+        isOutOfStock: { type: Boolean, default: false },
       },
     ],
-    btnColor: {
-      type: String,
-    },
+    btnColor: String,
     discount: {
       type: Number,
       min: [0, "تخفیف نمی‌تواند منفی باشد"],
       max: [100, "تخفیف نمی‌تواند بیشتر از ۱۰۰٪ باشد"],
     },
-    isNewProduct: {
-      type: Boolean,
-      default: false,
-    },
+    isNewProduct: { type: Boolean, default: false },
     sizes: [
       {
-        size: {
-          type: String,
-          trim: true,
-        },
-        usage: {
-          type: String,
-          trim: true,
-        },
+        // _id زیرسند سایز برای URL و page_unique ترب باید پایدار بماند.
+        size: { type: String, trim: true },
+        usage: { type: String, trim: true },
+        // موجودی اختیاری هر سایز؛ اگر خالی باشد از موجودی کلی محصول استفاده می‌شود.
+        countInStock: { type: Number, min: 0 },
+        isOutOfStock: { type: Boolean, default: false },
       },
     ],
-    isPopular: {
-      type: Boolean,
-      default: false,
-    },
+    isPopular: { type: Boolean, default: false },
     specifications: [
       {
-        key: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        value: {
-          type: String,
-          required: true,
-          trim: true,
-        },
+        key: { type: String, required: true, trim: true },
+        value: { type: String, required: true, trim: true },
       },
     ],
-    tags: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    tags: [{ type: String, trim: true }],
+    guarantee: {
+      type: String,
+      trim: true,
+      default: "گارانتی اصالت و سلامت فیزیکی کالا",
+    },
+    product_group_id: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     createTarikh: {
       type: String,
       default: () => getPersianDate(),
     },
-    updateTarikh: {
-      type: String,
-    },
+    updateTarikh: String,
     isPublished: {
       type: Boolean,
       default: false,
+      index: true,
     },
-    
-    publishedAt: {
-      type: Date,
-    },
+    publishedAt: Date,
   },
   {
     timestamps: true,
     toJSON: {
       virtuals: true,
       getters: true,
-      transform: function (doc, ret) {
+      transform(doc, ret) {
         delete ret.__v;
-        delete ret._id;
         return ret;
       },
     },
@@ -231,66 +202,86 @@ const productSchema = mongoose.Schema(
   }
 );
 
-productSchema.pre("validate", async function (next) {
-  // اگر اسلاگ خالی فرستاده شده (یا اصلاً وجود نداشته) و نام موجود است، خودکار بساز
+const normalizeSlug = (value) =>
+  String(value || "")
+    .trim()
+    .normalize("NFKD")
+    .replace(/\s+/g, "-")
+    .replace(/ـ/g, "-")
+    .replace(/[^a-zA-Z\u0600-\u06FF0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+productSchema.pre("validate", async function () {
   if (!this.slug && this.name) {
-    let baseSlug = this.name
-      .trim()
-      .normalize("NFKD")
-      .replace(/\s+/g, "-")
-      .replace(/ـ/g, "-")
-      .replace(/[^\u0600-\u06FF0-9-]/g, "")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-
-    this.slug = baseSlug || `محصول-${Date.now()}`;
+    this.slug = normalizeSlug(this.name) || `محصول-${Date.now()}`;
+  } else if (this.slug) {
+    this.slug = normalizeSlug(this.slug);
   }
 
-  // اگر اسلاگ به صورت دستی توسط کاربر وارد شده، فقط نرمالایزش کن
-  if (this.slug) {
-    this.slug = this.slug
-      .trim()
-      .normalize("NFKD")
-      .replace(/\s+/g, "-")
-      .replace(/ـ/g, "-")
-      .replace(/[^\u0600-\u06FF0-9-]/g, "")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-  }
-
-  // اگر اسلاگ تغییر کرده (سند جدید نیست) اسلاگ قبلی را برای ریدایرکت نگه دار
   if (!this.isNew && this.isModified("slug")) {
-    const original = await this.constructor.findById(this._id).select("slug oldSlugs");
-    if (original && original.slug && original.slug !== this.slug) {
+    const original = await this.constructor
+      .findById(this._id)
+      .select("slug oldSlugs")
+      .lean();
+
+    if (original?.slug && original.slug !== this.slug) {
       this.oldSlugs = Array.from(
         new Set([...(original.oldSlugs || []), original.slug])
-      ).filter((s) => s !== this.slug);
+      ).filter((slug) => slug !== this.slug);
     }
   }
 
-  // اطمینان از یکتا بودن اسلاگ نهایی
   if (this.slug) {
-    let baseSlug = this.slug;
+    const baseSlug = this.slug;
     let uniqueSlug = baseSlug;
     let counter = 1;
+
     while (true) {
-      const exists = await this.constructor.findOne({ slug: uniqueSlug });
-      if (!exists || exists._id.equals(this._id)) break;
+      const exists = await this.constructor
+        .findOne({ slug: uniqueSlug })
+        .select("_id")
+        .lean();
+
+      if (!exists || String(exists._id) === String(this._id)) break;
       uniqueSlug = `${baseSlug}-${counter++}`;
     }
+
     this.slug = uniqueSlug;
   }
-
-  next();
 });
 
-productSchema.pre("save", function (next) {
+productSchema.pre("save", function () {
   this.updateTarikh = getPersianDate();
-  next();
+  this.isOutOfStock = Number(this.countInStock || 0) <= 0;
+
+  for (const color of this.colors || []) {
+    if (color.countInStock !== undefined && color.countInStock !== null) {
+      // اگر ادمین تنوع را دستی ناموجود کرده باشد، تا زمان برداشتن تیک
+      // همان وضعیت حفظ می‌شود. موجودی صفر نیز همیشه ناموجود است.
+      color.isOutOfStock = Boolean(color.isOutOfStock) || Number(color.countInStock) <= 0;
+    }
+  }
+  for (const size of this.sizes || []) {
+    if (size.countInStock !== undefined && size.countInStock !== null) {
+      size.isOutOfStock = Boolean(size.isOutOfStock) || Number(size.countInStock) <= 0;
+    }
+  }
+
+  if (this.isPublished && !this.publishedAt) {
+    this.publishedAt = new Date();
+  }
 });
 
 productSchema.virtual("discountPrice").get(function () {
-  return this.offerPrice || this.price;
+  return Number(this.offerPrice) > 0 ? this.offerPrice : this.price;
+});
+
+// فقط برای نمایش در صفحات؛ فیلد اصلی weight همچنان Number است.
+productSchema.virtual("weightText").get(function () {
+  return this.weight === undefined || this.weight === null
+    ? null
+    : `${this.weight} گرم`;
 });
 
 productSchema.virtual("categoryDetails", {
@@ -307,22 +298,15 @@ productSchema.virtual("brandDetails", {
   justOne: true,
 });
 
-productSchema.index({
-  name: "text",
-  description: "text",
-  lilDescription: "text",
-});
+productSchema.index({ name: "text", description: "text", lilDescription: "text" });
 productSchema.index({ price: 1 });
 productSchema.index({ offerPrice: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ isPopular: 1 });
 productSchema.index({ isNewProduct: 1 });
 productSchema.index({ rating: -1 });
-productSchema.index({ "colors.hex": 1 });
+productSchema.index({ "colors.rgb": 1 });
+productSchema.index({ isPublished: 1, publishedAt: -1, createdAt: -1 });
+productSchema.index({ isPublished: 1, updatedAt: -1 });
 
-productSchema.set("toJSON", {
-  virtual: true,
-});
-
-const Product = mongoose.model("Product", productSchema);
-module.exports = Product;
+module.exports = mongoose.model("Product", productSchema);

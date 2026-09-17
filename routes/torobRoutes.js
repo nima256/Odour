@@ -1,12 +1,49 @@
 const express = require("express");
-const { torobApiV3, torobSitemap } = require("../controllers/torobController");
+const {
+  torobApiV3,
+  torobSitemapXml,
+  torobSitemapHtml,
+} = require("../controllers/torobController");
+
+const {
+  getProductGender,
+  buildPersianVariantTitle,
+  buildVariantTitle,
+} = require("../helper/torobProductMeta");
+
+const { torobAuth } = require("../middlewares/torobAuth");
 
 const router = express.Router();
+const SITE_BASE_URL = (process.env.SITE_BASE_URL || process.env.SITE_URL || "https://www.odour.ir").replace(/\/+$/, "");
 
-// مسیر اصلی API ترب (مطابق مستندات)
-router.post("/torob_api/v3/products", torobApiV3);
+router.use(express.json({ limit: "1mb" }));
+router.use(express.urlencoded({ extended: true }));
 
-// نقشه سایت فروشگاه (بدون جاوااسکریپت)
-router.get("/torob-sitemap", torobSitemap);
+// این middleware باید قبل از route صفحه محصول اجرا شود تا EJS بتواند
+// query مربوط به variant را به صورت server-side در title/meta/canonical استفاده کند.
+router.use((req, res, next) => {
+  const rawVariant = typeof req.query.variant === "string" ? req.query.variant.trim() : "";
+  const safeVariant = /^[a-zA-Z0-9_-]{1,100}$/.test(rawVariant) ? rawVariant : "";
+
+  const rawSize = typeof req.query.size === "string" ? req.query.size.trim() : "";
+  const safeSize = /^[a-zA-Z0-9_-]{1,100}$/.test(rawSize) ? rawSize : "";
+
+  res.locals.requestedTorobVariantId = safeVariant;
+  res.locals.requestedTorobSizeId = safeSize;
+  res.locals.torobMetaHelper = {
+    getProductGender,
+    buildPersianVariantTitle,
+    buildVariantTitle,
+  };
+  res.locals.siteBaseUrl = SITE_BASE_URL;
+  next();
+});
+
+router.post("/torob_api/v3/products", torobAuth, torobApiV3);
+
+// هر دو آدرس XML هستند تا آدرس قبلی نیز برای ترب معتبر باقی بماند.
+router.get("/torob-sitemap", torobSitemapXml);
+router.get("/torob-sitemap.xml", torobSitemapXml);
+router.get("/torob-sitemap-view", torobSitemapHtml);
 
 module.exports = router;

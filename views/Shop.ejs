@@ -20,6 +20,7 @@
     />
     
     <link rel="canonical" href="https://odour.ir/shop" />
+    <link rel="icon" type="image/x-icon" href="/logo.ico">
 
     <script type="application/ld+json">
     {
@@ -651,6 +652,52 @@ hr {
     border: 0;
     height: 1px;
     background: #ddd;
+}
+
+/* قاب آیکون دسته‌بندی‌های ویژه */
+.category-icon-box {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  padding: 11px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 8px 18px rgba(99, 99, 55, 0.25);
+}
+
+/* خود تصویر وکتور */
+.category-icon-box img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 42px;
+  max-height: 42px;
+
+  object-fit: contain;
+  object-position: center;
+
+  /* جلوگیری از کشیدگی و خراب‌شدن تصویر */
+  flex-shrink: 0;
+}
+
+/* اندازه یکسان در موبایل */
+@media (max-width: 640px) {
+  .category-icon-box {
+    width: 58px;
+    height: 58px;
+    padding: 10px;
+  }
+
+  .category-icon-box img {
+    max-width: 38px;
+    max-height: 38px;
+  }
 }
 
     </style>
@@ -1489,8 +1536,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="margin-bottom:10px" class="flex gap-4 md:gap-6" id="categoriesTrack">
                     <% for(let category of categories.filter(c => !c.parentId)) {%>
                     <div onclick="location.href='/category/<%= category.slug %>';" class="category-card flex-shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-10.66px)] md:w-[calc(20%-19.2px)] lg:w-[calc(14.285%-17.14px)] bg-white rounded-2xl p-4 text-center shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 border border-gray-100">
-                        <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#636337] to-[#8a8a5a] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <i class="fas fa-couch text-white text-2xl"></i>
+                        <div class="category-icon-box transition-transform duration-300">
+                            <img
+                                src="<%= category.img %>"
+                                alt="<%= category.name %>"
+                                loading="lazy"
+                                onerror="this.style.display='none'"
+                            >
                         </div>
                         <h3 class="font-bold text-gray-800 text-sm md:text-base">
                             <%= category.name %>
@@ -1630,6 +1682,17 @@ function getPublishedProductCount(categoryId) {
             </span>
           </div>
         </div>
+      </div>
+
+      <!-- Discount filter -->
+      <div class="mb-8">
+        <label for="discount-only" class="flex items-center justify-between gap-3 bg-white/70 rounded-2xl p-4 shadow-lg cursor-pointer hover:bg-white transition-all">
+          <div>
+            <div class="font-bold text-gray-700">فقط محصولات تخفیف‌دار</div>
+            <div class="text-xs text-gray-500 mt-1">نمایش کالاهای دارای قیمت ویژه</div>
+          </div>
+          <input id="discount-only" type="checkbox" class="w-5 h-5 accent-[#636337] cursor-pointer">
+        </label>
       </div>
 
       <!-- Brand Selection -->
@@ -1901,13 +1964,17 @@ function getPublishedProductCount(categoryId) {
           let selectedBrands = [];
           let maxPrice = maxGlobalPrice;
           let searchQuery = "";
+          const initialShopParams = new URLSearchParams(window.location.search);
+          let discountOnly = initialShopParams.get("discountOnly") === "true";
           let sortBy = "default";
           let currentPage = 1;
           const productsPerPage = 12;
 
           function initializeProducts() {
-            // در ابتدا همه محصولات را نمایش دهید
-            filteredProducts = [...allProducts];
+            // اگر کاربر از SPECIAL OFFER وارد شده باشد، فیلتر تخفیف از همان ابتدا فعال است.
+            filteredProducts = discountOnly
+              ? allProducts.filter((product) => Number(product.offerPrice) > 0 && Number(product.offerPrice) < Number(product.price))
+              : [...allProducts];
             paginateProducts();
             renderProducts();
           }
@@ -1966,6 +2033,7 @@ function getPublishedProductCount(categoryId) {
                 brands: selectedBrands.join(','),
                 maxPrice,
                 searchQuery,
+                discountOnly,
                 sortBy,
                 page: currentPage
               })}`);
@@ -2009,11 +2077,14 @@ function getPublishedProductCount(categoryId) {
             selectedBrands = [];
             maxPrice = 2000000;
             searchQuery = "";
+            discountOnly = false;
             sortBy = "default";
             currentPage = 1;
 
             // بازنشانی فیلدهای UI
             document.getElementById("search-input").value = "";
+            const discountOnlyInput = document.getElementById("discount-only");
+            if (discountOnlyInput) discountOnlyInput.checked = false;
             document.getElementById("price-range").value = maxPrice;
             document.getElementById("current-price").textContent = `تا ${formatPrice(maxPrice)} تومان`;
             document.getElementById("sort-select").value = "default";
@@ -2207,6 +2278,11 @@ function getPublishedProductCount(categoryId) {
               filteredProducts = productFromServer.filter((product) => {
                   // Get the effective price
                   const effectivePrice = product.offerPrice || product.price;
+                  const hasDiscount = Number(product.offerPrice) > 0 && Number(product.offerPrice) < Number(product.price);
+
+                  if (discountOnly && !hasDiscount) {
+                      return false;
+                  }
 
                   // Category filter
                   if (selectedCategories.length > 0) {
@@ -2386,6 +2462,23 @@ function getPublishedProductCount(categoryId) {
                 searchQuery = this.value;
                 filterProducts();
               });
+
+            const discountOnlyInput = document.getElementById("discount-only");
+            if (discountOnlyInput) {
+              // وضعیت فیلتر را با پارامتر URL هماهنگ نگه می‌داریم.
+              discountOnlyInput.checked = discountOnly;
+              discountOnlyInput.addEventListener("change", function () {
+                discountOnly = this.checked;
+                const url = new URL(window.location.href);
+                if (discountOnly) {
+                  url.searchParams.set("discountOnly", "true");
+                } else {
+                  url.searchParams.delete("discountOnly");
+                }
+                window.history.replaceState({}, "", url);
+                filterProducts();
+              });
+            }
 
             // Price range slider
             const priceRange = document.getElementById("price-range");

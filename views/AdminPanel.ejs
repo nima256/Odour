@@ -863,7 +863,20 @@ img[src="/loading.gif"] {
                 </div>
             </div>
 
-            
+            <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="relative w-full md:max-w-md">
+                    <input
+                        id="adminProductSearch"
+                        type="search"
+                        placeholder="جستجوی محصول، برند یا دسته‌بندی..."
+                        class="w-full px-4 py-3 pr-11 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#636337]/30"
+                        autocomplete="off"
+                    >
+                    <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <div id="adminProductsResultSummary" class="text-sm text-gray-500"></div>
+            </div>
+
             <div class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full">
@@ -886,6 +899,7 @@ img[src="/loading.gif"] {
                     </table>
                 </div>
             </div>
+            <div id="productsPagination" class="mt-4 flex flex-wrap justify-center items-center gap-2"></div>
         </div>
 
         <!-- Categories Content -->
@@ -978,6 +992,14 @@ img[src="/loading.gif"] {
                 </div>
             </div>
             
+            <div class="glass-card rounded-xl md:rounded-2xl p-4 mb-4">
+                <label for="orderSearchInput" class="block text-sm font-semibold text-gray-700 mb-2">جستجوی سفارش</label>
+                <input id="orderSearchInput" type="search"
+                    oninput="renderOrders()"
+                    placeholder="شماره سفارش، شناسه تراکنش، درگاه پرداخت یا نام مشتری"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
             <!-- Orders Table -->
             <div class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
@@ -987,6 +1009,7 @@ img[src="/loading.gif"] {
                                 <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">شماره سفارش</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden md:table-cell">نام مشتری</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">مبلغ</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">درگاه</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">وضعیت</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700 hidden sm:table-cell">تاریخ</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-semibold text-gray-700">عملیات</th>
@@ -1448,10 +1471,21 @@ img[src="/loading.gif"] {
                         وضعیت نمایش
                     </h4>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
-                            <input type="checkbox" id="editIsFeatured" class="w-4 h-4 text-indigo-600 rounded">
-                            <span class="text-sm font-medium text-gray-700">محصول ویژه</span>
-                        </label>
+                        <div class="p-3 bg-gray-50 rounded-xl">
+                            <label for="editSpecialOfferPosition" class="block text-sm font-medium text-gray-700 mb-2">
+                                جایگاه در SPECIAL OFFER
+                            </label>
+                            <select id="editSpecialOfferPosition" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm outline-none focus:border-indigo-400">
+                                <option value="">نمایش داده نشود</option>
+                                <option value="1">جایگاه ۱</option>
+                                <option value="2">جایگاه ۲</option>
+                                <option value="3">جایگاه ۳</option>
+                                <option value="4">جایگاه ۴</option>
+                                <option value="5">جایگاه ۵</option>
+                                <option value="6">جایگاه ۶</option>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">فقط برای محصول دارای قیمت ویژه. انتخاب یک جایگاه، محصول قبلی همان جایگاه را جایگزین می‌کند.</p>
+                        </div>
                         <label class="flex items-center gap-2 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
                             <input type="checkbox" id="editIsNewProduct" class="w-4 h-4 text-green-600 rounded">
                             <span class="text-sm font-medium text-gray-700">محصول جدید</span>
@@ -1508,8 +1542,31 @@ img[src="/loading.gif"] {
             </div>
             <form id="editItemForm" class="p-4">
                 <div class="mb-4">
-                    <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">نام</label>
-                    <input type="text" id="editItemName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">
+                        نام
+                    </label>
+                    <input type="text" id="editItemName"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div id="editItemImageField" class="mb-4 hidden">
+                    <label for="editItemImage"
+                           class="block text-sm font-medium text-gray-700 mb-1">
+                        آدرس تصویر دسته‌بندی
+                    </label>
+                
+                    <input
+                        type="text"
+                        id="editItemImage"
+                        dir="ltr"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg
+                               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="/uploads/imageaddressforexample.svg"
+                    >
+                
+                    <p class="text-xs text-gray-500 mt-1">
+                        آدرس فایل موجود در پوشه public را وارد کنید.
+                    </p>
                 </div>
                 
                 <div id="editItemTypeField" class="mb-4 hidden">
@@ -2390,46 +2447,139 @@ function initWeblogQuillEditor(initialContent = '') {
 
 
         // Product Functions
+        const ADMIN_PRODUCTS_PER_PAGE = 20;
+        let adminProductCurrentPage = 1;
+        let adminProductSearchQuery = '';
+
+        function hasProductDiscount(product) {
+            const price = Number(product?.price || 0);
+            const offerPrice = Number(product?.offerPrice || 0);
+            return offerPrice > 0 && price > 0 && offerPrice < price;
+        }
+
+        function getAdminProductSearchText(product) {
+            const categoriesText = Array.isArray(product?.category)
+                ? product.category.map(cat => cat?.name || '').join(' ')
+                : '';
+            const brandText = typeof product?.brand === 'object'
+                ? (product.brand?.name || '')
+                : (product?.brand || '');
+            return [product?.name, product?.englishName, product?.slug, categoriesText, brandText]
+                .filter(Boolean)
+                .join(' ')
+                .toLocaleLowerCase('fa');
+        }
+
+        function changeAdminProductPage(page) {
+            const filteredCount = getFilteredAdminProducts().length;
+            const totalPages = Math.max(1, Math.ceil(filteredCount / ADMIN_PRODUCTS_PER_PAGE));
+            if (page < 1 || page > totalPages) return;
+            adminProductCurrentPage = page;
+            loadProducts();
+        }
+
+        function getFilteredAdminProducts() {
+            const sortedProducts = [...products].sort((a, b) => {
+                const bDate = new Date(b?.createdAt || b?.updatedAt || 0).getTime();
+                const aDate = new Date(a?.createdAt || a?.updatedAt || 0).getTime();
+                return bDate - aDate;
+            });
+            const query = adminProductSearchQuery.trim().toLocaleLowerCase('fa');
+            if (!query) return sortedProducts;
+            return sortedProducts.filter(product => getAdminProductSearchText(product).includes(query));
+        }
+
+        function renderAdminProductPagination(totalItems) {
+            const container = document.getElementById('productsPagination');
+            if (!container) return;
+
+            const totalPages = Math.max(1, Math.ceil(totalItems / ADMIN_PRODUCTS_PER_PAGE));
+            if (totalItems <= ADMIN_PRODUCTS_PER_PAGE) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const startPage = Math.max(1, adminProductCurrentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+            let html = `
+                <button type="button" onclick="changeAdminProductPage(${adminProductCurrentPage - 1})"
+                    class="px-3 py-2 rounded-lg border bg-white text-sm ${adminProductCurrentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'}"
+                    ${adminProductCurrentPage === 1 ? 'disabled' : ''}>قبلی</button>`;
+
+            for (let page = startPage; page <= endPage; page++) {
+                html += `
+                    <button type="button" onclick="changeAdminProductPage(${page})"
+                        class="min-w-10 px-3 py-2 rounded-lg border text-sm ${page === adminProductCurrentPage ? 'gradient-bg text-white border-transparent' : 'bg-white hover:bg-gray-50'}">
+                        ${toPersianDigits(page)}
+                    </button>`;
+            }
+
+            html += `
+                <button type="button" onclick="changeAdminProductPage(${adminProductCurrentPage + 1})"
+                    class="px-3 py-2 rounded-lg border bg-white text-sm ${adminProductCurrentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'}"
+                    ${adminProductCurrentPage === totalPages ? 'disabled' : ''}>بعدی</button>`;
+            container.innerHTML = html;
+        }
+
         function loadProducts() {
             const tbody = document.getElementById('productsTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            const reversedProducts = [...products].reverse();
-            
-            const statusBadge = products.isPublished 
-            ? '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">منتشر شده</span>'
-            : '<span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">پیش‌نویس</span>';
+            const filteredProducts = getFilteredAdminProducts();
+            const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ADMIN_PRODUCTS_PER_PAGE));
+            if (adminProductCurrentPage > totalPages) adminProductCurrentPage = totalPages;
 
-            
-            reversedProducts.forEach((product, index) => {
-                const brandName = product.brand?.name || 
+            const startIndex = (adminProductCurrentPage - 1) * ADMIN_PRODUCTS_PER_PAGE;
+            const pageProducts = filteredProducts.slice(startIndex, startIndex + ADMIN_PRODUCTS_PER_PAGE);
+
+            if (!pageProducts.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-4 py-10 text-center text-gray-500">
+                            ${adminProductSearchQuery ? 'محصولی با این عبارت پیدا نشد.' : 'هنوز محصولی ثبت نشده است.'}
+                        </td>
+                    </tr>`;
+            }
+
+            pageProducts.forEach((product, index) => {
+                const brandName = product.brand?.name ||
                                 (typeof product.brand === 'string' ? 'در حال بارگذاری...' : 'نامشخص');
-                                
-                                
-                const statusBadge = product.isPublished 
+
+                const statusBadge = product.isPublished
                 ? '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">منتشر شده</span>'
                 : '<span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">پیش‌نویس</span>';
-                
-                const categoryBadges = product.category && product.category.length > 0 
-                    ? product.category.map(cat => 
+
+                const categoryBadges = product.category && product.category.length > 0
+                    ? product.category.map(cat =>
                         `<span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">
-                            ${cat.name || (typeof cat === 'string' ? 'در حال بارگذاری...' : 'بدون نام')}
+                            ${escapeHtml(cat.name || (typeof cat === 'string' ? 'در حال بارگذاری...' : 'بدون نام'))}
                         </span>`
                     ).join('')
                     : '<span class="text-gray-500 text-xs">بدون دسته‌بندی</span>';
-                
+
+                const discounted = hasProductDiscount(product);
+                const priceHtml = discounted
+                    ? `<div class="flex flex-col gap-1">
+                          <span class="text-gray-400 line-through font-normal">${toPersianDigits(product.price)} تومان</span>
+                          <span class="text-green-600 font-bold">${toPersianDigits(product.offerPrice)} تومان</span>
+                          <span class="w-fit bg-red-50 text-red-600 rounded-full px-2 py-0.5 text-[10px]">قیمت ویژه</span>
+                       </div>`
+                    : `<span class="text-green-600 font-semibold">${toPersianDigits(product.price)} تومان</span>`;
+
                 const row = document.createElement('tr');
                 row.className = 'product-row transition-all duration-300';
+                row.dataset.productId = product._id;
                 row.innerHTML = `
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">${index + 1}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">${toPersianDigits(startIndex + index + 1)}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
-                        <img src="${product.images[0]?.url}" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
+                        <img src="${product.images?.[0]?.url || '/images/placeholder.png'}" alt="Product" class="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover">
                     </td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${product.name}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${escapeHtml(product.name || '')}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell"><div class="flex flex-wrap">${categoryBadges}</div></td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${brandName}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${product.countInStock}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${product.offerPrice ? toPersianDigits(product.offerPrice) : toPersianDigits(product.price)} تومان</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden md:table-cell">${escapeHtml(brandName)}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${toPersianDigits(product.countInStock || 0)}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">${priceHtml}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
                         <div class="flex space-x-reverse space-x-1 md:space-x-2">
                             <button onclick="viewProduct('${product._id}')" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
@@ -2452,6 +2602,14 @@ function initWeblogQuillEditor(initialContent = '') {
                 `;
                 tbody.appendChild(row);
             });
+
+            const summary = document.getElementById('adminProductsResultSummary');
+            if (summary) {
+                const from = filteredProducts.length ? startIndex + 1 : 0;
+                const to = Math.min(startIndex + ADMIN_PRODUCTS_PER_PAGE, filteredProducts.length);
+                summary.textContent = `نمایش ${toPersianDigits(from)} تا ${toPersianDigits(to)} از ${toPersianDigits(filteredProducts.length)} محصول`;
+            }
+            renderAdminProductPagination(filteredProducts.length);
         }
 
         function viewProduct(id) {
@@ -2607,7 +2765,15 @@ function initWeblogQuillEditor(initialContent = '') {
             document.getElementById('editPrice').value = product.price || 0;
             document.getElementById('editCountInStock').value = product.countInStock || 0;
             document.getElementById('editRating').value = product.rating || 0;
-            document.getElementById('editWeight').value = product.weight || '';
+
+            // ممکن است weight به‌دلیل getter مدل به‌شکل "250 گرم" به فرانت برسد.
+            // input[type=number] فقط مقدار عددی قبول می‌کند؛ بنابراین مقدار را نرمال می‌کنیم.
+            const normalizedWeight = Number.parseFloat(
+                String(product.weight ?? '').replace(/[^0-9.+-]/g, '')
+            );
+            document.getElementById('editWeight').value =
+                Number.isFinite(normalizedWeight) ? normalizedWeight : '';
+
             document.getElementById('editTags').value = product.tags ? product.tags.join(', ') : '';
 
             setTimeout(() => {
@@ -2652,48 +2818,7 @@ function initWeblogQuillEditor(initialContent = '') {
                 }
                 brandSelect.appendChild(option);
             });
-
-
-            const colorFields = document.getElementById('colorFields');
-            colorFields.innerHTML = '';
-            if (product.colors && product.colors.length > 0) {
-                product.colors.forEach((color, index) => {
-                    addColorField(color.name, color.rgb);
-                });
-            } else {
-                addColorField();
-            }
-
-
-            const sizeFields = document.getElementById('sizeFields');
-            sizeFields.innerHTML = '';
-            if (product.sizes && product.sizes.length > 0) {
-                product.sizes.forEach((size, index) => {
-                    addSizeField(size.size, size.usage);
-                });
-            } else {
-                addSizeField();
-            }
-
-
-            const specFields = document.getElementById('specFields');
-            specFields.innerHTML = '';
-            if (product.specifications && product.specifications.length > 0) {
-                product.specifications.forEach((spec, index) => {
-                    addSpecField(spec.key, spec.value);
-                });
-            } else {
-                addSpecField();
-            }
-
-
-            document.getElementById('editIsFeatured').checked = product.isFeatured || false;
-            document.getElementById('editIsNewProduct').checked = product.isNewProduct || false;
-            document.getElementById('editIsPopular').checked = product.isPopular || false;
-
-            document.getElementById('editIsPublished').checked = product.isPublished !== false;
-
-
+            
             const imagePreviews = document.getElementById('imagePreviews');
             imagePreviews.innerHTML = '';
             if (product.images && product.images.length > 0) {
@@ -2705,8 +2830,7 @@ function initWeblogQuillEditor(initialContent = '') {
                     imgContainer.dataset.caption = image.caption || image.alt || '';
                     imgContainer.innerHTML = `
                         <div class="relative">
-                            <img src="${image.url}" class="w-full h-32 object-cover rounded-lg" alt="${escapeHtml(image.caption || image.alt || '')}" title="${escapeHtml(image.caption || image.alt || '')}">
-                            <button type="button" onclick="removeImage(this, '${image.url}', '${image.filename}')" 
+                                <img src="${image.url}" data-url="${image.url}" class="w-full h-32 object-cover rounded-lg" alt="${escapeHtml(image.caption || image.alt || '')}" title="${escapeHtml(image.caption || image.alt || '')}">                            <button type="button" onclick="removeImage(this, '${image.url}', '${image.filename}')" 
                                 class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 z-10">
                                 <i class="fas fa-times text-xs"></i>
                             </button>
@@ -2737,46 +2861,105 @@ function initWeblogQuillEditor(initialContent = '') {
                 });
             }
 
+
+
+            const colorFields = document.getElementById('colorFields');
+            colorFields.innerHTML = '';
+            if (product.colors && product.colors.length > 0) {
+                product.colors.forEach((color) => {
+                    addColorField(
+                        color.name,
+                        color.rgb,
+                        color.image?.url || '',
+                        color._id || '',
+                        color.countInStock ?? '',
+                        Boolean(color.isOutOfStock)
+                    );
+                });
+            } else {
+                addColorField();
+            }
+
+
+
+            const sizeFields = document.getElementById('sizeFields');
+            sizeFields.innerHTML = '';
+            if (product.sizes && product.sizes.length > 0) {
+                product.sizes.forEach((size) => {
+                    addSizeField(
+                        size.size,
+                        size.usage,
+                        size._id || '',
+                        size.countInStock ?? '',
+                        Boolean(size.isOutOfStock)
+                    );
+                });
+            } else {
+                addSizeField();
+            }
+
+
+            const specFields = document.getElementById('specFields');
+            specFields.innerHTML = '';
+            if (product.specifications && product.specifications.length > 0) {
+                product.specifications.forEach((spec, index) => {
+                    addSpecField(spec.key, spec.value);
+                });
+            } else {
+                addSpecField();
+            }
+
+
+            document.getElementById('editSpecialOfferPosition').value = product.specialOfferPosition ? String(product.specialOfferPosition) : '';
+            document.getElementById('editIsNewProduct').checked = product.isNewProduct || false;
+            document.getElementById('editIsPopular').checked = product.isPopular || false;
+
+            document.getElementById('editIsPublished').checked = product.isPublished !== false;
+
             document.getElementById('editImages').addEventListener('change', handleImageUpload);
 
             document.getElementById('editModal').classList.remove('hidden');
         }
 
-async function handleImageUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const captionText = prompt(`لطفاً توضیحات تصویر "${file.name}" را وارد کنید:`, '');
+        async function handleImageUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
         
-        const formData = new FormData();
-        formData.append('image', file); // تک تک آپلود کن
-        
-        try {
-            const response = await fetch('/admin/upload-image', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // ذخیره موقت با filename که سرور برگردونده و کپشن
-                addImageToPreview({
-                    url: result.url,
-                    filename: result.filename,
-                    tempPath: result.tempPath
-                }, captionText);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const captionText = prompt(`لطفاً توضیحات تصویر "${file.name}" را وارد کنید:`, '');
+                
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                try {
+                    const response = await fetch('/admin/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // ذخیره با اطلاعات کامل
+                        const imageData = {
+                            url: result.url,
+                            filename: result.filename,
+                            caption: captionText || '',
+                            alt: captionText || '',
+                            tempPath: result.tempPath // اگر سرور tempPath برگرداند
+                        };
+                        addImageToPreview(imageData, captionText);
+                        refreshAllColorImageSelects();
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showNotification('خطا در آپلود تصویر', 'error');
+                }
             }
-        } catch (error) {
-            console.error('Upload error:', error);
-            showNotification('خطا در آپلود تصویر', 'error');
+            
+            event.target.value = '';
         }
-    }
-    
-    event.target.value = '';
-}
 
 function removeTempImage(buttonElement, tempId) {
     if (!confirm('آیا از حذف این تصویر مطمئن هستید؟')) return;
@@ -2786,6 +2969,8 @@ function removeTempImage(buttonElement, tempId) {
     if (container) {
         container.remove();
     }
+    
+    refreshAllColorImageSelects();
     
     showNotification('تصویر از لیست حذف شد', 'info');
 }
@@ -2839,6 +3024,8 @@ async function removeImage(buttonElement, imageUrl, filename) {
             }
         }
         
+        refreshAllColorImageSelects();
+        
         // همچنین از آرایه products هم حذف کن (برای آپدیت بعدی)
         if (currentProductId && products) {
             const productIndex = products.findIndex(p => p._id === currentProductId);
@@ -2875,32 +3062,104 @@ async function removeImage(buttonElement, imageUrl, filename) {
         }
 
 
-        function addColorField(name = '', rgb = '#ffffff') {
+        function getFilenameFromUrl(url = '') {
+            try {
+                const parsed = new URL(url, window.location.origin);
+                return parsed.pathname.split('/').filter(Boolean).pop() || '';
+            } catch (_) {
+                return String(url).split('?')[0].split('#')[0].split('/').filter(Boolean).pop() || '';
+            }
+        }
+
+        function addColorField(name = '', rgb = '#ffffff', imageUrl = '', colorId = '', countInStock = '', isOutOfStock = false) {
             const colorFields = document.getElementById('colorFields');
             const colorField = document.createElement('div');
-            colorField.className = 'flex items-center gap-2';
+            colorField.className = 'flex items-center gap-2 flex-wrap p-2 rounded-xl border border-gray-100 bg-gray-50/60';
+            colorField.dataset.colorId = colorId || '';
             colorField.innerHTML = `
-                <input type="text" placeholder="نام رنگ" value="${name}"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
-                <input type="color" value="${rgb}"
+                <input type="text" placeholder="نام رنگ یا کد رنگ" value="${escapeHtml(name)}"
+                    class="flex-1 min-w-[100px] px-3 py-2 border border-gray-300 rounded-lg color-name-input">
+                <input type="color" value="${rgb || '#ffffff'}"
                     class="w-10 h-10 border border-gray-300 rounded-lg">
+                <input type="number" min="0" placeholder="موجودی رنگ" value="${countInStock === '' ? '' : Number(countInStock)}"
+                    title="اگر خالی باشد، موجودی کلی محصول استفاده می‌شود"
+                    class="color-stock-input w-28 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="flex items-center gap-1 text-xs text-gray-600 whitespace-nowrap">
+                    <input type="checkbox" class="color-out-of-stock-checkbox" ${isOutOfStock ? 'checked' : ''}>
+                    ناموجود
+                </label>
+                <select class="color-image-select px-2 py-2 border border-gray-300 rounded-lg text-xs flex-1 min-w-[140px]">
+                    <option value="">بدون عکس اختصاصی</option>
+                </select>
+                <img class="color-image-preview w-10 h-10 object-cover rounded-lg border ${imageUrl ? '' : 'hidden'}" src="${imageUrl || ''}">
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
             `;
             colorFields.appendChild(colorField);
+        
+            const select = colorField.querySelector('.color-image-select');
+            const preview = colorField.querySelector('.color-image-preview');
+        
+            // پر کردن select از عکس‌های آپلودشده فعلی
+            populateColorImageSelect(select, imageUrl);
+        
+            select.addEventListener('change', function() {
+                if (this.value) {
+                    preview.src = this.value;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.classList.add('hidden');
+                }
+            });
+        }
+        
+        // پر کردن select از روی عکس‌های موجود در imagePreviews
+        function populateColorImageSelect(selectEl, selectedUrl = '') {
+            selectEl.innerHTML = '<option value="">بدون عکس اختصاصی</option>';
+            document.querySelectorAll('#imagePreviews > div').forEach(container => {
+                const img = container.querySelector('img');
+                if (!img) return;
+                const url = img.dataset.url || img.getAttribute('src');
+                if (!url) return;
+                const filename = container.dataset.filename || '';
+                const caption = container.dataset.caption || '';
+                const opt = document.createElement('option');
+                opt.value = url;
+                opt.textContent = caption || filename || url.split('/').pop() || 'تصویر';
+                opt.dataset.filename = filename;
+                if (url === selectedUrl) {
+                    opt.selected = true;
+                }
+                selectEl.appendChild(opt);
+            });
+        }        
+        
+        // هر وقت عکسی اضافه/حذف شد، همه selectهای رنگ رو آپدیت کن
+        function refreshAllColorImageSelects() {
+            document.querySelectorAll('#colorFields .color-image-select').forEach(select => {
+                const currentValue = select.value;
+                populateColorImageSelect(select, currentValue);
+            });
         }
 
-
-        function addSizeField(size = '', usage = '') {
+        function addSizeField(size = '', usage = '', sizeSubdocId = '', countInStock = '', isOutOfStock = false) {
             const sizeFields = document.getElementById('sizeFields');
             const sizeId = Date.now();
             
             const sizeField = document.createElement('div');
-            sizeField.className = 'flex items-center gap-2';
+            sizeField.className = 'flex items-center gap-2 flex-wrap p-2 rounded-xl border border-gray-100 bg-gray-50/60';
+            sizeField.dataset.sizeId = sizeSubdocId || '';
             sizeField.innerHTML = `
-                <input type="text" name="sizes[${sizeId}][size]" placeholder="سایز" value="${size}"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg"> 
-                <input type="text" name="sizes[${sizeId}][usage]" placeholder="کاربرد (اختیاری)" value="${usage}"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                <input type="text" name="sizes[${sizeId}][size]" placeholder="سایز" value="${escapeHtml(size)}"
+                    class="size-name-input flex-1 min-w-[100px] px-3 py-2 border border-gray-300 rounded-lg"> 
+                <input type="text" name="sizes[${sizeId}][usage]" placeholder="کاربرد (اختیاری)" value="${escapeHtml(usage)}"
+                    class="size-usage-input flex-1 min-w-[130px] px-3 py-2 border border-gray-300 rounded-lg">
+                <input type="number" min="0" placeholder="موجودی سایز" value="${countInStock === '' ? '' : Number(countInStock)}"
+                    title="اگر خالی باشد، موجودی کلی محصول استفاده می‌شود"
+                    class="size-stock-input w-28 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="flex items-center gap-1 text-xs text-gray-600 whitespace-nowrap">
+                    <input type="checkbox" class="size-out-of-stock-checkbox" ${isOutOfStock ? 'checked' : ''}>
+                    ناموجود
+                </label>
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500">×</button>
             `;
             sizeFields.appendChild(sizeField);
@@ -3048,9 +3307,14 @@ async function removeImage(buttonElement, imageUrl, filename) {
                 const discountType = discount.type === 'percent' ? `${discount.amount}%` : `${toPersianDigits(discount.amount)} تومان`;
                 
                 // وضعیت فعال/غیرفعال
-                const statusBadge = product.isPublished 
-                    ? '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">منتشر شده</span>'
-                    : '<span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">پیش‌نویس</span>';
+                const statusBadge = discount.isActive !== false
+                    ? '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">فعال</span>'
+                    : '<span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">غیرفعال</span>';
+                
+                // ✅ نمایش وضعیت یک بار مصرف برای هر کاربر
+                const oneTimeBadge = discount.oneTimePerUser
+                    ? '<span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mr-1">یک بار مصرف</span>'
+                    : '';
                 
                 item.innerHTML = `
                     <div class="flex flex-col flex-1">
@@ -3183,6 +3447,13 @@ async function removeImage(buttonElement, imageUrl, filename) {
                                 <label for="isActive" class="text-sm font-semibold text-gray-700">فعال</label>
                             </div>
                             
+                            <div class="flex items-center">
+                                <input type="checkbox" id="oneTimePerUser" class="ml-2 w-4 h-4">
+                                <label for="oneTimePerUser" class="text-sm font-semibold text-gray-700">
+                                    هر کاربر فقط یک بار می‌تواند استفاده کند
+                                </label>
+                            </div>
+                            
                             <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-reverse sm:space-x-4 pt-4 border-t border-gray-200">
                                 <button type="button" onclick="closeDiscountModal()" class="px-4 md:px-6 py-2 md:py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
                                     انصراف
@@ -3243,7 +3514,8 @@ async function removeImage(buttonElement, imageUrl, filename) {
                 usageLimit: document.getElementById('usageLimit').value ? parseInt(document.getElementById('usageLimit').value) : null,
                 expireDate: document.getElementById('expireDate').value || null,
                 isActive: document.getElementById('isActive').checked,
-                description: document.getElementById('description').value || null
+                description: document.getElementById('description').value || null,
+                oneTimePerUser: document.getElementById('oneTimePerUser').checked,
             };
             
             // اضافه کردن maxDiscountAmount برای تخفیف درصدی
@@ -3363,45 +3635,50 @@ async function removeImage(buttonElement, imageUrl, filename) {
             currentItemType = 'category';
             isEditing = false;
             currentEditItem = null;
-            
-            // Show edit modal
+        
+            // نمایش مودال
             document.getElementById('editItemModal').classList.remove('hidden');
-            document.getElementById('editItemTitle').textContent = 'افزودن دسته‌بندی جدید';
-            
-            // Populate form
+            document.getElementById('editItemTitle').textContent =
+                'افزودن دسته‌بندی جدید';
+        
+            // خالی کردن فرم
             document.getElementById('editItemName').value = '';
+            document.getElementById('editItemImage').value = '';
             document.getElementById('editItemType').value = 'product';
-            
-            // Show category-specific fields
+        
+            // نمایش فیلدهای مخصوص دسته‌بندی
             document.getElementById('editItemTypeField').classList.remove('hidden');
             document.getElementById('editItemParentField').classList.remove('hidden');
-            
-            // Parent category dropdown
+            document.getElementById('editItemImageField').classList.remove('hidden');
+        
+            // لیست دسته‌بندی‌های والد
             const parentSelect = document.getElementById('editItemParent');
             parentSelect.innerHTML = '<option value="">بدون والد</option>';
-            categories.forEach(c => {
+        
+            categories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = c._id;
-                option.textContent = c.name;
+                option.value = category._id;
+                option.textContent = category.name;
                 parentSelect.appendChild(option);
             });
         }
+
 
         function addBrand() {
             currentItemType = 'brand';
             isEditing = false;
             currentEditItem = null;
-            
-            // Show edit modal
+        
             document.getElementById('editItemModal').classList.remove('hidden');
-            document.getElementById('editItemTitle').textContent = 'افزودن برند جدید';
-            
-            // Populate form
+            document.getElementById('editItemTitle').textContent =
+                'افزودن برند جدید';
+        
             document.getElementById('editItemName').value = '';
-            
-            // Hide unused fields for brand
+            document.getElementById('editItemImage').value = '';
+        
             document.getElementById('editItemTypeField').classList.add('hidden');
             document.getElementById('editItemParentField').classList.add('hidden');
+            document.getElementById('editItemImageField').classList.add('hidden');
         }
 
 function addWeblog() {
@@ -3529,42 +3806,60 @@ async function deleteWeblog(id) {
                 currentItemType = 'category';
                 isEditing = true;
                 currentEditItem = id;
-                
+        
                 const category = categories.find(c => c._id === id);
+        
                 if (!category) {
                     throw new Error('دسته‌بندی یافت نشد');
                 }
-
-                // Show edit modal
+        
+                // نمایش مودال
                 document.getElementById('editItemModal').classList.remove('hidden');
-                document.getElementById('editItemTitle').textContent = 'ویرایش دسته‌بندی';
-                
-                // Populate form
+                document.getElementById('editItemTitle').textContent =
+                    'ویرایش دسته‌بندی';
+        
+                // پر کردن فرم
                 document.getElementById('editItemName').value = category.name;
-                document.getElementById('editItemType').value = category.categoryType || 'product';
-                
-                // Show category-specific fields
+                document.getElementById('editItemImage').value = category.img || '';
+                document.getElementById('editItemType').value =
+                    category.categoryType || 'product';
+        
+                // نمایش فیلدهای مخصوص دسته‌بندی
                 document.getElementById('editItemTypeField').classList.remove('hidden');
                 document.getElementById('editItemParentField').classList.remove('hidden');
-                
-                // Parent category dropdown
+                document.getElementById('editItemImageField').classList.remove('hidden');
+        
+                // دسته‌بندی والد
                 const parentSelect = document.getElementById('editItemParent');
                 parentSelect.innerHTML = '<option value="">بدون والد</option>';
+        
                 categories
-                    .filter(c => c._id !== id) // Exclude current category from parents
+                    .filter(c => c._id !== id)
                     .forEach(c => {
                         const option = document.createElement('option');
+        
                         option.value = c._id;
                         option.textContent = c.name;
-                        option.selected = category.parentId === c._id;
+        
+                        const currentParentId =
+                            category.parentId?._id || category.parentId;
+        
+                        option.selected =
+                            String(currentParentId || '') === String(c._id);
+        
                         parentSelect.appendChild(option);
                     });
-                
+        
             } catch (error) {
                 console.error('Error preparing to edit category:', error);
-                showNotification(error.message || 'خطا در آماده‌سازی ویرایش', 'error');
+        
+                showNotification(
+                    error.message || 'خطا در آماده‌سازی ویرایش',
+                    'error'
+                );
             }
         }
+
 
         // Update your brand functions
         async function editBrand(id) {
@@ -3588,6 +3883,9 @@ async function deleteWeblog(id) {
                 // Hide unused fields for brand
                 document.getElementById('editItemTypeField').classList.add('hidden');
                 document.getElementById('editItemParentField').classList.add('hidden');
+                
+                document.getElementById('editItemImage').value = '';
+                document.getElementById('editItemImageField').classList.add('hidden');
                 
             } catch (error) {
                 console.error('Error preparing to edit brand:', error);
@@ -3667,24 +3965,36 @@ async function editWeblog(id) {
                 let body = { name };
                 
                 if (currentItemType === 'category') {
+                    const imageAddress =
+                        document.getElementById('editItemImage').value.trim();
+                
+                    // آدرس خالی به صورت null ارسال می‌شود
+                    body.img = imageAddress || null;
+                
+                    body.categoryType =
+                        document.getElementById('editItemType').value;
+                
+                    body.parentId =
+                        document.getElementById('editItemParent').value || null;
+                
                     if (isEditing) {
                         endpoint = `/admin/categories/edit/${currentEditItem}`;
-                        body.categoryType = document.getElementById('editItemType').value;
-                        body.parentId = document.getElementById('editItemParent').value || null;
-                        
+                
                         response = await fetch(endpoint, {
                             method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
                             body: JSON.stringify(body)
                         });
                     } else {
                         endpoint = '/admin/categories/add';
-                        body.categoryType = document.getElementById('editItemType').value;
-                        body.parentId = document.getElementById('editItemParent').value || null;
-                        
+                
                         response = await fetch(endpoint, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
                             body: JSON.stringify(body)
                         });
                     }
@@ -3751,8 +4061,13 @@ async function editWeblog(id) {
         function closeEditModal() {
             document.getElementById('editItemModal').classList.add('hidden');
             document.getElementById('editItemForm').reset();
+        
             document.getElementById('editItemTypeField').classList.add('hidden');
             document.getElementById('editItemParentField').classList.add('hidden');
+            document.getElementById('editItemImageField').classList.add('hidden');
+        
+            document.getElementById('editItemImage').value = '';
+        
             currentEditItem = null;
             isEditing = false;
             currentItemType = null;
@@ -3778,53 +4093,64 @@ async function editWeblog(id) {
 
         function renderOrders() {
             const tbody = document.getElementById('ordersTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
-            
-            orders.forEach((order, index) => {
+
+            const query = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
+            const filteredOrders = orders.filter(order => {
+                if (!query) return true;
+                return [
+                    order.OrderNum,
+                    order.snappPay?.transactionId,
+                    order.torobPay?.transactionId,
+                    order.paymentMethod,
+                    order.user?.fullName,
+                    order.user?.mobile,
+                ].some(value => String(value || '').toLowerCase().includes(query));
+            });
+
+            if (!filteredOrders.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">سفارشی مطابق جستجو پیدا نشد</td></tr>';
+                return;
+            }
+
+            filteredOrders.forEach((order) => {
                 const row = document.createElement('tr');
                 row.className = 'product-row transition-all duration-300';
-                
                 const statusClasses = {
+                    'در انتظار پرداخت': 'bg-orange-100 text-orange-800',
                     'در حال پردازش': 'bg-yellow-100 text-yellow-800',
                     'بسته بندی شده': 'bg-blue-100 text-blue-800',
                     'در حال ارسال': 'bg-purple-100 text-purple-800',
                     'تحویل داده شد': 'bg-green-100 text-green-800',
                     'لغو شده': 'bg-red-100 text-red-800'
                 };
+                const classForStatus = statusClasses[order.status] || 'bg-gray-100 text-gray-800';
+                const dateTimeDisplay = order.formattedDateTime || order.createTarikh || '-';
+                const transactionId = order.torobPay?.transactionId || order.snappPay?.transactionId || '';
+                const transactionGateway = order.paymentMethod === 'ترب‌پی' ? 'ترب‌پی' : (order.paymentMethod === 'اسنپ‌پی' ? 'اسنپ‌پی' : '');
 
-                let classForStatus;
-                if (order.status === "در حال پردازش") {
-                    classForStatus = statusClasses['در حال پردازش']
-                } else if (order.status === "بسته بندی شده") {
-                    classForStatus = statusClasses['بسته بندی شده']
-                } else if (order.status === "در حال ارسال") {
-                    classForStatus = statusClasses['در حال ارسال']
-                } else if (order.status === "تحویل داده شد") {
-                    classForStatus = statusClasses['تحویل داده شد']
-                } else if (order.status === "لغو شده") {
-                    classForStatus = statusClasses['لغو شده']
-                }
-                
-                // استفاده از formattedDateTime یا fallback به createTarikh
-                const dateTimeDisplay = order.formattedDateTime || order.createTarikh;
-                                
                 row.innerHTML = `
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${order.OrderNum}</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">
+                        <div>${order.OrderNum}</div>
+                        ${transactionId ? `<div class="mt-1 text-[11px] text-blue-700 select-all" title="شناسه تراکنش ${transactionGateway}">${transactionId}</div>` : ''}
+                    </td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900 hidden md:table-cell">${order.user?.fullName || 'نامشخص'}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${toPersianDigits(order.totalPrice)} تومان</td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
+                        <span class="inline-flex px-2 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold">${order.paymentMethod || '-'}</span>
+                    </td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
-                        <select onchange="updateOrderStatus('${order._id}', this)" 
+                        <select onchange="updateOrderStatus('${order._id}', this)"
                             class="${classForStatus} px-2 md:px-3 py-1 rounded-full text-xs font-medium border-none">
-                            <option value="pending" ${order.status === 'در حال پردازش' ? 'selected' : ''}>در حال پردازش</option>
+                            <option value="pending" ${order.status === 'در حال پردازش' || order.status === 'در انتظار پرداخت' ? 'selected' : ''}>در حال پردازش</option>
                             <option value="processing" ${order.status === 'بسته بندی شده' ? 'selected' : ''}>بسته بندی شده</option>
                             <option value="shipping" ${order.status === 'در حال ارسال' ? 'selected' : ''}>در حال ارسال</option>
                             <option value="delivered" ${order.status === 'تحویل داده شد' ? 'selected' : ''}>تحویل داده شد</option>
                             <option value="cancelled" ${order.status === 'لغو شده' ? 'selected' : ''}>لغو شده</option>
                         </select>
                     </td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">
-                        ${dateTimeDisplay}
-                    </td>
+                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${dateTimeDisplay}</td>
                     <td class="px-3 md:px-6 py-3 md:py-4">
                         <button onclick="viewOrder('${order._id}')" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
                             <i class="fas fa-eye text-sm"></i>
@@ -3835,72 +4161,9 @@ async function editWeblog(id) {
             });
         }
 
-
         // Order Functions
         function loadOrders() {
-            const tbody = document.getElementById('ordersTableBody');
-            if (!tbody) return;
-
-            tbody.innerHTML = '';
-
-            if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">هیچ سفارشی وجود ندارد</td></tr>';
-                return;
-            }
-
-            const reversedOrders = [...orders].reverse();
-            
-            reversedOrders.forEach((order, index) => {
-                const row = document.createElement('tr');
-                row.className = 'product-row transition-all duration-300';
-                
-                const statusClasses = {
-                    'در حال پردازش': 'bg-yellow-100 text-yellow-800',
-                    'بسته بندی شده': 'bg-blue-100 text-blue-800',
-                    'در حال ارسال': 'bg-purple-100 text-purple-800',
-                    'تحویل داده شد': 'bg-green-100 text-green-800',
-                    'لغو شده': 'bg-red-100 text-red-800'
-                };
-
-                let classForStatus;
-
-                if (order.status === "در حال پردازش") {
-                    classForStatus = statusClasses['در حال پردازش']
-                } else if (order.status === "بسته بندی شده") {
-                    classForStatus = statusClasses['بسته بندی شده']
-                } else if (order.status === "در حال ارسال") {
-                    classForStatus = statusClasses['در حال ارسال']
-                } else if (order.status === "تحویل داده شد") {
-                    classForStatus = statusClasses['تحویل داده شد']
-                } else if (order.status === "لغو شده") {
-                    classForStatus = statusClasses['لغو شده']
-                }
-
-                const userName = order.user?.fullName || order.user?.name || 'نامشخص';
-                                
-                row.innerHTML = `
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">${order.OrderNum}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900 hidden md:table-cell">${userName}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold text-green-600">${toPersianDigits(order.totalPrice)} تومان</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4">
-                    <select onchange="updateOrderStatus('${order._id}', this)" 
-                        class="${classForStatus} px-2 md:px-3 py-1 rounded-full text-xs font-medium border-none">
-                        <option value="pending" ${order.status === 'در حال پردازش' ? 'selected' : ''}>در حال پردازش</option>
-                        <option value="processing" ${order.status === 'بسته بندی شده' ? 'selected' : ''}>بسته بندی شده</option>
-                        <option value="shipping" ${order.status === 'در حال ارسال' ? 'selected' : ''}>در حال ارسال</option>
-                        <option value="delivered" ${order.status === 'تحویل داده شد' ? 'selected' : ''}>تحویل داده شد</option>
-                        <option value="cancelled" ${order.status === 'لغو شده' ? 'selected' : ''}>لغو شده</option>
-                    </select>
-                    </td>
-                    <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 hidden sm:table-cell">${order.createTarikh}</td>
-                    <td class="px-3 md:px-6 py-3 md:py-4">
-                        <button onclick="viewOrder('${order._id}')" class="action-btn p-1 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all">
-                            <i class="fas fa-eye text-sm"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            renderOrders();
         }
 
 
@@ -4034,45 +4297,21 @@ function renderWeblogsTable() {
 
 
 function viewOrder(id) {
-    const order = orders.find(p => p._id === id);
-    
-    const statusClasses = {
-        'در حال پردازش': 'bg-yellow-100 text-yellow-800',
-        'بسته بندی شده': 'bg-blue-100 text-blue-800',
-        'در حال ارسال': 'bg-purple-100 text-purple-800',
-        'تحویل داده شد': 'bg-green-100 text-green-800',
-        'لغو شده': 'bg-red-100 text-red-800',
-        'در انتظار پرداخت': 'bg-orange-100 text-orange-800',
-        'پرداخت شده': 'bg-teal-100 text-teal-800'
-    };
+    const order = orders.find(item => item._id === id);
+    if (!order) return;
 
-    let classForStatus;
-    if (order.status === "در حال پردازش") {
-        classForStatus = statusClasses['در حال پردازش']
-    } else if (order.status === "بسته بندی شده") {
-        classForStatus = statusClasses['بسته بندی شده']
-    } else if (order.status === "در حال ارسال") {
-        classForStatus = statusClasses['در حال ارسال']
-    } else if (order.status === "تحویل داده شد") {
-        classForStatus = statusClasses['تحویل داده شد']
-    } else if (order.status === "لغو شده") {
-        classForStatus = statusClasses['لغو شده']
-    } else if (order.status === "در انتظار پرداخت") {
-        classForStatus = statusClasses['در انتظار پرداخت']
-    } else if (order.status === "پرداخت شده") {
-        classForStatus = statusClasses['پرداخت شده']
-    }
-    
-    let productsHtml = '';
-    order.products.forEach(product => {
-        productsHtml += `
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all">
+    const isSnappPay = order.paymentMethod === 'اسنپ‌پی';
+    const isTorobPay = order.paymentMethod === 'ترب‌پی';
+    const canUpdateSnappPay = isSnappPay && order.snappPay?.status === 'SETTLE' && order.status !== 'لغو شده';
+    const canUpdateTorobPay = isTorobPay && order.torobPay?.status === 'SETTLE' && order.status !== 'لغو شده';
+    const productsHtml = order.products.map(product => `
+        <div class="p-3 bg-gray-50 rounded-lg">
+            <div class="flex justify-between items-center gap-3">
                 <div class="flex-1">
                     <p class="font-medium text-gray-800">${product.nameAtPurchase}</p>
                     <div class="flex flex-wrap gap-3 mt-1 text-sm text-gray-500">
-                        <span><i class="fas fa-palette ml-1"></i> رنگ: ${product.selectedColor}</span>
-                        <span><i class="fas fa-ruler ml-1"></i> سایز: ${product.selectedSize}</span>
-                        <span><i class="fas fa-hashtag ml-1"></i> تعداد: ${product.quantity}</span>
+                        ${product.selectedColor ? `<span><i class="fas fa-palette ml-1"></i> رنگ: ${product.selectedColor}</span>` : ''}
+                        ${product.selectedSize ? `<span><i class="fas fa-ruler ml-1"></i> سایز: ${product.selectedSize}</span>` : ''}
                     </div>
                 </div>
                 <div class="text-left">
@@ -4080,102 +4319,204 @@ function viewOrder(id) {
                     <p class="text-xs text-gray-400">قیمت واحد</p>
                 </div>
             </div>
-        `;
-    });
-    
-    // محاسبه جمع کل
-    const shippingCost = 35000;
-    const finalTotal = order.totalPrice + shippingCost;
-    
+            <div class="mt-3 flex justify-between items-center">
+                <span class="text-sm text-gray-600">تعداد:</span>
+                ${canUpdateSnappPay ? `
+                    <input type="number" min="0" max="${product.quantity}" value="${product.quantity}"
+                        data-snapp-quantity data-item-id="${product.snappItemId || product.product?._id || product.product}" data-product-id="${product.product?._id || product.product}"
+                        class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center">
+                ` : canUpdateTorobPay ? `
+                    <input type="number" min="0" max="${product.quantity}" value="${product.quantity}"
+                        data-torob-quantity data-item-id="${product.product?._id || product.product}" data-product-id="${product.product?._id || product.product}"
+                        class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center">
+                ` : `<span class="font-semibold">${toPersianDigits(product.quantity)}</span>`}
+            </div>
+        </div>
+    `).join('');
+
+    const transactionId = order.torobPay?.transactionId || order.snappPay?.transactionId || order.paymentInfo?.refId || '-';
+    const taxAmount = Number(order.taxAmount || 0);
     const detailsHtml = `
-        <div class="flex justify-between items-start mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-3 mb-6">
             <div>
                 <h3 class="text-xl font-bold text-gray-800">سفارش شماره ${order.OrderNum}</h3>
-                <p class="text-sm text-gray-500 mt-1">تاریخ ثبت: ${order.createTarikh}</p>
+                <p class="text-sm text-gray-500 mt-1">تاریخ ثبت: ${order.formattedDateTime || order.createTarikh || '-'}</p>
             </div>
-            <button onclick="downloadOrderInvoice('${order._id}')" 
-                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2 shadow-md hover:shadow-lg">
-                <i class="fas fa-file-pdf text-lg"></i>
-                <span>صدور فاکتور PDF</span>
+            <button onclick="downloadOrderInvoice('${order._id}')"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                <i class="fas fa-file-pdf"></i><span>صدور فاکتور PDF</span>
             </button>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="glass-card p-4 rounded-xl">
-                <span class="font-semibold text-gray-700 flex items-center gap-2"><i class="fas fa-user"></i> اطلاعات مشتری:</span>
+                <span class="font-semibold text-gray-700"><i class="fas fa-user ml-1"></i> اطلاعات مشتری</span>
                 <div class="mt-2 space-y-1 text-gray-600">
                     <p><span class="font-medium">نام:</span> ${order.user?.fullName || 'نامشخص'}</p>
-                    <p><span class="font-medium">تلفن:</span> ${order.user?.phone || 'نامشخص'}</p>
+                    <p><span class="font-medium">تلفن:</span> ${order.user?.mobile || 'نامشخص'}</p>
                     <p><span class="font-medium">ایمیل:</span> ${order.user?.email || 'نامشخص'}</p>
                 </div>
             </div>
             <div class="glass-card p-4 rounded-xl">
-                <span class="font-semibold text-gray-700 flex items-center gap-2"><i class="fas fa-truck"></i> اطلاعات ارسال:</span>
+                <span class="font-semibold text-gray-700"><i class="fas fa-truck ml-1"></i> اطلاعات ارسال</span>
                 <div class="mt-2 space-y-1 text-gray-600">
-                    <p><span class="font-medium">آدرس:</span> ${order.province}، ${order.city}، ${order.address}</p>
+                    <p><span class="font-medium">آدرس:</span> ${order.address}</p>
+                    ${order.province ? `<p><span class="font-medium">استان:</span> ${order.province}</p>` : ''}
+                    ${order.city ? `<p><span class="font-medium">شهر:</span> ${order.city}</p>` : ''}
                     <p><span class="font-medium">کد پستی:</span> ${order.postcode}</p>
                     <p><span class="font-medium">روش ارسال:</span> ${order.delivery || 'تیپاکس'}</p>
                     ${order.trackingNumber ? `<p><span class="font-medium">شماره مرسوله:</span> ${order.trackingNumber}</p>` : ''}
                 </div>
             </div>
         </div>
-        
+
+        ${isSnappPay ? `
+            <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 mb-6 space-y-2">
+                <div class="flex justify-between gap-3"><span>وضعیت اسنپ‌پی:</span><strong>${order.snappPay?.status || 'نامشخص'}</strong></div>
+                <div class="flex justify-between gap-3"><span>شناسه تراکنش:</span><strong class="select-all text-left" dir="ltr">${transactionId}</strong></div>
+                <div class="flex flex-wrap gap-2 pt-2">
+                    <button onclick="snappSyncOrder('${order._id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg">استعلام وضعیت</button>
+                    ${canUpdateSnappPay ? `<button onclick="snappUpdateOrder('${order._id}')" class="bg-amber-600 text-white px-3 py-2 rounded-lg">ثبت کاهش/حذف آیتم</button>` : ''}
+                    ${canUpdateSnappPay ? `<button onclick="snappCancelOrder('${order._id}')" class="bg-red-600 text-white px-3 py-2 rounded-lg">کنسل کامل در اسنپ‌پی</button>` : ''}
+                </div>
+                ${canUpdateSnappPay ? `<p class="text-xs text-red-700">آپدیت و کنسل برگشت‌ناپذیر هستند و پس از تایید دوباره ارسال می‌شوند.</p>` : ''}
+            </div>
+        ` : ''}
+
+        ${isTorobPay ? `
+            <div class="rounded-xl border border-violet-200 bg-violet-50 p-4 mb-6 space-y-2">
+                <div class="flex justify-between gap-3"><span>درگاه پرداخت:</span><strong>ترب‌پی</strong></div>
+                <div class="flex justify-between gap-3"><span>وضعیت ترب‌پی:</span><strong>${order.torobPay?.status || 'نامشخص'}</strong></div>
+                <div class="flex justify-between gap-3"><span>شناسه تراکنش:</span><strong class="select-all text-left" dir="ltr">${transactionId}</strong></div>
+                <div class="flex flex-wrap gap-2 pt-2">
+                    <button onclick="torobSyncOrder('${order._id}')" class="bg-violet-600 text-white px-3 py-2 rounded-lg">استعلام وضعیت</button>
+                    ${canUpdateTorobPay ? `<button onclick="torobUpdateOrder('${order._id}')" class="bg-amber-600 text-white px-3 py-2 rounded-lg">ثبت کاهش/حذف آیتم</button>` : ''}
+                    ${canUpdateTorobPay ? `<button onclick="torobCancelOrder('${order._id}')" class="bg-red-600 text-white px-3 py-2 rounded-lg">لغو کامل در ترب‌پی</button>` : ''}
+                </div>
+                <p class="text-xs text-violet-800">عودت وجه سفارش ترب‌پی فقط از طریق خود ترب‌پی انجام می‌شود.</p>
+            </div>
+        ` : ''}
+
         <div class="glass-card p-4 rounded-xl mb-6">
             <div class="flex justify-between items-center mb-4">
-                <span class="font-semibold text-gray-700 flex items-center gap-2"><i class="fas fa-box"></i> محصولات سفارش:</span>
-                <span class="text-sm ${order.status === 'تحویل داده شد' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'} px-3 py-1 rounded-full">${order.status}</span>
+                <span class="font-semibold text-gray-700"><i class="fas fa-box ml-1"></i> محصولات سفارش</span>
+                <span class="text-sm px-3 py-1 rounded-full bg-gray-100">${order.status}</span>
             </div>
-            <div class="space-y-3">
-                ${productsHtml}
-            </div>
+            <div class="space-y-3">${productsHtml}</div>
         </div>
-        
+
         <div class="bg-gradient-to-l from-gray-50 to-white rounded-xl p-4">
             <div class="space-y-2">
-                <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span class="text-gray-600">جمع کل محصولات:</span>
-                    <span class="font-semibold">${toPersianDigits(order.originalPrice)} تومان</span>
-                </div>
-                ${order.discountAmount > 0 ? `
-                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                        <span class="text-gray-600">تخفیف:</span>
-                        <span class="text-red-500 font-semibold">-${toPersianDigits(order.discountAmount)} تومان</span>
-                    </div>
-                    ${order.discount && order.discount.code ? `
-                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                            <span class="text-gray-600">کد تخفیف:</span>
-                            <span class="text-purple-600 font-semibold">${order.discount.code}</span>
-                        </div>
-                    ` : ''}
-                ` : ''}
-                <div class="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span class="text-gray-600">هزینه ارسال:</span>
-                    <span class="font-semibold">${toPersianDigits(35000)} تومان</span>
-                </div>
-                <div class="flex justify-between items-center pt-3">
-                    <span class="text-lg font-bold text-gray-800">مبلغ قابل پرداخت:</span>
-                    <span class="text-2xl font-bold text-green-600">${toPersianDigits(finalTotal)} تومان</span>
-                </div>
-                ${order.paymentStatus ? `
-                    <div class="mt-3 pt-3 border-t border-gray-200">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">وضعیت پرداخت:</span>
-                            <span class="${order.paymentStatus === 'پرداخت شده' ? 'text-green-600' : 'text-red-600'} font-semibold">${order.paymentStatus}</span>
-                        </div>
-                        ${order.paymentMethod ? `
-                            <div class="flex justify-between items-center mt-1">
-                                <span class="text-gray-600">روش پرداخت:</span>
-                                <span class="text-gray-700">${order.paymentMethod}</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                ` : ''}
+                <div class="flex justify-between py-2 border-b"><span>جمع محصولات:</span><strong>${toPersianDigits(order.originalPrice)} تومان</strong></div>
+                ${taxAmount ? `<div class="flex justify-between py-2 border-b"><span>مالیات:</span><strong>${toPersianDigits(taxAmount)} تومان</strong></div>` : ''}
+                ${order.discountAmount > 0 ? `<div class="flex justify-between py-2 border-b"><span>تخفیف:</span><strong class="text-red-600">-${toPersianDigits(order.discountAmount)} تومان</strong></div>` : ''}
+                ${order.discount?.code ? `<div class="flex justify-between py-2 border-b"><span>کد تخفیف:</span><strong dir="ltr">${order.discount.code}</strong></div>` : ''}
+                <div class="flex justify-between pt-3"><span class="text-lg font-bold">مبلغ نهایی:</span><strong class="text-2xl text-green-600">${toPersianDigits(order.totalPrice)} تومان</strong></div>
+                <div class="flex justify-between pt-2"><span>درگاه پرداخت:</span><strong>${order.paymentMethod || '-'}</strong></div>
+                <div class="flex justify-between"><span>وضعیت پرداخت:</span><strong>${order.paymentStatus || '-'}</strong></div>
             </div>
         </div>
     `;
-    
+
     document.getElementById('orderDetails').innerHTML = detailsHtml;
     document.getElementById('orderModal').classList.remove('hidden');
+}
+
+async function snappApiAction(url, body, successMessage, orderId) {
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body || {})
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || 'عملیات ناموفق بود');
+        showNotification(data.message || successMessage, 'success');
+        await loadOrdersFromServer();
+        if (orderId) viewOrder(orderId);
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+}
+
+async function snappSyncOrder(orderId) {
+    await snappApiAction(`/admin/orders/${orderId}/snappay/sync`, {}, 'وضعیت همگام شد', orderId);
+}
+
+async function snappUpdateOrder(orderId) {
+    const inputs = [...document.querySelectorAll('[data-snapp-quantity]')];
+    const items = inputs.map(input => ({
+        itemId: input.dataset.itemId,
+        productId: input.dataset.productId,
+        quantity: Number(input.value)
+    }));
+    const order = orders.find(item => item._id === orderId);
+    const hasReduction = order?.products?.some(product => {
+        const changed = items.find(item => String(item.itemId) === String(product.snappItemId || product.product?._id || product.product));
+        return changed && changed.quantity < Number(product.quantity);
+    });
+    if (!hasReduction) {
+        showNotification('حداقل تعداد یک محصول را کاهش دهید', 'error');
+        return;
+    }
+    if (!confirm('این آپدیت در اسنپ‌پی برگشت‌ناپذیر است. از کاهش/حذف آیتم‌ها مطمئن هستید؟')) return;
+    await snappApiAction(
+        `/admin/orders/${orderId}/snappay/update`,
+        { confirmed: true, items },
+        'سفارش آپدیت شد',
+        orderId
+    );
+}
+
+async function snappCancelOrder(orderId) {
+    if (!confirm('هشدار: کل سفارش در اسنپ‌پی کنسل می‌شود و این عملیات برگشت‌ناپذیر است. ادامه می‌دهید؟')) return;
+    await snappApiAction(
+        `/admin/orders/${orderId}/snappay/cancel`,
+        { confirmed: true },
+        'سفارش کنسل شد',
+        orderId
+    );
+}
+
+
+async function torobSyncOrder(orderId) {
+    await snappApiAction(`/admin/orders/${orderId}/torobpay/sync`, {}, 'وضعیت ترب‌پی همگام شد', orderId);
+}
+
+async function torobUpdateOrder(orderId) {
+    const inputs = [...document.querySelectorAll('[data-torob-quantity]')];
+    const items = inputs.map(input => ({
+        itemId: input.dataset.itemId,
+        productId: input.dataset.productId,
+        quantity: Number(input.value)
+    }));
+    const order = orders.find(item => item._id === orderId);
+    const hasReduction = order?.products?.some(product => {
+        const productId = product.product?._id || product.product;
+        const changed = items.find(item => String(item.productId) === String(productId));
+        return changed && changed.quantity < Number(product.quantity);
+    });
+    if (!hasReduction) {
+        showNotification('حداقل تعداد یک محصول را کاهش دهید', 'error');
+        return;
+    }
+    if (!confirm('مبلغ سفارش در ترب‌پی کاهش می‌یابد و مازاد توسط ترب‌پی محاسبه/عودت می‌شود. ادامه می‌دهید؟')) return;
+    await snappApiAction(
+        `/admin/orders/${orderId}/torobpay/update`,
+        { confirmed: true, items },
+        'سفارش ترب‌پی به‌روزرسانی شد',
+        orderId
+    );
+}
+
+async function torobCancelOrder(orderId) {
+    if (!confirm('هشدار: سفارش در ترب‌پی لغو می‌شود و عودت وجه فقط توسط ترب‌پی انجام خواهد شد. ادامه می‌دهید؟')) return;
+    await snappApiAction(
+        `/admin/orders/${orderId}/torobpay/cancel`,
+        { confirmed: true },
+        'سفارش در ترب‌پی لغو شد',
+        orderId
+    );
 }
 
         async function viewWeblog(id) {
@@ -4749,6 +5090,8 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
             // جمع‌آوری داده‌های فرم
             const hasDiscount = document.getElementById('hasDiscount').checked;
             const offerPriceField = document.getElementById('editOfferPrice');
+            const weightField = document.getElementById('editWeight');
+            const weightValue = weightField.value.trim();
             
             // جمع‌آوری تصاویر
             const images = [];
@@ -4776,13 +5119,14 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
                 price: parseFloat(document.getElementById('editPrice').value),
                 offerPrice: hasDiscount && offerPriceField.value ? parseFloat(offerPriceField.value) : null,
                 countInStock: parseInt(document.getElementById('editCountInStock').value),
-                rating: parseInt(document.getElementById('editRating').value) || 0,
-                weight: document.getElementById('editWeight').value ? parseFloat(document.getElementById('editWeight').value) : null,
+                rating: parseFloat(document.getElementById('editRating').value) || 0,
+                // اگر وزن خالی باشد، کلید weight در JSON ارسال نمی‌شود و وزن قبلی حفظ می‌شود.
+                weight: weightValue === '' ? undefined : Number.parseFloat(weightValue),
                 images: images,
                 tags: document.getElementById('editTags').value ? document.getElementById('editTags').value.split(',').map(tag => tag.trim()).filter(t => t) : [],
                 category: [document.getElementById('editCategory').value], // چون select تکی است
                 brand: document.getElementById('editBrand').value,
-                isFeatured: document.getElementById('editIsFeatured').checked,
+                specialOfferPosition: document.getElementById('editSpecialOfferPosition').value ? Number(document.getElementById('editSpecialOfferPosition').value) : null,
                 isPublished: document.getElementById('editIsPublished').checked,
                 isNewProduct: document.getElementById('editIsNewProduct').checked,
                 isPopular: document.getElementById('editIsPopular').checked,
@@ -4793,28 +5137,88 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
             
             // جمع‌آوری رنگ‌ها
             document.querySelectorAll('#colorFields > div').forEach((colorDiv) => {
-                const nameInput = colorDiv.querySelector('input[type="text"]');
+                const nameInput = colorDiv.querySelector('.color-name-input');
                 const colorInput = colorDiv.querySelector('input[type="color"]');
+                const stockInput = colorDiv.querySelector('.color-stock-input');
+                const outOfStockCheckbox = colorDiv.querySelector('.color-out-of-stock-checkbox');
+                const imageSelect = colorDiv.querySelector('.color-image-select');
+                const imagePreview = colorDiv.querySelector('.color-image-preview');
+                
                 if (nameInput && colorInput && nameInput.value.trim()) {
-                    data.colors.push({ 
+                    const colorData = { 
                         name: nameInput.value.trim(), 
                         rgb: colorInput.value 
-                    });
+                    };
+
+                    // شناسه زیرسند رنگ باید در ویرایش حفظ شود تا URL و page_unique ترب تغییر نکند.
+                    if (colorDiv.dataset.colorId) {
+                        colorData._id = colorDiv.dataset.colorId;
+                    }
+
+                    if (stockInput && stockInput.value !== '') {
+                        colorData.countInStock = Math.max(0, parseInt(stockInput.value, 10) || 0);
+                    }
+                    colorData.isOutOfStock = Boolean(outOfStockCheckbox?.checked);
+                    
+                    // اگر تصویر اختصاصی انتخاب شده
+                    if (imageSelect && imageSelect.value) {
+                        // پیدا کردن تصویر در previewها
+                        const selectedUrl = imageSelect.value;
+                        let imageObj = null;
+                        
+                        // جستجو در تصاویر موجود در preview
+                        document.querySelectorAll('#imagePreviews > div').forEach(container => {
+                            const img = container.querySelector('img');
+                            if (img && (img.src === selectedUrl || img.dataset.url === selectedUrl)) {
+                                const captionInput = container.querySelector('.caption-input');
+                                imageObj = {
+                                    url: selectedUrl,
+                                    filename: container.dataset.filename || getFilenameFromUrl(selectedUrl),
+                                    caption: captionInput ? captionInput.value.trim() : '',
+                                    alt: captionInput ? captionInput.value.trim() : ''
+                                };
+                            }
+                        });
+                        
+                        // اگر تصویر در preview پیدا نشد، از select استفاده کن
+                        if (!imageObj) {
+                            const selectedOption = imageSelect.options[imageSelect.selectedIndex];
+                            imageObj = {
+                                url: selectedUrl,
+                                filename: selectedOption.dataset.filename || getFilenameFromUrl(selectedUrl),
+                                caption: '',
+                                alt: ''
+                            };
+                        }
+                        
+                        colorData.image = imageObj;
+                    }
+                    
+                    data.colors.push(colorData);
                 }
             });
             
             // جمع‌آوری سایزها
             document.querySelectorAll('#sizeFields > div').forEach((sizeDiv) => {
-                const inputs = sizeDiv.querySelectorAll('input');
-                if (inputs.length >= 2) {
-                    const size = inputs[0].value.trim();
-                    const usage = inputs[1].value.trim();
-                    if (size) {
-                        data.sizes.push({ 
-                            size: size, 
-                            usage: usage || '' 
-                        });
+                const sizeInput = sizeDiv.querySelector('.size-name-input');
+                const usageInput = sizeDiv.querySelector('.size-usage-input');
+                const stockInput = sizeDiv.querySelector('.size-stock-input');
+                const outOfStockCheckbox = sizeDiv.querySelector('.size-out-of-stock-checkbox');
+                const size = sizeInput?.value.trim() || '';
+                const usage = usageInput?.value.trim() || '';
+                if (size) {
+                    const sizeData = {
+                        size,
+                        usage,
+                        isOutOfStock: Boolean(outOfStockCheckbox?.checked),
+                    };
+                    if (sizeDiv.dataset.sizeId) {
+                        sizeData._id = sizeDiv.dataset.sizeId;
                     }
+                    if (stockInput && stockInput.value !== '') {
+                        sizeData.countInStock = Math.max(0, parseInt(stockInput.value, 10) || 0);
+                    }
+                    data.sizes.push(sizeData);
                 }
             });
             
@@ -4840,11 +5244,21 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
             
             // نمایش وضعیت در حال ارسال
             const submitBtn = document.querySelector('#form-button');
-            const originalBtnText = submitBtn.textContent;
+            const submitBtnIcon = submitBtn?.querySelector('i');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const originalBtnText = submitBtnText?.textContent || '';
+            const originalIconClass = submitBtnIcon?.className || 'fas fa-save ml-2';
+
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> در حال ذخیره...';
+            if (submitBtnIcon) {
+                submitBtnIcon.className = 'fas fa-spinner fa-spin ml-2';
+            }
+            if (submitBtnText) {
+                submitBtnText.textContent = 'در حال ذخیره...';
+            }
             
             try {
+                const wasEditing = Boolean(currentProductId);
                 let response;
                 if (currentProductId) {
                     response = await fetch(`/admin/products/edit/${currentProductId}`, {
@@ -4879,12 +5293,12 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
                 loadProducts();
                 closeModal('editModal');
                 showNotification(
-                    currentProductId ? 'محصول با موفقیت ویرایش شد' : 'محصول جدید با موفقیت اضافه شد', 
+                    wasEditing ? 'محصول با موفقیت ویرایش شد' : 'محصول جدید با موفقیت اضافه شد', 
                     'success'
                 );
                 
                 // ریست فرم در صورت افزودن محصول جدید
-                if (!currentProductId) {
+                if (!wasEditing) {
                     document.getElementById('editForm').reset();
                     document.getElementById('colorFields').innerHTML = '';
                     document.getElementById('sizeFields').innerHTML = '';
@@ -4895,16 +5309,17 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
                     addSpecField();
                 }
 
-                setTimeout(() => {
-                      location.reload();
-                  }, 500);
-                
             } catch (error) {
                 console.error('Error:', error);
                 showNotification(error.message || 'خطا در عملیات', 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.textContent = originalBtnText;
+                if (submitBtnIcon) {
+                    submitBtnIcon.className = originalIconClass;
+                }
+                if (submitBtnText) {
+                    submitBtnText.textContent = originalBtnText;
+                }
             }
         });
 
@@ -4913,6 +5328,15 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
             addColorField();
             addSizeField();
             addSpecField();
+
+            const adminProductSearch = document.getElementById('adminProductSearch');
+            if (adminProductSearch) {
+                adminProductSearch.addEventListener('input', function() {
+                    adminProductSearchQuery = this.value || '';
+                    adminProductCurrentPage = 1;
+                    loadProducts();
+                });
+            }
         });
 
         // Event Listeners
@@ -5130,11 +5554,6 @@ function resetEditModal() {
     document.getElementById('sizeFields').innerHTML = '';
     document.getElementById('specFields').innerHTML = '';
     document.getElementById('imagePreviews').innerHTML = '';
-
-    if (colorFields) colorFields.innerHTML = '';
-    if (sizeFields) sizeFields.innerHTML = '';
-    if (specFields) specFields.innerHTML = '';
-    if (imagePreviews) imagePreviews.innerHTML = '';
 
     
     // اضافه کردن فیلدهای پیش‌فرض
@@ -5960,8 +6379,7 @@ function addImageToPreview(imageData, captionText, isNewProduct = true) {
     
     imgContainer.innerHTML = `
         <div class="relative">
-            <img src="${imageData.url}" class="w-full h-32 object-cover rounded-lg" alt="${escapeHtml(captionText || '')}" title="${escapeHtml(captionText || '')}">
-            <button type="button" onclick="${removeHandler}" 
+                <img src="${imageData.url}" data-url="${imageData.url}" class="w-full h-32 object-cover rounded-lg" alt="${escapeHtml(captionText || '')}" title="${escapeHtml(captionText || '')}">            <button type="button" onclick="${removeHandler}" 
                 class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 z-10">
                 <i class="fas fa-times text-xs"></i>
             </button>

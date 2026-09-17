@@ -18,6 +18,14 @@ const DiscountCode = require("../models/DiscountCode");
 const Visit = require("../models/Visit");
 const RecentAction = require("../models/RecentAction");
 const AdminNotification = require("../models/AdminNotification");
+const snappPayService = require("../services/snappPayService");
+const torobPayService = require("../services/torobPayService");
+const {
+  buildSnappPayOrderPayload,
+  buildTorobPayOrderPayload,
+  calculateOrderAmountsToman,
+  tomanToIrr,
+} = require("../services/orderPricing");
 
 const { getPersianDate } = require("../helper/getPersianDate");
 const Weblog = require("../models/Weblog");
@@ -63,44 +71,113 @@ async function moveImagesToProductFolder(productId, productName, images, caption
   
   const productFolder = path.join("public/uploads/products", `${productId}_${sanitizedProductName}`);
   
-  // ایجاد پوشه محصول اگر وجود نداره
   if (!fs.existsSync(productFolder)) {
     fs.mkdirSync(productFolder, { recursive: true });
   }
   
   const processedImages = [];
-  
+  const urlMap = {}; // آدرس قدیمی -> آبجکت عکس جدید
+
   for (let i = 0; i < images.length; i++) {
     const image = images[i];
     const caption = captions[i] || `image_${i + 1}`;
     
-    // اسم فایل از کپشن + timestamp
-    const sanitizedCaption = caption
-      .replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '')
-      .trim()
-      .replace(/\s+/g, '_')
-      .substring(0, 50); // حداکثر 50 کاراکتر
+    // اگر تصویر از نوع آبجکت با url و filename است
+    let tempPath;
+    let originalUrl = image.url;
+    let originalFilename = image.filename || path.basename(image.url);
     
-    const newFilename = `${sanitizedCaption || 'image'}_${Date.now()}_${i}.webp`;
-    const tempPath = image.path || path.join("public/uploads", image.filename);
-    const newPath = path.join(productFolder, newFilename);
+    // پیدا کردن مسیر فایل موقت
+    if (image.tempPath) {
+      tempPath = image.tempPath;
+    } else if (image.filename) {
+      tempPath = path.join("public/uploads", image.filename);
+    } else if (image.url) {
+      // اگر فقط url داریم، از آن استفاده کنیم
+      const urlParts = image.url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      tempPath = path.join("public/uploads", fileName);
+    }
     
-    // انتقال فایل
+    // اگر فایل وجود ندارد، از temp پوشه هم بررسی کن
+    if (!fs.existsSync(tempPath)) {
+      const tempPath2 = path.join("public/uploads/temp", originalFilename);
+      if (fs.existsSync(tempPath2)) {
+        tempPath = tempPath2;
+      }
+    }
+    
+    // اگر فایل وجود ندارد، از آدرس قدیمی استفاده کن
+    if (!fs.existsSync(tempPath) && image.url) {
+      // احتمالاً تصویر قبلاً در پوشه نهایی است
+      const urlParts = image.url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const possiblePath = path.join("public/uploads/products", `${productId}_${sanitizedProductName}`, fileName);
+      if (fs.existsSync(possiblePath)) {
+        // تصویر قبلاً جابجا شده
+        processedImages.push({
+          url: `/uploads/products/${productId}_${sanitizedProductName}/${fileName}`,
+          filename: fileName,
+          caption: caption,
+          alt: caption
+        });
+        urlMap[image.url] = {
+          url: `/uploads/products/${productId}_${sanitizedProductName}/${fileName}`,
+          filename: fileName
+        };
+        continue;
+      }
+      continue;
+    }
+    
     if (fs.existsSync(tempPath)) {
-      fs.renameSync(tempPath, newPath);
-      processedImages.push({
-        url: `/uploads/products/${productId}_${sanitizedProductName}/${newFilename}`,
-        filename: newFilename,
-        caption: caption,
-        alt: caption
-      });
+      const sanitizedCaption = caption
+        .replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .substring(0, 50);
+      
+      const newFilename = `${sanitizedCaption || 'image'}_${Date.now()}_${i}.webp`;
+      const newPath = path.join(productFolder, newFilename);
+      
+      try {
+        // استفاده از fs.renameSync با fallback به copy + delete
+        try {
+          fs.renameSync(tempPath, newPath);
+        } catch (renameErr) {
+          // اگر rename کار نکرد، کپی و حذف کن
+          fs.copyFileSync(tempPath, newPath);
+          fs.unlinkSync(tempPath);
+        }
+        
+        const newImageObj = {
+          url: `/uploads/products/${productId}_${sanitizedProductName}/${newFilename}`,
+          filename: newFilename,
+          caption: caption,
+          alt: caption
+        };
+        processedImages.push(newImageObj);
+
+        if (image.url) {
+          urlMap[image.url] = newImageObj;
+          // همچنین با نام فایل
+          const baseName = path.basename(image.url);
+          urlMap[baseName] = newImageObj;
+        }
+        if (image.filename) {
+          urlMap[image.filename] = newImageObj;
+          urlMap[path.basename(image.filename)] = newImageObj;
+        }
+        // با نام فایل جدید هم ذخیره کن
+        urlMap[newFilename] = newImageObj;
+      } catch (err) {
+        console.error(`Error moving file ${tempPath} to ${newPath}:`, err);
+      }
     }
   }
   
-  return processedImages;
+  return { processedImages, urlMap };
 }
-
-
 const upload = multer({ storage });
 
 const retryUnlink = async (filePath, retries = 5, delay = 100) => {
@@ -542,20 +619,29 @@ router.post("/products/add", async (req, res, next) => {
         ((req.body.price - req.body.offerPrice) / req.body.price) * 100
       );
     }
-
+    
     const tempImages = req.body.images || [];
-    delete req.body.images;
+    const colorsData = req.body.colors || [];
+    const sizesData = req.body.sizes || [];
 
+    delete req.body.images;
+    delete req.body.colors;
+    delete req.body.sizes;
 
     const productData = {
       ...req.body,
       englishName: req.body.englishName || null,
-      images: req.body.images || [],
+      images: [],
+      colors: [],
+      sizes: [],
       discount,
+      // انتخاب SPECIAL OFFER فقط از ویرایش محصول و تعیین جایگاه ۱ تا ۶ انجام می‌شود.
+      specialOfferPosition: null,
+      isFeatured: false,
       createTarikh: getPersianDate(),
       updateTarikh: getPersianDate(),
-      images: []
     };
+    
     
     if (!productData.slug || !productData.slug.trim()) {
       delete productData.slug;
@@ -565,14 +651,81 @@ router.post("/products/add", async (req, res, next) => {
     await product.save();
 
     const captions = tempImages.map(img => img.caption || img.alt || '');
-    const processedImages = await moveImagesToProductFolder(
+    const { processedImages, urlMap } = await moveImagesToProductFolder(
       product._id, 
       product.name, 
       tempImages,
       captions
     );
-
+    
     product.images = processedImages;
+    
+    // پردازش رنگ‌ها با تصاویر اختصاصی
+    const processedColors = [];
+    for (const color of colorsData) {
+      const colorData = {
+        name: color.name || '',
+        rgb: color.rgb || '#ffffff',
+        isOutOfStock: color.isOutOfStock === true || color.isOutOfStock === 'true'
+      };
+
+      if (color.countInStock !== '' && color.countInStock !== null && color.countInStock !== undefined) {
+        colorData.countInStock = Math.max(0, Number(color.countInStock) || 0);
+      }
+      
+      // اگر رنگ دارای تصویر اختصاصی است
+      if (color.image && color.image.url) {
+        // پیدا کردن تصویر متناظر در urlMap با استفاده از filename یا url
+        let foundImage = null;
+        
+        // روش 1: بررسی با url کامل
+        if (urlMap[color.image.url]) {
+          foundImage = urlMap[color.image.url];
+        } 
+        // روش 2: بررسی با filename (اگر url نداشت)
+        else if (color.image.filename && urlMap[color.image.filename]) {
+          foundImage = urlMap[color.image.filename];
+        }
+        // روش 3: جستجو در processedImages با filename
+        else if (color.image.filename) {
+          foundImage = processedImages.find(img => 
+            img.filename === color.image.filename || 
+            img.filename === path.basename(color.image.url)
+          );
+        }
+        
+        if (foundImage) {
+          colorData.image = {
+            url: foundImage.url,
+            filename: foundImage.filename
+          };
+        } else {
+          // اگر پیدا نشد، از همان آدرس قبلی استفاده کن (ممکن است تصویر قبلاً در پوشه نهایی باشد)
+          colorData.image = {
+            url: color.image.url,
+            filename: color.image.filename || path.basename(color.image.url)
+          };
+        }
+      }
+      
+      processedColors.push(colorData);
+    }
+
+    product.colors = processedColors;
+    product.sizes = (Array.isArray(sizesData) ? sizesData : [])
+      .filter((size) => size && String(size.size || '').trim())
+      .map((size) => {
+        const normalized = {
+          size: String(size.size).trim(),
+          usage: String(size.usage || '').trim(),
+          isOutOfStock: size.isOutOfStock === true || size.isOutOfStock === 'true',
+        };
+        if (size.countInStock !== '' && size.countInStock !== null && size.countInStock !== undefined) {
+          normalized.countInStock = Math.max(0, Number(size.countInStock) || 0);
+        }
+        return normalized;
+      });
+    
     await product.save();
 
     if (product.countInStock <= 0) {
@@ -633,7 +786,8 @@ const validateProductUpdate = [
     .isFloat({ min: 0, max: 5 })
     .withMessage("امتیاز باید بین ۰ تا ۵ باشد"),
   body("weight")
-    .optional()
+    // وزن در ویرایش اختیاری است؛ null یا فیلد ارسال‌نشده نباید خطای اعتبارسنجی بدهد.
+    .optional({ nullable: true, checkFalsy: true })
     .isFloat({ min: 0 })
     .withMessage("وزن نمی‌تواند منفی باشد"),
   body("discount")
@@ -674,7 +828,6 @@ const validateProductUpdate = [
     .trim()
     .isLength({ max: 100 })
     .withMessage("نام انگلیسی نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد")
-    .matches(/^[a-zA-Z0-9\s\-_]*$/)
     .withMessage("نام انگلیسی باید فقط شامل حروف انگلیسی، اعداد، فاصله، خط تیره و زیرخط باشد"),
 body("slug")
   .optional({ nullable: true, checkFalsy: true })
@@ -707,7 +860,6 @@ router.put("/products/edit/:id",async (req, res, next) => {
   next();
 }, validateProductUpdate, async (req, res) => {
   try {
-    // بررسی خطاهای اعتبارسنجی
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -725,7 +877,6 @@ router.put("/products/edit/:id",async (req, res, next) => {
       });
     }
 
-    // یافتن محصول
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({
@@ -734,109 +885,161 @@ router.put("/products/edit/:id",async (req, res, next) => {
       });
     }
 
-    // آماده‌سازی داده‌های به‌روزرسانی
     const updateData = { ...req.body };
-    
-      if (updateData.englishName === undefined) {
-        updateData.englishName = null;
-      }
-      
-    if (updateData.slug === undefined || updateData.slug === null || !updateData.slug.trim()) {
+    updateData.englishName = updateData.englishName || null;
+
+    if (!updateData.slug || !String(updateData.slug).trim()) {
       delete updateData.slug;
     }
 
-    updateData.updateTarikh = getPersianDate();
-
-    // مدیریت قیمت ویژه و تخفیف
-    if (updateData.offerPrice === null || updateData.offerPrice === undefined) {
-      // اگر قیمت ویژه حذف شده
-      updateData.offerPrice = undefined;
-      updateData.discount = 0;
-    } else if (updateData.offerPrice) {
-      // اگر قیمت ویژه وجود دارد
-      const price = updateData.price || product.price;
-      updateData.discount = Math.round(
-        ((price - updateData.offerPrice) / price) * 100
-      );
-    }
-
-    // حذف فیلد offerPrice اگر null است
-    if (updateData.offerPrice === null) {
-      delete updateData.offerPrice;
-    }
-
-    // مدیریت تصاویر
-    if (updateData.images && Array.isArray(updateData.images)) {
-      // You might want to merge with existing images or replace them
-      // This example replaces all images with the new array
-      updateData.images = updateData.images;
-    }
-
-    // مدیریت آرایه‌ها
-    const arrayFields = [
-      "colors",
-      "sizes",
-      "specifications",
-      "tags",
-      "category",
-    ];
-    arrayFields.forEach((field) => {
-      if (req.body[field] && Array.isArray(req.body[field])) {
-        updateData[field] = req.body[field];
-      } else {
-        updateData[field] = [];
+    const numericFields = ["price", "countInStock", "rating"];
+    numericFields.forEach((field) => {
+      if (updateData[field] !== undefined && updateData[field] !== "") {
+        updateData[field] = Number(updateData[field]);
       }
     });
-    
-    Object.assign(product, updateData);
-    await product.save();
 
+    // اگر وزن خالی یا null ارسال شد، آن را از updateData حذف می‌کنیم
+    // تا مقدار قبلی محصول در دیتابیس حفظ شود.
+    if (Object.prototype.hasOwnProperty.call(updateData, "weight")) {
+      if (updateData.weight === "" || updateData.weight === null || updateData.weight === undefined) {
+        delete updateData.weight;
+      } else {
+        updateData.weight = Number(updateData.weight);
+      }
+    }
 
-    // محاسبه تخفیف اگر قیمت ویژه تغییر کرده
-    if (updateData.offerPrice === null || updateData.offerPrice === undefined) {
+    // null یا رشته خالی برای قیمت ویژه یعنی حذف تخفیف.
+    if (updateData.offerPrice === "" || updateData.offerPrice === null) {
+      updateData.offerPrice = undefined;
+    } else if (updateData.offerPrice !== undefined) {
+      updateData.offerPrice = Number(updateData.offerPrice);
+    }
+
+    const price = updateData.price ?? product.price;
+    if (Number(updateData.offerPrice) > 0 && Number(price) > Number(updateData.offerPrice)) {
+      updateData.discount = Math.round(
+        ((Number(price) - Number(updateData.offerPrice)) / Number(price)) * 100
+      );
+    } else {
       updateData.offerPrice = undefined;
       updateData.discount = 0;
-    } else if (updateData.offerPrice) {
-      const price = updateData.price || product.price;
-      updateData.discount = Math.round(
-        ((price - updateData.offerPrice) / price) * 100
+    }
+
+    // مدیریت دستی ۶ جایگاه SPECIAL OFFER
+    const requestedSpecialOfferPosition = Number(req.body.specialOfferPosition);
+    const hasValidSpecialOfferPosition = Number.isInteger(requestedSpecialOfferPosition) &&
+      requestedSpecialOfferPosition >= 1 && requestedSpecialOfferPosition <= 6;
+
+    if (hasValidSpecialOfferPosition) {
+      if (!(Number(updateData.offerPrice) > 0 && Number(updateData.offerPrice) < Number(price))) {
+        return res.status(400).json({
+          success: false,
+          message: "برای قرار گرفتن در SPECIAL OFFER، محصول باید قیمت ویژه معتبر داشته باشد.",
+        });
+      }
+      updateData.specialOfferPosition = requestedSpecialOfferPosition;
+      // isFeatured برای سازگاری با داده‌ها/کدهای قدیمی همگام نگه داشته می‌شود.
+      updateData.isFeatured = true;
+    } else {
+      updateData.specialOfferPosition = null;
+      updateData.isFeatured = false;
+    }
+
+    const arrayFields = ["colors", "sizes", "specifications", "tags", "category", "images"];
+    arrayFields.forEach((field) => {
+      updateData[field] = Array.isArray(req.body[field]) ? req.body[field] : [];
+    });
+
+    // حفظ _id رنگ‌ها باعث می‌شود page_unique و URL ثبت‌شده در ترب ثابت بماند.
+    updateData.colors = updateData.colors
+      .filter((color) => color && String(color.name || "").trim())
+      .map((color) => {
+        const normalized = {
+          name: String(color.name).trim(),
+          rgb: color.rgb || "#ffffff",
+          isOutOfStock: color.isOutOfStock === true || color.isOutOfStock === "true",
+        };
+
+        if (color.countInStock !== "" && color.countInStock !== null && color.countInStock !== undefined) {
+          normalized.countInStock = Math.max(0, Number(color.countInStock) || 0);
+        }
+
+        if (color._id && mongoose.Types.ObjectId.isValid(color._id)) {
+          normalized._id = color._id;
+        }
+
+        if (color.image?.url) {
+          normalized.image = {
+            url: color.image.url,
+            filename: color.image.filename || path.basename(color.image.url),
+          };
+        }
+
+        return normalized;
+      });
+
+    // موجودی هر سایز نیز مانند رنگ به‌صورت مستقل قابل مدیریت است.
+    // حفظ _id باعث می‌شود شناسه تنوع در سفارش‌های قبلی پایدار بماند.
+    updateData.sizes = updateData.sizes
+      .filter((size) => size && String(size.size || "").trim())
+      .map((size) => {
+        const normalized = {
+          size: String(size.size).trim(),
+          usage: String(size.usage || "").trim(),
+          isOutOfStock: size.isOutOfStock === true || size.isOutOfStock === "true",
+        };
+
+        if (size._id && mongoose.Types.ObjectId.isValid(size._id)) {
+          normalized._id = size._id;
+        }
+
+        if (size.countInStock !== "" && size.countInStock !== null && size.countInStock !== undefined) {
+          normalized.countInStock = Math.max(0, Number(size.countInStock) || 0);
+        }
+
+        return normalized;
+      });
+
+    updateData.updateTarikh = getPersianDate();
+    product.set(updateData);
+    await product.save();
+
+    // هر جایگاه فقط یک محصول دارد؛ انتخاب محصول جدید، محصول قبلی همان جایگاه را خارج می‌کند.
+    if (updateData.specialOfferPosition) {
+      await Product.updateMany(
+        {
+          _id: { $ne: productId },
+          specialOfferPosition: updateData.specialOfferPosition,
+        },
+        {
+          $set: {
+            specialOfferPosition: null,
+            isFeatured: false,
+          },
+        }
       );
     }
 
-    // به‌روزرسانی محصول
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      updateData,
-      {
-        new: true,
-        runValidators: true,
-      }
-    )
+    const updatedProduct = await Product.findById(productId)
       .populate("category")
       .populate("brand");
 
-    if (updatedProduct.countInStock <= 0) {
-      updatedProduct.isOutOfStock = true;
-      await updatedProduct.save();
-    } else if (updatedProduct.isOutOfStock && updatedProduct.countInStock > 0) {
-      updatedProduct.isOutOfStock = false;
-      await updatedProduct.save();
-    }
-
-    res.json({
+    return res.json({
       success: true,
       message: "محصول با موفقیت به‌روزرسانی شد",
       product: updatedProduct,
     });
   } catch (error) {
     console.error("خطا در ویرایش محصول:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "خطای سرور در ویرایش محصول",
       error: error.message,
     });
   }
-});
+}
+);
 
 router.delete("/products/delete/:id",async (req, res, next) => {
   const originalJson = res.json;
@@ -918,23 +1121,45 @@ router.delete("/products/delete/:id",async (req, res, next) => {
 
 router.post("/categories/add", async (req, res) => {
   try {
-    const { name, categoryType = "product", parentId = null } = req.body;
-
+    const {
+        name,
+        categoryType = "product",
+        parentId = null,
+        img = null
+    } = req.body;
+    
     if (!name) {
       return res.status(400).json({
         success: false,
         message: "نام دسته‌بندی الزامی است",
       });
     }
+    
+    const normalizedImg =
+        typeof img === "string" ? img.trim() : "";
+    
+    if (
+        normalizedImg &&
+        (
+            !normalizedImg.startsWith("/uploads/") ||
+            normalizedImg.includes("..") ||
+            normalizedImg.includes("\\")
+        )
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "آدرس تصویر باید از /uploads/ شروع شود"
+        });
+    }
 
     const category = new Category({
-      name,
-      categoryType,
-      parentId: parentId || null,
+        name: name.trim(),
+        categoryType,
+        parentId: parentId || null,
+        img: normalizedImg || null
     });
-
+    
     await category.save();
-    invalidateMenuCache();
 
     res.status(201).json({
       success: true,
@@ -952,48 +1177,93 @@ router.post("/categories/add", async (req, res) => {
 });
 
 router.put("/categories/edit/:id", async (req, res) => {
-  try {
-    const { name, categoryType, parentId } = req.body;
+    try {
+        const {
+            name,
+            categoryType,
+            parentId,
+            img
+        } = req.body;
 
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "نام دسته‌بندی الزامی است",
-      });
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: "شناسه دسته‌بندی نامعتبر است"
+            });
+        }
+
+        if (!name || !String(name).trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "نام دسته‌بندی الزامی است"
+            });
+        }
+
+        const normalizedImg =
+            typeof img === "string" ? img.trim() : "";
+
+        if (
+            normalizedImg &&
+            (
+                !normalizedImg.startsWith("/uploads/") ||
+                normalizedImg.includes("..") ||
+                normalizedImg.includes("\\")
+            )
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "آدرس تصویر باید از /uploads/ شروع شود"
+            });
+        }
+
+        // جلوگیری از انتخاب خود دسته‌بندی به عنوان والد
+        if (
+            parentId &&
+            String(parentId) === String(req.params.id)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "دسته‌بندی نمی‌تواند والد خودش باشد"
+            });
+        }
+
+        const updatedCategory = await Category.findByIdAndUpdate(
+            req.params.id,
+            {
+                name: String(name).trim(),
+                categoryType: categoryType || "product",
+                parentId: parentId || null,
+                img: normalizedImg || null,
+                updateTarikh: getPersianDate()
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!updatedCategory) {
+            return res.status(404).json({
+                success: false,
+                message: "دسته‌بندی یافت نشد"
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "دسته‌بندی با موفقیت ویرایش شد",
+            category: updatedCategory
+        });
+
+    } catch (error) {
+        console.error("Error updating category:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "خطا در ویرایش دسته‌بندی",
+            error: error.message
+        });
     }
-
-    const updatedCategory = await Category.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        categoryType: categoryType || "product",
-        parentId: parentId || null,
-        updateTarikh: getPersianDate(),
-      },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedCategory) {
-      return res.status(404).json({
-        success: false,
-        message: "دسته‌بندی یافت نشد",
-      });
-    }
-    invalidateMenuCache();
-
-    res.json({
-      success: true,
-      message: "دسته‌بندی با موفقیت ویرایش شد",
-      category: updatedCategory,
-    });
-  } catch (error) {
-    console.error("Error updating category:", error);
-    res.status(500).json({
-      success: false,
-      message: "خطا در ویرایش دسته‌بندی",
-      error: error.message,
-    });
-  }
 });
 
 router.delete("/categories/delete/:id", async (req, res) => {
@@ -1006,7 +1276,6 @@ router.delete("/categories/delete/:id", async (req, res) => {
         message: "دسته‌بندی یافت نشد",
       });
     }
-    invalidateMenuCache();
 
     res.json({
       success: true,
@@ -1119,15 +1388,595 @@ router.delete("/brands/delete/:id", async (req, res) => {
   }
 });
 
+
+const normalizeSnappPayStatus = (value) => String(value || "").trim().toUpperCase();
+const normalizeTorobPayStatus = (value) => String(value || "").trim().toUpperCase();
+
+const requireIrreversibleConfirmation = (req, res) => {
+  if (req.body.confirmed !== true) {
+    res.status(400).json({
+      success: false,
+      message: "برای این عملیات برگشت‌ناپذیر، تایید مجدد مدیر الزامی است",
+    });
+    return false;
+  }
+  return true;
+};
+
+const restoreOrderProductsToInventory = async (order) => {
+  if (!order.inventoryReserved || order.inventoryRestored) return;
+
+  await Promise.all(
+    order.products.map((item) =>
+      Product.updateOne(
+        { _id: item.product },
+        { $inc: { countInStock: Number(item.quantity) } }
+      )
+    )
+  );
+  order.inventoryReserved = false;
+  order.inventoryRestored = true;
+};
+
+const getVerifiedSnappPayStatus = async (order) => {
+  if (!order.snappPay?.paymentToken) {
+    throw new Error("توکن پرداخت اسنپ‌پی برای این سفارش ثبت نشده است");
+  }
+  const statusResult = await snappPayService.getPaymentStatus(
+    order.snappPay.paymentToken
+  );
+  const status = normalizeSnappPayStatus(statusResult?.status);
+  const knownStatuses = new Set([
+    "CREATED",
+    "PENDING",
+    "VERIFY",
+    "SETTLE",
+    "CANCEL",
+    "REVERT",
+    "FAILED",
+  ]);
+  order.snappPay.status = knownStatuses.has(status) ? status : "UNKNOWN";
+  order.snappPay.lastStatusCheckAt = new Date();
+  if (statusResult?.transactionId) {
+    order.snappPay.transactionId = statusResult.transactionId;
+  }
+  return { status, statusResult };
+};
+
+router.post("/orders/:id/snappay/sync", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order || order.paymentMethod !== "اسنپ‌پی") {
+      return res.status(404).json({ success: false, message: "سفارش اسنپ‌پی یافت نشد" });
+    }
+    if (order.snappPay?.processing) {
+      return res.status(409).json({
+        success: false,
+        message: "عملیات دیگری روی این سفارش در حال انجام است",
+      });
+    }
+
+    const { status, statusResult } = await getVerifiedSnappPayStatus(order);
+    if (status === "SETTLE") {
+      order.paymentStatus = "پرداخت شده";
+      order.status = order.status === "در انتظار پرداخت" ? "در حال پردازش" : order.status;
+      order.snappPay.settledAt = order.snappPay.settledAt || new Date();
+    } else if (["CANCEL", "REVERT"].includes(status)) {
+      order.paymentStatus = "لغو شده";
+      order.status = "لغو شده";
+      await restoreOrderProductsToInventory(order);
+    } else if (status === "PENDING" || status === "VERIFY") {
+      order.paymentStatus = "در حال بررسی";
+    } else {
+      order.paymentStatus = "نامشخص";
+    }
+    await order.save();
+
+    return res.json({ success: true, message: "وضعیت با اسنپ‌پی همگام شد", status, data: statusResult });
+  } catch (error) {
+    console.error("SnappPay status sync error:", error);
+    return res.status(error.httpStatus || 500).json({
+      success: false,
+      message: error.message || "خطا در استعلام وضعیت اسنپ‌پی",
+      errorCode: error.errorCode,
+    });
+  }
+});
+
+router.post("/orders/:id/snappay/update", async (req, res) => {
+  try {
+    if (!requireIrreversibleConfirmation(req, res)) return;
+
+    const order = await Order.findById(req.params.id);
+    if (!order || order.paymentMethod !== "اسنپ‌پی") {
+      return res.status(404).json({ success: false, message: "سفارش اسنپ‌پی یافت نشد" });
+    }
+    if (order.snappPay?.processing) {
+      return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
+    }
+
+    const requestedItems = Array.isArray(req.body.items) ? req.body.items : [];
+    if (!requestedItems.length) {
+      return res.status(400).json({ success: false, message: "تعداد جدید محصولات ارسال نشده است" });
+    }
+
+    const quantityMap = new Map(
+      requestedItems.map((item) => [String(item.itemId || item.productId), Number(item.quantity)])
+    );
+    const previousProducts = order.products.map((item) => item.toObject());
+    const nextProducts = [];
+    const returnedItems = [];
+
+    for (const current of previousProducts) {
+      const key = String(current.snappItemId || current.product);
+      const requestedQuantity = quantityMap.has(key)
+        ? quantityMap.get(key)
+        : Number(current.quantity);
+
+      if (!Number.isInteger(requestedQuantity) || requestedQuantity < 0) {
+        return res.status(400).json({ success: false, message: `تعداد جدید «${current.nameAtPurchase}» نامعتبر است` });
+      }
+      if (requestedQuantity > Number(current.quantity)) {
+        return res.status(400).json({ success: false, message: "در آپدیت اسنپ‌پی افزایش تعداد محصول مجاز نیست" });
+      }
+
+      const removedQuantity = Number(current.quantity) - requestedQuantity;
+      if (removedQuantity > 0) {
+        returnedItems.push({ product: current.product, quantity: removedQuantity });
+      }
+      if (requestedQuantity > 0) {
+        nextProducts.push({ ...current, quantity: requestedQuantity });
+      }
+    }
+
+    if (!returnedItems.length) {
+      return res.status(400).json({ success: false, message: "برای آپدیت باید حداقل یک تعداد کاهش یابد" });
+    }
+    if (!nextProducts.length) {
+      return res.status(400).json({ success: false, message: "برای مرجوعی کامل از عملیات کنسل استفاده کنید" });
+    }
+
+    const previousSubtotal = previousProducts.reduce(
+      (sum, item) => sum + Number(item.priceAtPurchase) * Number(item.quantity),
+      0
+    );
+    const newSubtotal = nextProducts.reduce(
+      (sum, item) => sum + Number(item.priceAtPurchase) * Number(item.quantity),
+      0
+    );
+
+    // در مرجوعی/کاهش جزئی، تخفیف سفارش باید بین آیتم‌های باقی‌مانده
+    // به نسبت مبلغ کالاها سرشکن شود. نگه داشتن کل تخفیف مبلغ ثابت روی
+    // سبد کوچک‌تر می‌تواند amount را صفر کند و SnappPay با خطای 1005
+    // ("باید بزرگتر از صفر باشد") درخواست update را رد می‌کند.
+    const previousDiscountAmount = Math.min(
+      Math.max(Number(order.discount?.calculatedAmount || order.discountAmount || 0), 0),
+      previousSubtotal
+    );
+    let newDiscountAmount = 0;
+    if (previousDiscountAmount > 0 && previousSubtotal > 0) {
+      newDiscountAmount = Math.floor(
+        (previousDiscountAmount * newSubtotal) / previousSubtotal
+      );
+    }
+
+    const amounts = calculateOrderAmountsToman({
+      products: nextProducts,
+      taxAmount: order.taxAmount,
+      discountAmount: newDiscountAmount,
+      externalSourceAmount: order.externalSourceAmount,
+    });
+
+    if (amounts.amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "مبلغ نهایی سفارش بعد از کاهش باید بزرگتر از صفر باشد",
+      });
+    }
+    if (amounts.amount >= Number(order.totalPrice)) {
+      return res.status(400).json({ success: false, message: "مبلغ آپدیت باید از مبلغ فعلی سفارش کمتر باشد" });
+    }
+
+    order.snappPay.processing = true;
+    await order.save();
+    const { status } = await getVerifiedSnappPayStatus(order);
+    if (status !== "SETTLE") {
+      order.snappPay.processing = false;
+      await order.save();
+      return res.status(409).json({ success: false, message: `آپدیت فقط در وضعیت SETTLE ممکن است (وضعیت فعلی: ${status || "نامشخص"})` });
+    }
+
+    // SnappPay payment/v1/update requires the updated cart data in addition to
+    // paymentToken/amount. Unlike the token payload, externalSourceAmount is not
+    // part of the update request used by SnappPay's update flow; sending it as 0
+    // can trigger the generic "must be greater than zero" validation error.
+    const snappOrderPayload = buildSnappPayOrderPayload(order, {
+      products: nextProducts,
+      discountAmount: newDiscountAmount,
+    });
+    const { externalSourceAmount: _ignoredExternalSourceAmount, ...snappUpdateData } =
+      snappOrderPayload;
+
+    const updatePayload = {
+      ...snappUpdateData,
+      paymentMethodTypeDto: "INSTALLMENT",
+      paymentToken: order.snappPay.paymentToken,
+    };
+
+    console.log("SnappPay update payload:", JSON.stringify(updatePayload));
+    await snappPayService.update(updatePayload);
+
+    await Promise.all(
+      returnedItems.map((item) =>
+        Product.updateOne({ _id: item.product }, { $inc: { countInStock: item.quantity } })
+      )
+    );
+
+    order.products = nextProducts;
+    order.originalPrice = amounts.itemsAmount;
+    order.discountAmount = newDiscountAmount;
+    if (order.discount) order.discount.calculatedAmount = newDiscountAmount;
+    order.totalPrice = amounts.amount;
+    order.snappPay.status = "SETTLE";
+    order.snappPay.processing = false;
+    order.snappPay.lastError = undefined;
+    order.snappPay.updateHistory.push({
+      amount: tomanToIrr(amounts.amount),
+      changedBy: req.admin?._id,
+      products: nextProducts.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+        amount: tomanToIrr(item.priceAtPurchase),
+      })),
+    });
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: "سفارش با موفقیت در اسنپ‌پی آپدیت شد",
+      order,
+    });
+  } catch (error) {
+    console.error("SnappPay order update error:", error);
+    try {
+      await Order.updateOne(
+        { _id: req.params.id },
+        { $set: { "snappPay.processing": false, "snappPay.lastError": error.message } }
+      );
+    } catch (_) {}
+    return res.status(error.httpStatus || 500).json({
+      success: false,
+      message: error.message || "خطا در آپدیت سفارش اسنپ‌پی",
+      errorCode: error.errorCode,
+    });
+  }
+});
+
+router.post("/orders/:id/snappay/cancel", async (req, res) => {
+  try {
+    if (!requireIrreversibleConfirmation(req, res)) return;
+
+    const order = await Order.findById(req.params.id);
+    if (!order || order.paymentMethod !== "اسنپ‌پی") {
+      return res.status(404).json({ success: false, message: "سفارش اسنپ‌پی یافت نشد" });
+    }
+    if (order.snappPay?.processing) {
+      return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
+    }
+    if (order.snappPay?.status === "CANCEL") {
+      return res.json({ success: true, message: "این سفارش قبلاً کنسل شده است", order });
+    }
+
+    order.snappPay.processing = true;
+    await order.save();
+    const { status } = await getVerifiedSnappPayStatus(order);
+    if (status !== "SETTLE") {
+      order.snappPay.processing = false;
+      await order.save();
+      return res.status(409).json({ success: false, message: `کنسل فقط در وضعیت SETTLE ممکن است (وضعیت فعلی: ${status || "نامشخص"})` });
+    }
+
+    const result = await snappPayService.cancel(order.snappPay.paymentToken);
+    order.snappPay.status = "CANCEL";
+    order.snappPay.transactionId = result?.transactionId || order.snappPay.transactionId;
+    order.snappPay.cancelledAt = new Date();
+    order.snappPay.processing = false;
+    order.snappPay.lastError = undefined;
+    order.paymentStatus = "لغو شده";
+    order.status = "لغو شده";
+    await restoreOrderProductsToInventory(order);
+    await order.save();
+
+    return res.json({ success: true, message: "سفارش با موفقیت در اسنپ‌پی کنسل شد", order });
+  } catch (error) {
+    console.error("SnappPay order cancel error:", error);
+    try {
+      await Order.updateOne(
+        { _id: req.params.id },
+        { $set: { "snappPay.processing": false, "snappPay.lastError": error.message } }
+      );
+    } catch (_) {}
+    return res.status(error.httpStatus || 500).json({
+      success: false,
+      message: error.message || "خطا در کنسل سفارش اسنپ‌پی",
+      errorCode: error.errorCode,
+    });
+  }
+});
+
+const getVerifiedTorobPayStatus = async (order) => {
+  if (!order.torobPay?.paymentToken) {
+    throw new Error("توکن پرداخت ترب‌پی برای این سفارش ثبت نشده است");
+  }
+
+  const statusResult = await torobPayService.getPaymentStatus(order.torobPay.paymentToken);
+  const status = normalizeTorobPayStatus(statusResult?.status);
+  const knownStatuses = new Set(["PENDING", "VERIFY", "SETTLE", "REVERT"]);
+  order.torobPay.status = knownStatuses.has(status) ? status : "UNKNOWN";
+  order.torobPay.lastStatusCheckAt = new Date();
+  if (statusResult?.transactionId) {
+    order.torobPay.transactionId = statusResult.transactionId;
+  }
+  return { status, statusResult };
+};
+
+router.post("/orders/:id/torobpay/sync", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order || order.paymentMethod !== "ترب‌پی") {
+      return res.status(404).json({ success: false, message: "سفارش ترب‌پی یافت نشد" });
+    }
+    if (order.torobPay?.processing) {
+      return res.status(409).json({
+        success: false,
+        message: "عملیات دیگری روی این سفارش در حال انجام است",
+      });
+    }
+
+    const { status, statusResult } = await getVerifiedTorobPayStatus(order);
+    if (status === "SETTLE") {
+      order.paymentStatus = "پرداخت شده";
+      order.status = order.status === "در انتظار پرداخت" ? "در حال پردازش" : order.status;
+      order.torobPay.settledAt = order.torobPay.settledAt || new Date();
+      order.paymentInfo.refId = statusResult?.transactionId || order.paymentInfo.refId;
+      order.paymentInfo.paymentDate = order.paymentInfo.paymentDate || new Date();
+    } else if (status === "REVERT") {
+      order.paymentStatus = "لغو شده";
+      order.status = "لغو شده";
+      order.torobPay.cancelledAt = order.torobPay.cancelledAt || new Date();
+      await restoreOrderProductsToInventory(order);
+    } else if (["PENDING", "VERIFY"].includes(status)) {
+      order.paymentStatus = "در حال بررسی";
+    } else {
+      order.paymentStatus = "نامشخص";
+    }
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: "وضعیت با ترب‌پی همگام شد",
+      status,
+      data: statusResult,
+    });
+  } catch (error) {
+    console.error("TorobPay status sync error:", error);
+    return res.status(error.httpStatus || 500).json({
+      success: false,
+      message: error.message || "خطا در استعلام وضعیت ترب‌پی",
+      errorCode: error.errorCode,
+    });
+  }
+});
+
+router.post("/orders/:id/torobpay/update", async (req, res) => {
+  try {
+    if (!requireIrreversibleConfirmation(req, res)) return;
+
+    const order = await Order.findById(req.params.id).populate("user");
+    if (!order || order.paymentMethod !== "ترب‌پی") {
+      return res.status(404).json({ success: false, message: "سفارش ترب‌پی یافت نشد" });
+    }
+    if (order.torobPay?.processing) {
+      return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
+    }
+
+    const requestedItems = Array.isArray(req.body.items) ? req.body.items : [];
+    if (!requestedItems.length) {
+      return res.status(400).json({ success: false, message: "تعداد جدید محصولات ارسال نشده است" });
+    }
+
+    const quantityMap = new Map(
+      requestedItems.map((item) => [String(item.itemId || item.productId), Number(item.quantity)])
+    );
+    const previousProducts = order.products.map((item) => item.toObject());
+    const nextProducts = [];
+    const returnedItems = [];
+
+    for (const current of previousProducts) {
+      const key = String(current.product);
+      const requestedQuantity = quantityMap.has(key)
+        ? quantityMap.get(key)
+        : Number(current.quantity);
+
+      if (!Number.isInteger(requestedQuantity) || requestedQuantity < 0) {
+        return res.status(400).json({ success: false, message: `تعداد جدید «${current.nameAtPurchase}» نامعتبر است` });
+      }
+      if (requestedQuantity > Number(current.quantity)) {
+        return res.status(400).json({ success: false, message: "در آپدیت ترب‌پی افزایش تعداد محصول مجاز نیست" });
+      }
+
+      const removedQuantity = Number(current.quantity) - requestedQuantity;
+      if (removedQuantity > 0) {
+        returnedItems.push({ product: current.product, quantity: removedQuantity });
+      }
+      if (requestedQuantity > 0) {
+        nextProducts.push({ ...current, quantity: requestedQuantity });
+      }
+    }
+
+    if (!returnedItems.length) {
+      return res.status(400).json({ success: false, message: "برای آپدیت باید حداقل یک تعداد کاهش یابد" });
+    }
+    if (!nextProducts.length) {
+      return res.status(400).json({ success: false, message: "برای مرجوعی کامل از عملیات کنسل استفاده کنید" });
+    }
+
+    const newSubtotal = nextProducts.reduce(
+      (sum, item) => sum + Number(item.priceAtPurchase) * Number(item.quantity),
+      0
+    );
+    let newDiscountAmount = 0;
+    if (order.discount?.type === "percent") {
+      newDiscountAmount = Math.floor((newSubtotal * Number(order.discount.amount || 0)) / 100);
+      newDiscountAmount = Math.min(
+        newDiscountAmount,
+        Number(order.discount.calculatedAmount || order.discountAmount || 0)
+      );
+    } else if (order.discount?.type === "amount") {
+      newDiscountAmount = Math.min(Number(order.discount.amount || 0), newSubtotal);
+    }
+
+    const amounts = calculateOrderAmountsToman({
+      products: nextProducts,
+      taxAmount: order.taxAmount,
+      discountAmount: newDiscountAmount,
+      externalSourceAmount: order.externalSourceAmount,
+    });
+    if (amounts.amount >= Number(order.totalPrice)) {
+      return res.status(400).json({ success: false, message: "مبلغ آپدیت باید از مبلغ فعلی سفارش کمتر باشد" });
+    }
+
+    order.torobPay.processing = true;
+    await order.save();
+    const { status } = await getVerifiedTorobPayStatus(order);
+    if (status !== "SETTLE") {
+      order.torobPay.processing = false;
+      await order.save();
+      return res.status(409).json({
+        success: false,
+        message: `آپدیت فقط برای سفارش فعال ترب‌پی ممکن است (وضعیت فعلی: ${status || "نامشخص"})`,
+      });
+    }
+
+    const rawPayload = buildTorobPayOrderPayload(order, {
+      products: nextProducts,
+      discountAmount: newDiscountAmount,
+      user: order.user,
+    });
+    const { returnURL, transactionId, mobile, ...torobUpdateFields } = rawPayload;
+    await torobPayService.update({
+      ...torobUpdateFields,
+      paymentToken: order.torobPay.paymentToken,
+    });
+
+    await Promise.all(
+      returnedItems.map((item) =>
+        Product.updateOne({ _id: item.product }, { $inc: { countInStock: item.quantity } })
+      )
+    );
+
+    order.products = nextProducts;
+    order.originalPrice = amounts.itemsAmount;
+    order.discountAmount = newDiscountAmount;
+    if (order.discount) order.discount.calculatedAmount = newDiscountAmount;
+    order.totalPrice = amounts.amount;
+    order.torobPay.status = "SETTLE";
+    order.torobPay.processing = false;
+    order.torobPay.lastError = undefined;
+    order.torobPay.updateHistory.push({
+      amount: tomanToIrr(amounts.amount),
+      changedBy: req.admin?._id,
+      products: nextProducts.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+        amount: tomanToIrr(item.priceAtPurchase),
+      })),
+    });
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: "سفارش با موفقیت در ترب‌پی به‌روزرسانی شد",
+      order,
+    });
+  } catch (error) {
+    console.error("TorobPay order update error:", error);
+    try {
+      await Order.updateOne(
+        { _id: req.params.id },
+        { $set: { "torobPay.processing": false, "torobPay.lastError": error.message } }
+      );
+    } catch (_) {}
+    return res.status(error.httpStatus || 500).json({
+      success: false,
+      message: error.message || "خطا در آپدیت سفارش ترب‌پی",
+      errorCode: error.errorCode,
+    });
+  }
+});
+
+router.post("/orders/:id/torobpay/cancel", async (req, res) => {
+  try {
+    if (!requireIrreversibleConfirmation(req, res)) return;
+
+    const order = await Order.findById(req.params.id);
+    if (!order || order.paymentMethod !== "ترب‌پی") {
+      return res.status(404).json({ success: false, message: "سفارش ترب‌پی یافت نشد" });
+    }
+    if (order.torobPay?.processing) {
+      return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
+    }
+    if (order.torobPay?.status === "REVERT") {
+      return res.json({ success: true, message: "این سفارش قبلاً در ترب‌پی لغو شده است", order });
+    }
+
+    order.torobPay.processing = true;
+    await order.save();
+    const { status } = await getVerifiedTorobPayStatus(order);
+    if (!["VERIFY", "SETTLE"].includes(status)) {
+      order.torobPay.processing = false;
+      await order.save();
+      return res.status(409).json({
+        success: false,
+        message: `لغو ترب‌پی در وضعیت فعلی قابل انجام نیست (وضعیت: ${status || "نامشخص"})`,
+      });
+    }
+
+    const result = await torobPayService.cancel(order.torobPay.paymentToken);
+    order.torobPay.status = "REVERT";
+    order.torobPay.transactionId = result?.transactionId || order.torobPay.transactionId;
+    order.torobPay.cancelledAt = new Date();
+    order.torobPay.processing = false;
+    order.torobPay.lastError = undefined;
+    order.paymentStatus = "لغو شده";
+    order.status = "لغو شده";
+    await restoreOrderProductsToInventory(order);
+    await order.save();
+
+    return res.json({ success: true, message: "سفارش با موفقیت در ترب‌پی لغو شد", order });
+  } catch (error) {
+    console.error("TorobPay order cancel error:", error);
+    try {
+      await Order.updateOne(
+        { _id: req.params.id },
+        { $set: { "torobPay.processing": false, "torobPay.lastError": error.message } }
+      );
+    } catch (_) {}
+    return res.status(error.httpStatus || 500).json({
+      success: false,
+      message: error.message || "خطا در لغو سفارش ترب‌پی",
+      errorCode: error.errorCode,
+    });
+  }
+});
+
 router.put("/orders/edit/:id", async (req, res) => {
   try {
     const { status } = req.body;
     const { id } = req.params;
 
     if (!status) {
-      return res
-        .status(400)
-        .json({ success: false, message: "وضعیت جدید الزامی است" });
+      return res.status(400).json({ success: false, message: "وضعیت جدید الزامی است" });
     }
 
     const validStatuses = [
@@ -1138,41 +1987,50 @@ router.put("/orders/edit/:id", async (req, res) => {
       "تحویل داده شد",
       "لغو شده",
     ];
-
     if (!validStatuses.includes(status)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "وضعیت نامعتبر است" });
+      return res.status(400).json({ success: false, message: "وضعیت نامعتبر است" });
     }
 
-    const order = await Order.findByIdAndUpdate(
-      id,
-      {
-        status,
-        $push: {
-          statusHistory: {
-            status,
-            note: req.body.note || "تغییر وضعیت توسط مدیر",
-          },
-        },
-      },
-      { new: true }
-    ).populate("user", "fullName email phone");
-
+    const order = await Order.findById(id);
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "سفارش یافت نشد" });
+      return res.status(404).json({ success: false, message: "سفارش یافت نشد" });
     }
 
-    res.json({
+    if (
+      status === "لغو شده" &&
+      order.paymentMethod === "اسنپ‌پی" &&
+      (order.snappPay?.status === "SETTLE" || order.paymentStatus === "پرداخت شده")
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "سفارش پرداخت‌شده اسنپ‌پی باید با دکمه «کنسل در اسنپ‌پی» لغو شود",
+      });
+    }
+
+    if (
+      status === "لغو شده" &&
+      order.paymentMethod === "ترب‌پی" &&
+      (order.torobPay?.status === "SETTLE" || order.paymentStatus === "پرداخت شده")
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "سفارش پرداخت‌شده ترب‌پی باید با دکمه «لغو در ترب‌پی» لغو شود تا عودت وجه توسط ترب‌پی انجام شود",
+      });
+    }
+
+    order._updatedBy = req.admin?._id;
+    order.status = status;
+    await order.save();
+    await order.populate("user", "fullName email mobile");
+
+    return res.json({
       success: true,
       message: "وضعیت سفارش با موفقیت به‌روزرسانی شد",
       data: order,
     });
   } catch (error) {
     console.error("Error updating order status:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "خطا در به‌روزرسانی وضعیت سفارش",
       error: error.message,
@@ -1226,6 +2084,7 @@ router.post("/products/duplicate/:id", async (req, res) => {
     duplicateData.reviewsNum = 0;
     duplicateData.isNewProduct = true;
     duplicateData.isFeatured = false;
+    duplicateData.specialOfferPosition = null;
     duplicateData.isPopular = false;
     
     if (duplicateData.weight) {
@@ -1332,7 +2191,8 @@ router.post("/discounts/add", async (req, res) => {
             expireDate, 
             isActive, 
             description,
-            maxDiscountAmount 
+            maxDiscountAmount ,
+            oneTimePerUser,
         } = req.body;
         
         // بررسی وجود کد تکراری
@@ -1350,6 +2210,7 @@ router.post("/discounts/add", async (req, res) => {
             expireDate: expireDate || null,
             isActive: isActive !== undefined ? isActive : true,
             description: description || null,
+            oneTimePerUser: oneTimePerUser || false,
             usedCount: 0
         };
         
@@ -1399,7 +2260,8 @@ router.put("/discounts/edit/:id", async (req, res) => {
             expireDate, 
             isActive, 
             description,
-            maxDiscountAmount 
+            maxDiscountAmount ,
+            oneTimePerUser
         } = req.body;
         
         // بررسی وجود کد تکراری (به غیر از خودش)
@@ -1420,7 +2282,8 @@ router.put("/discounts/edit/:id", async (req, res) => {
             usageLimit: usageLimit || null,
             expireDate: expireDate || null,
             isActive: isActive !== undefined ? isActive : true,
-            description: description || null
+            description: description || null,
+            oneTimePerUser: oneTimePerUser || false,
         };
         
         // اضافه کردن maxDiscountAmount برای تخفیف درصدی
@@ -2009,7 +2872,7 @@ router.post("/api/mark-orders-seen", async (req, res) => {
 router.get("/api/orders", async (req, res) => {
     try {
         const orders = await Order.find({})
-            .populate("user", "fullName email phone")
+            .populate("user", "fullName email mobile")
             .populate("products.product")
             .sort({ createdAt: -1 });
             
