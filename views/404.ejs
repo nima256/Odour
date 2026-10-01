@@ -1,207 +1,28 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>صفحه پیدا نشد - 404</title>
-    <meta name="description" content="صفحه یافت نشد 404">
-    <meta property="og:title" content="صفحه پیدا نشد 404">
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="canonical" href="https://odour.ir/about-us" />
-    <link rel="icon" type="image/x-icon" href="/logo.ico">
-    <style>
-        /* @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&amp;display=swap'); */
-        @font-face {
-        font-family: "MyFont";
-        src: url("/fonts/Vazirmatn-Light.ttf");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-        }
-
-        body {
-        font-family: "MyFont", sans-serif;
-        scroll-behavior: smooth;
-        text-align: right;
-        }
-        * {
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            overflow-y: auto;   /* یا overflow: auto برای هر دو محور */
-        }
-
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .floating-animation {
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .floating-animation:nth-child(2) {
-            animation-delay: -2s;
-        }
-        
-        .floating-animation:nth-child(3) {
-            animation-delay: -4s;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-        
-        .pulse-glow {
-            animation: pulse-glow 2s infinite;
-        }
-        
-        @keyframes pulse-glow {
-            0%, 100% {
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
-            }
-        }
-        
-        .sparkle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: white;
-            border-radius: 50%;
-            animation: sparkle 3s infinite;
-        }
-        
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-        
-        .shake-animation {
-            animation: shake 0.5s ease-in-out;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
-        .bounce-in {
-            animation: bounceIn 1s ease-out;
-        }
-        
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .floating-animation {
-                display: none;
-            }
-            
-            .sparkle {
-                width: 2px;
-                height: 2px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .pulse-glow {
-                animation: none;
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            }
-        }
-    </style>
+  <%- include('./partials/head', { title: 'صفحه پیدا نشد | اودر', robots: 'noindex' }) %>
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center relative overflow-y-auto">
-    <!-- Floating cosmetic icons - hidden on mobile -->
-    <div class="absolute inset-0 pointer-events-none hidden md:block">
-        <div class="floating-animation absolute top-16 right-16 text-4xl lg:text-6xl opacity-20">💄</div>
-        <div class="floating-animation absolute top-32 left-24 text-3xl lg:text-5xl opacity-15">✨</div>
-        <div class="floating-animation absolute bottom-24 right-32 text-3xl lg:text-4xl opacity-20">💋</div>
-        <div class="floating-animation absolute bottom-16 left-16 text-3xl lg:text-5xl opacity-15">🌸</div>
-        <div class="floating-animation absolute top-48 left-48 text-2xl lg:text-3xl opacity-25">💅</div>
-        <div class="floating-animation absolute bottom-48 right-48 text-3xl lg:text-4xl opacity-20">🎀</div>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <div class="od-container od-state" style="min-height:62vh;align-content:center">
+      <div class="od-state__art"><%- icon('search') %></div>
+      <h1 class="od-h2">این صفحه پیدا نشد</h1>
+      <p><%= typeof message !== 'undefined' && message ? message : 'ممکن است آدرس تغییر کرده باشد یا محصول دیگر در دسترس نباشد.' %></p>
+      <form action="/shop" method="get" role="search" style="width:min(420px,100%)">
+        <div class="od-input-group">
+          <%- icon('search') %>
+          <label class="od-sr-only" for="nf-search">جستجو در محصولات</label>
+          <input class="od-input" id="nf-search" name="search" type="search" placeholder="جستجوی محصول یا برند…" style="border-radius:999px" />
+        </div>
+      </form>
+      <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+        <a class="od-btn" href="/shop">رفتن به فروشگاه</a>
+        <a class="od-btn od-btn--secondary" href="/">صفحه اصلی</a>
+      </div>
     </div>
-    
-    <!-- Sparkle effects -->
-    <div class="sparkle hidden sm:block" style="top: 15%; right: 25%; animation-delay: 0s;"></div>
-    <div class="sparkle hidden sm:block" style="top: 30%; left: 20%; animation-delay: 1s;"></div>
-    <div class="sparkle hidden sm:block" style="bottom: 25%; right: 15%; animation-delay: 2s;"></div>
-    <div class="sparkle hidden sm:block" style="bottom: 40%; left: 30%; animation-delay: 0.5s;"></div>
-    <div class="sparkle hidden sm:block" style="top: 50%; right: 40%; animation-delay: 1.5s;"></div>
-    
-    <div class="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto px-4 sm:px-6 relative z-10 py-8">
-        <!-- 404 Number -->
-        <div class="bounce-in text-center mb-6 sm:mb-8">
-            <div class="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white text-opacity-90 leading-none">
-                404
-            </div>
-        </div>
-        
-        <!-- Main icon -->
-        <div class="mb-6 sm:mb-8 mx-auto flex justify-center items-center">
-            <div class="text-6xl sm:text-7xl md:text-8xl lg:text-9xl">💄</div>
-        </div>
-
-
-
-        
-        <!-- Main heading -->
-        <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight text-center">
-            صفحه پیدا نشد!
-        </h1>
-        
-        <!-- Subtitle -->
-        <p class="text-lg sm:text-xl md:text-2xl text-white text-opacity-90 mb-6 sm:mb-8 leading-relaxed text-center px-2">
-            متأسفانه صفحه‌ای که دنبالش می‌گردید وجود ندارد
-        </p>
-        
-        <!-- Description -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-white border-opacity-20">
-            <p class="text-base sm:text-lg text-white text-opacity-85 leading-relaxed mb-3 sm:mb-4 text-center">
-                ممکن است لینک اشتباه باشد یا صفحه حذف شده باشد
-            </p>
-            <p class="text-sm sm:text-base text-white text-opacity-75 text-center leading-relaxed">
-                نگران نباشید! می‌توانید به صفحه اصلی برگردید و محصولات زیبایی ما را کشف کنید
-            </p>
-        </div>
-        
-        <!-- Error code badge -->
-        <div class="flex justify-center mb-6 sm:mb-8">
-            <div class="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-red-500 to-pink-600 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full text-white font-semibold text-base sm:text-lg shadow-lg">
-                <span class="shake-animation text-sm sm:text-base">⚠️</span>
-                <span class="whitespace-nowrap">خطای 404</span>
-                <span class="shake-animation text-sm sm:text-base">🚫</span>
-            </div>
-        </div>
-        
-        <!-- Action buttons -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onclick="window.location.href='/'" class="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 sm:px-8 py-3 rounded-full font-medium transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
-                🏠 بازگشت به خانه
-            </button>
-            
-            <button onclick="window.history.back()" class="w-full sm:w-auto bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white px-6 sm:px-8 py-3 rounded-full font-medium transition-all duration-300 border border-white border-opacity-30 hover:border-opacity-50 text-sm sm:text-base">
-                ← صفحه قبل
-            </button>
-        </div>
-    </div>
+  </main>
+  <%- include('./partials/footer') %>
 </body>
 </html>

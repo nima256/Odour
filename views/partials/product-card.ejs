@@ -1,0 +1,51 @@
+<%#
+  Product card. Params: p (product doc/lean object), eager (bool, first row images), headingLevel (default 3).
+%>
+<%
+  const _pr = productPricing(p);
+  const _inStock = isInStock(p);
+  const _url = productUrl(p);
+  const _img2 = p.images && p.images[1] ? p.images[1].url : null;
+  const _needsOptions = (p.colors && p.colors.length) || (p.sizes && p.sizes.length);
+  const _h = typeof headingLevel !== 'undefined' ? headingLevel : 3;
+  const _eager = typeof eager !== 'undefined' && eager;
+  const _low = _inStock && Number(p.countInStock) <= 3;
+%>
+<article class="od-pcard<%= _inStock ? '' : ' is-out' %><%= _img2 ? ' has-alt' : '' %>">
+  <div class="od-pcard__media">
+    <% if (_img2) { %>
+      <img class="od-pcard__img od-pcard__img--alt" src="<%= _img2 %>" alt="" loading="lazy" decoding="async" width="400" height="500" />
+    <% } %>
+    <img class="od-pcard__img" src="<%= productImage(p, 0) %>" alt="<%= (p.images && p.images[0] && p.images[0].alt) || p.name %>"
+         <%- _eager ? 'fetchpriority="high"' : 'loading="lazy"' %> decoding="async" width="400" height="500" />
+    <div class="od-pcard__badges">
+      <% if (_pr.hasDiscount && _inStock) { %><span class="od-badge od-badge--sale"><%= faDigits(_pr.percent) %>٪ تخفیف</span><% } %>
+      <% if (p.isNewProduct) { %><span class="od-badge od-badge--new">جدید</span><% } %>
+      <% if (!_inStock) { %><span class="od-badge od-badge--muted">ناموجود</span><% } %>
+    </div>
+    <button class="od-pcard__wish" type="button" data-wishlist="<%= p._id %>" aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها"><%- icon('heart') %></button>
+    <% if (_inStock) { %>
+      <button class="od-pcard__quick" type="button" data-add-to-cart="<%= p._id %>"
+              <%- _needsOptions ? 'data-needs-options data-href="' + _url + '"' : '' %>
+              aria-label="<%= _needsOptions ? 'انتخاب گزینه و خرید ' : 'افزودن به سبد: ' %><%= p.name %>"><%- icon('plus') %></button>
+    <% } %>
+  </div>
+  <div class="od-pcard__body">
+    <% if (p.brandName) { %><span class="od-pcard__brand"><%= p.brandName %></span><% } %>
+    <<%= 'h' + _h %> class="od-pcard__title"><a href="<%= _url %>"><%= p.name %></a></<%= 'h' + _h %>>
+    <div class="od-pcard__meta">
+      <div class="od-price">
+        <% if (_inStock) { %>
+          <span class="od-price__now od-num"><%= faPrice(_pr.now) %><small>تومان</small></span>
+          <% if (_pr.hasDiscount) { %><span class="od-price__was od-num"><span class="od-sr-only">قیمت قبل:</span><%= faPrice(_pr.was) %></span><% } %>
+        <% } else { %>
+          <span class="od-pcard__stock">ناموجود</span>
+        <% } %>
+      </div>
+      <% if (Number(p.rating) > 0) { %>
+        <span class="od-rating" aria-label="امتیاز <%= faDigits(Number(p.rating).toFixed(1)) %> از ۵"><%- icon('star') %><%= faDigits(Number(p.rating).toFixed(1)) %></span>
+      <% } %>
+    </div>
+    <% if (_low) { %><span class="od-meta" style="color:var(--od-sale);font-size:11.5px">تنها <%= faDigits(p.countInStock) %> عدد باقی مانده</span><% } %>
+  </div>
+</article>

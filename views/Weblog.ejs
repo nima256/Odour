@@ -1,163 +1,50 @@
-
+<%
+  const posts = (typeof weblogs !== 'undefined' && weblogs) ? weblogs : [];
+  const cover = (p) => p.images && p.images[0] ? (p.images[0].url || p.images[0]) : null;
+%>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بلاگ - به زودی</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&amp;display=swap');
-        
-        * {
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            overflow-x: hidden;
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .floating-animation {
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .floating-animation:nth-child(2) {
-            animation-delay: -2s;
-        }
-        
-        .floating-animation:nth-child(3) {
-            animation-delay: -4s;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-        
-        .pulse-glow {
-            animation: pulse-glow 2s infinite;
-        }
-        
-        @keyframes pulse-glow {
-            0%, 100% {
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
-            }
-        }
-        
-        .sparkle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: white;
-            border-radius: 50%;
-            animation: sparkle 3s infinite;
-        }
-        
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .floating-animation {
-                display: none;
-            }
-            
-            .sparkle {
-                width: 2px;
-                height: 2px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .pulse-glow {
-                animation: none;
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            }
-        }
-    </style>
+  <%- include('./partials/head', { title: 'مجله اودر | راهنمای عطر، آرایش و مراقبت', description: 'مقاله‌های اودر درباره انتخاب عطر، آموزش آرایش، مراقبت از پوست و مو و معرفی محصولات.', canonical: 'https://www.odour.ir/weblog' }) %>
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center relative overflow-hidden">
-    <!-- Floating cosmetic icons - hidden on mobile -->
-    <div class="absolute inset-0 pointer-events-none hidden md:block">
-        <div class="floating-animation absolute top-16 right-16 text-4xl lg:text-6xl opacity-20">💄</div>
-        <div class="floating-animation absolute top-32 left-24 text-3xl lg:text-5xl opacity-15">✨</div>
-        <div class="floating-animation absolute bottom-24 right-32 text-3xl lg:text-4xl opacity-20">💋</div>
-        <div class="floating-animation absolute bottom-16 left-16 text-3xl lg:text-5xl opacity-15">🌸</div>
-        <div class="floating-animation absolute top-48 left-48 text-2xl lg:text-3xl opacity-25">💅</div>
-        <div class="floating-animation absolute bottom-48 right-48 text-3xl lg:text-4xl opacity-20">🎀</div>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <header class="od-page-hero">
+      <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="od-container od-page-hero__inner">
+        <span class="od-eyebrow">مجله اودر</span>
+        <h1>راهنمای عطر، آرایش و مراقبت</h1>
+        <p>آموزش‌های آرایش، نکات مراقبت از پوست و مو، و راهنمای انتخاب رایحه‌ای که به شما می‌آید.</p>
+      </div>
+    </header>
+    <div class="od-container" style="padding-bottom:var(--od-section)">
+      <% if (!posts.length) { %>
+        <div class="od-card od-state">
+          <div class="od-state__art"><%- icon('sparkle') %></div>
+          <h2>به‌زودی</h2>
+          <p>در حال آماده‌سازی محتوای تازه برای شما هستیم: آموزش‌های آرایش، نکات مراقبت از پوست و معرفی محصولات جدید.</p>
+          <a class="od-btn od-btn--secondary" href="/shop">مشاهده محصولات</a>
+        </div>
+      <% } else { %>
+        <% if (typeof weblogCategories !== 'undefined' && weblogCategories.length) { %>
+          <nav class="od-subcats" aria-label="دسته‌های مجله" style="margin-bottom:22px">
+            <% weblogCategories.forEach(function (c) { %><span class="od-chip"><%= c.name %></span><% }) %>
+          </nav>
+        <% } %>
+        <div class="od-posts">
+          <% posts.forEach(function (post) { %>
+            <a class="od-post" href="/weblog/<%= encodeURIComponent(post.slug) %>">
+              <span class="od-post__media"><% if (cover(post)) { %><img src="<%= cover(post) %>" alt="" loading="lazy" decoding="async" width="640" height="400" /><% } %></span>
+              <span class="od-meta"><%= (post.categories || []).map(c => c && c.name).filter(Boolean).join('، ') %><% if (post.readingTime) { %> · <%= faDigits(post.readingTime) %> دقیقه مطالعه<% } %></span>
+              <h2 class="od-h3" style="line-height:1.8"><%= post.title %></h2>
+              <% if (post.description) { %><p><%= post.description %></p><% } %>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
     </div>
-    
-    <!-- Sparkle effects -->
-    <div class="sparkle hidden sm:block" style="top: 15%; right: 25%; animation-delay: 0s;"></div>
-    <div class="sparkle hidden sm:block" style="top: 30%; left: 20%; animation-delay: 1s;"></div>
-    <div class="sparkle hidden sm:block" style="bottom: 25%; right: 15%; animation-delay: 2s;"></div>
-    <div class="sparkle hidden sm:block" style="bottom: 40%; left: 30%; animation-delay: 0.5s;"></div>
-    <div class="sparkle hidden sm:block" style="top: 50%; right: 40%; animation-delay: 1.5s;"></div>
-    
-    <div class="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto px-4 sm:px-6 relative z-10 py-8">
-        <!-- Main icon -->
-        <div class="mb-6 sm:mb-8 pulse-glow flex items-center justify-center p-4 sm:p-6 bg-white bg-opacity-20 rounded-full backdrop-blur-sm mx-auto w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32">
-            <div class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl">📝</div>
-        </div>
-
-        
-        <!-- Main heading -->
-        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight text-center">
-            بلاگ زیبایی
-        </h1>
-        
-        <!-- Subtitle -->
-        <p class="text-lg sm:text-xl md:text-2xl text-white text-opacity-90 mb-6 sm:mb-8 leading-relaxed text-center px-2">
-            قسمت بلاگ در اپدیت بعدی به شما ارائه خواهد شد
-        </p>
-        
-        <!-- Description -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-white border-opacity-20">
-            <p class="text-base sm:text-lg text-white text-opacity-85 leading-relaxed mb-3 sm:mb-4 text-center">
-                ما در حال آماده‌سازی محتوای فوق‌العاده‌ای برای شما هستیم! 
-            </p>
-            <p class="text-sm sm:text-base text-white text-opacity-75 text-center leading-relaxed">
-                آموزش‌های آرایش، نکات مراقبت از پوست، معرفی محصولات جدید و بسیاری مطالب جذاب دیگر...
-            </p>
-        </div>
-        
-        <!-- Coming soon badge -->
-        <div class="flex justify-center mb-6 sm:mb-8">
-            <div class="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-pink-500 to-purple-600 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full text-white font-semibold text-base sm:text-lg shadow-lg">
-                <span class="animate-pulse text-sm sm:text-base">⏰</span>
-                <span class="whitespace-nowrap">به زودی در دسترس</span>
-                <span class="animate-pulse text-sm sm:text-base">✨</span>
-            </div>
-        </div>
-        
-        <!-- Progress indicator -->
-        <div class="mb-8 sm:mb-12">
-            <div class="bg-white bg-opacity-20 rounded-full h-2 mb-3 mx-auto max-w-xs sm:max-w-sm">
-                <div class="bg-gradient-to-r from-pink-400 to-purple-500 h-2 rounded-full w-3/4 animate-pulse"></div>
-            </div>
-            <p class="text-white text-opacity-70 text-xs sm:text-sm text-center">در حال توسعه... ۷۵٪ تکمیل شده</p>
-        </div>
-        
-        <!-- Back button -->
-        <div class="text-center">
-            <button onclick="window.history.back()" class="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-medium transition-all duration-300 border border-white border-opacity-30 hover:border-opacity-50 text-sm sm:text-base">
-                ← بازگشت به صفحه اصلی
-            </button>
-        </div>
-    </div>
+  </main>
+  <%- include('./partials/footer') %>
 </body>
 </html>

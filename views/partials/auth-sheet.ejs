@@ -1,0 +1,44 @@
+<%# Phone + OTP sign-in. Bottom sheet on mobile, centered modal on desktop. Logic lives in /js/odour.js. %>
+<% if (!_user) { %>
+<section class="od-sheet od-sheet--modal" id="od-auth" role="dialog" aria-modal="true" aria-labelledby="od-auth-title" data-panel="auth" hidden>
+  <div class="od-sheet__grab" aria-hidden="true"></div>
+  <div class="od-drawer__head">
+    <button class="od-icon-btn" type="button" data-auth-back aria-label="ویرایش شماره" hidden><%- icon('chevron-right') %></button>
+    <span></span>
+    <button class="od-icon-btn" type="button" data-close aria-label="بستن"><%- icon('x') %></button>
+  </div>
+  <div class="od-drawer__body od-auth">
+    <div class="od-auth__mark" aria-hidden="true"><%- icon('phone') %></div>
+
+    <form data-auth-step="phone" novalidate>
+      <h2 class="od-h3" id="od-auth-title">ورود یا ثبت‌نام</h2>
+      <p class="od-muted od-auth__sub">شماره موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود.</p>
+      <div class="od-field">
+        <label class="od-label" for="od-auth-mobile">شماره موبایل</label>
+        <input class="od-input" id="od-auth-mobile" name="mobile" type="tel" inputmode="numeric" autocomplete="tel-national"
+               dir="ltr" maxlength="14" placeholder="09xx xxx xxxx" aria-describedby="od-auth-mobile-err" required />
+        <p class="od-error" id="od-auth-mobile-err" role="alert"></p>
+      </div>
+      <button class="od-btn od-btn--block od-btn--lg" type="submit">دریافت کد تأیید</button>
+      <p class="od-meta od-auth__legal">ورود شما به معنای پذیرش <a class="od-link" href="/terms-and-conditions">قوانین اودر</a> و <a class="od-link" href="/privacy-policy">حریم خصوصی</a> است.</p>
+    </form>
+
+    <form data-auth-step="code" novalidate hidden>
+      <h2 class="od-h3">کد تأیید را وارد کنید</h2>
+      <p class="od-muted od-auth__sub">کد ۵ رقمی به شماره <strong class="od-latin" data-auth-phone></strong> ارسال شد.
+        <button class="od-link" type="button" data-auth-back>ویرایش</button></p>
+      <div class="od-otp" data-otp role="group" aria-label="کد تأیید ۵ رقمی" aria-describedby="od-auth-code-err">
+        <% for (let i = 0; i < 5; i++) { %>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="رقم <%= faDigits(i + 1) %>" <%- i === 0 ? 'autocomplete="one-time-code"' : 'autocomplete="off"' %> />
+        <% } %>
+      </div>
+      <p class="od-error" id="od-auth-code-err" role="alert" style="justify-content:center"></p>
+      <button class="od-btn od-btn--block od-btn--lg" type="submit">تأیید و ورود</button>
+      <div class="od-auth__resend">
+        <span data-auth-timer></span>
+        <button class="od-link" type="button" data-auth-resend hidden>ارسال مجدد کد</button>
+      </div>
+    </form>
+  </div>
+</section>
+<% } %>

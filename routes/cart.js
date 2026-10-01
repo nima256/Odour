@@ -197,8 +197,11 @@ router.delete(
       const user = await User.findById(req.session.userId);
 
       const initialCount = user.cart.length;
-      user.cart = user.cart.filter(
-        (item) => item.productId.toString() !== productId
+      // ?lineId= removes a single cart line (one colour/size of a product);
+      // without it every line of the product is removed (previous behaviour).
+      const lineId = String(req.query.lineId || "");
+      user.cart = user.cart.filter((item) =>
+        lineId ? String(item._id) !== lineId : item.productId.toString() !== productId
       );
 
       if (user.cart.length === initialCount) {

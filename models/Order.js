@@ -44,6 +44,9 @@ const orderSchema = new mongoose.Schema(
       required: [true, "کاربر الزامی است"],
       index: true,
     },
+    // Who receives the parcel (entered at checkout; may differ from the account holder).
+    recipientName: { type: String, trim: true, maxlength: 60 },
+    recipientMobile: { type: String, trim: true },
     products: [
       {
         product: {

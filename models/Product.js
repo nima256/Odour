@@ -65,6 +65,12 @@ const productSchema = new mongoose.Schema(
       type: Number,
       min: [0, "قیمت تخفیف‌خورده نمی‌تواند منفی باشد"],
     },
+    // Price the customer actually pays (offerPrice when it's a real discount).
+    // Maintained in pre("save"); used to filter/sort the catalogue by price.
+    finalPrice: {
+      type: Number,
+      index: true,
+    },
     catName: { type: String, default: "" },
     brandName: { type: String, default: "" },
     catId: { type: String, default: "" },
@@ -251,8 +257,15 @@ productSchema.pre("validate", async function () {
   }
 });
 
+const computeFinalPrice = (price, offerPrice) => {
+  const base = Number(price) || 0;
+  const offer = Number(offerPrice) || 0;
+  return offer > 0 && offer < base ? offer : base;
+};
+
 productSchema.pre("save", function () {
   this.updateTarikh = getPersianDate();
+  this.finalPrice = computeFinalPrice(this.price, this.offerPrice);
   this.isOutOfStock = Number(this.countInStock || 0) <= 0;
 
   for (const color of this.colors || []) {
@@ -308,5 +321,7 @@ productSchema.index({ rating: -1 });
 productSchema.index({ "colors.rgb": 1 });
 productSchema.index({ isPublished: 1, publishedAt: -1, createdAt: -1 });
 productSchema.index({ isPublished: 1, updatedAt: -1 });
+
+productSchema.statics.computeFinalPrice = computeFinalPrice;
 
 module.exports = mongoose.model("Product", productSchema);

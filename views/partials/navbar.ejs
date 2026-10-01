@@ -1,454 +1,205 @@
-<style>    .navbar-main {
-            background: #FFF1DB;
-            box-shadow: 0 2px 10px rgba(99, 99, 55, 0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
+<%#
+  Storefront header. Expects (all optional): user, cartCount, menuCategories, currentPath.
+  Includes: icon sprite, skip link, desktop mega menu, mobile drawer + bottom nav,
+  search overlay, auth sheet and toast region — so every page that includes the
+  navbar gets the same shell.
+%>
+<%
+  const _cats = (typeof menuCategories !== 'undefined' && menuCategories) ? menuCategories : [];
+  const _user = (typeof user !== 'undefined' && user) ? user : null;
+  const _cartCount = (typeof cartCount !== 'undefined' && cartCount) ? cartCount : 0;
+  const _path = (typeof currentPath !== 'undefined' && currentPath) ? currentPath : '';
+  const _isCurrent = (href) => href === '/' ? _path === '/' : _path.startsWith(href);
+%>
+<%- include('./icons') %>
+<a class="od-skip" href="#main">رفتن به محتوای اصلی</a>
 
-        /* بخش بالایی (لوگو وسط) */
-        .navbar-top {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-        }
+<header class="od-header" data-header>
+  <div class="od-container od-header__bar">
+    <button class="od-icon-btn od-header__menu-btn" type="button" data-open="menu" aria-controls="od-menu" aria-expanded="false" aria-label="منو">
+      <%- icon('menu') %>
+    </button>
 
-        /* لوگو در وسط مطلق روی موبایل و دسکتاپ */
-        .logo-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .logo-center img {
-            height: 45px;
-            width: width: 140px;
-            object-fit: contain;
-        }
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .logo-text .brand {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #636337;
-            line-height: 1.2;
-        }
-        .logo-text .sub {
-            font-size: 0.7rem;
-            color: #8a8a5a;
-        }
-
-        /* فضای خالی سمت چپ و راست برای همبرگر و آیکون‌ها */
-        .nav-left-icons {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .nav-left-icons button, .nav-left-icons a {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #636337;
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            position: relative;
-            text-decoration: none;
-        }
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -12px;
-            background-color: #636337;
-            color: white;
-            font-size: 0.65rem;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        /* سکشن پایینی (منوی فروشگاه + دکمه‌های ثانویه) */
-        .navbar-bottom {
-            background-color: #FFF1DB;
-            border-top: 1px solid #e6ddc4;
-            border-bottom: 1px solid #e6ddc4;
-        }
-        .bottom-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 8px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        /* منوی لینک‌های فروشگاه و صفحات */
-        .shop-links {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .shop-links a {
-            text-decoration: none;
-            color: #636337;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: 0.2s;
-        }
-        .shop-links a:hover {
-            color: #4a4a2a;
-        }
-        /* دسته بندی با دراپ داون (Desktop) */
-        .dropdown {
-            position: relative;
-        }
-        .dropdown > a {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            box-shadow: 0 4px 12px rgba(99, 99, 55, 0.15);
-            border-radius: 8px;
-            min-width: 220px;
-            display: none;
-            z-index: 200;
-        }
-        .dropdown:hover .dropdown-menu {
-            display: block;
-        }
-        .submenu-item {
-            position: relative;
-        }
-        .submenu-item > a {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 16px;
-            color: #636337;
-            text-decoration: none;
-            border-bottom: 1px solid #eee;
-        }
-        .submenu-level2 {
-            position: absolute;
-            right: 100%;
-            top: 0;
-            background: white;
-            box-shadow: 0 4px 12px rgba(99, 99, 55, 0.15);
-            border-radius: 8px;
-            min-width: 200px;
-            display: none;
-        }
-        .submenu-item:hover .submenu-level2 {
-            display: block;
-        }
-        /* دکمه‌های حساب و سبد خرید در بخش پایین (برای دسکتاپ) */
-        .bottom-icons {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        .bottom-icons a, .bottom-icons button {
-            background: none;
-            border: none;
-            color: #636337;
-            font-size: 1.1rem;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-        }
-        /* موبایل: منوی همبرگر */
-        #mobile-menu {
-
-            padding: 10px 20px 20px;
-            border-top: 1px solid #e6ddc4;
-            flex-direction: column;
-            gap: 12px;
-        }
-        #mobile-menu a {
-            display: block;
-            padding: 8px;
-            color: #636337;
-            text-decoration: none;
-        }
-        .mobile-dropdown-trigger, .mobile-submenu-trigger {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 8px;
-            color: #636337;
-        }
-        .mobile-dropdown-menu, .mobile-submenu-level2 {
-            padding-right: 20px;
-        }
-        /* ابزار کمکی */
-        .hidden-mobile {
-            display: flex;
-        }
-        @media (max-width: 768px) {
-
-            .shop-links {
-                display: none;
-            }
-            .bottom-icons {
-                display: none;
-            }
-            .navbar-bottom .bottom-container {
-                justify-content: center;
-            }
-            /* در موبایل آیکون سبد و کاربر در بخش بالایی سمت چپ نمایش داده میشه */
-            .bottom-icons-mobile-fallback {
-                display: flex;
-            }
-        }
-        @media (min-width: 769px) {
-            .bottom-icons-mobile-fallback {
-                display: none;
-            }
-            .hamburger {
-                display: none !important;
-            }
-            .navbar-top .nav-left-icons .mobile-only-icon {
-                display: none;
-            }
-        }
-        /* برای نمایش در دسکتاپ آیکون‌های سبد و کاربر در بخش پایین است */
-        .bottom-icons-mobile-fallback {
-            gap: 16px;
-            align-items: center;
-        }
-        .bottom-icons-mobile-fallback a, .bottom-icons-mobile-fallback button {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: #636337;
-            cursor: pointer;
-        }
-        /* تنظیمات موبایل */
-@media (max-width: 768px) {
-
-  nav > div {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  /* لوگو وسط */
-  #logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-  }
-
-  /* لوگو */
-  #logo img {
-    width: 42px;
-    height: 42px;
-  }
-
-  /* منوی دسکتاپ مخفی */
-  .desktop-menu {
-    display: none !important;
-  }
-
-  /* بخش آیکون‌ها */
-  .flex.items-center.space-x-4 {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    direction: rtl;
-  }
-
-  /* همبرگر سمت راست */
-  #menu-btn {
-    order: 1;
-    margin-left: auto;
-  }
-
-  /* پروفایل و سبد سمت چپ */
-  .flex.items-center.space-x-4 > div,
-  .flex.items-center.space-x-4 > a,
-  .flex.items-center.space-x-4 > button:not(#menu-btn) {
-    order: 2;
-  }
-
-}
-.mobile-nav-icons {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.left-icons {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.hamburger {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #333;
-  cursor: pointer;
-}
-    </style>
-<nav style="    background: #eee5da ; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 12px 20px;">
-  <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-    
-    <a href="/" id="logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
-        <div class="h-full overflow-hidden flex items-center">
-          <img style="height: 45px; width: 140px;" src="/logo.png" alt="لوگوی اودور" class="h-full w-auto object-contain" />
-        </div>
-      <div>
-        <!--<span class="block text-xl font-extrabold text-rose-800">اودر</span>-->
-        <span class="block text-xs text-rose-600"> </span>
-      </div>
+    <a href="/" class="od-header__logo" aria-label="اودر — صفحه اصلی">
+      <img src="/logo.webp" alt="اودر" width="140" height="26" />
     </a>
 
-    <!-- منوی دسکتاپ با ساب‌منو -->
-    <div style="display: none; gap: 24px;" class="desktop-menu">
-      <a href="/" style="color: #333; text-decoration: none;">خانه</a>
-      
-      <!-- فروشگاه با ساب‌منو -->
-    <div style="position: relative;" class="dropdown">
-        <a style="color: #333; text-decoration: none; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-            دسته بندی <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
-        </a>
-        <div class="dropdown-menu" style="position: absolute; top: 100%; right: 0; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; min-width: 220px; display: none; z-index: 100;">
-            <% for(let category of menuCategories) { %>
-                <% if(category.children && category.children.length > 0) { %>
-                    <div class="submenu-item" style="position: relative;">
-                        <a href="/category/<%= category.slug %>" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                            <%= category.name %> 
-                            <i class="fas fa-chevron-left" style="font-size: 10px;"></i>
-                        </a>
-                        <div class="submenu-level2" style="position: absolute; right: 100%; top: 0; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; min-width: 200px; display: none;">
-                            <% for(let child of category.children) { %>
-                                <a href="/category/<%= child.slug %>" style="display: block; padding: 10px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                                    <%= child.name %>
-                                </a>
-                            <% } %>
-                        </div>
-                    </div>
-                <% } else { %>
-                    <a href="/category/<%= category.slug %>" style="display: block; padding: 10px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                        <%= category.name %>
+    <nav class="od-nav" aria-label="منوی اصلی">
+      <div class="od-nav__item" data-mega>
+        <button class="od-nav__link" type="button" aria-expanded="false" aria-controls="od-mega">
+          دسته‌بندی‌ها <%- icon('chevron-down') %>
+        </button>
+        <div class="od-mega" id="od-mega">
+          <div class="od-container od-mega__inner">
+            <div class="od-mega__cats">
+              <% _cats.forEach(function (cat) { %>
+                <div class="od-mega__col">
+                  <h3>
+                    <a href="/category/<%= cat.slug %>">
+                      <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+                      <%= cat.name %>
                     </a>
-                <% } %>
-            <% } %>
+                  </h3>
+                  <% if (cat.children && cat.children.length) { %>
+                    <ul>
+                      <% cat.children.forEach(function (child) { %>
+                        <li><a href="/category/<%= child.slug %>"><%= child.name %></a></li>
+                      <% }) %>
+                    </ul>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+            <a class="od-mega__promo" href="/shop?discount=1">
+              <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="od-eyebrow">پیشنهاد ویژه</span>
+              <strong class="od-h3">تخفیف‌های این هفته</strong>
+              <span class="od-meta">عطرها و محصولات منتخب با قیمت ویژه</span>
+            </a>
+          </div>
         </div>
-    </div>
-
-      <a href="/shop" style="color: #333; text-decoration: none;">فروشگاه</a>
-      <a href="/weblog" style="color: #333; text-decoration: none;">وبلاگ</a>
-      <a href="/about-us" style="color: #333; text-decoration: none;">درباره ما</a>
-      <a href="/contact-us" style="color: #333; text-decoration: none;">تماس با ما</a>
-      <a href="/terms-and-conditions" style="color: #333; text-decoration: none;">قوانین و مقررات</a>
-    </div>
-
-    <!-- آیکون‌ها و همبرگر -->
-    <div class="flex items-center space-x-4 space-x-reverse order-1 md:order-3">
-      <div class="relative">
-        <button class="relative text-gray-700 hover:text-[#FFF1DB] transition-colors">
-          <a href="/cart">
-            <i style="color: #364150;" class="fas fa-shopping-bag text-xl"></i>
-          </a>
-          <% if(user) { %>
-            <span id="cartCount" class="absolute cart-count bg-[#636337] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              <%= toPersianDigitsForSizes(cartCount) %>
-            </span>
-          <% } %>
-        </button>
       </div>
-      <% if (!user) {%>
-        <!-- مهم: این دکمه باید آیدی صحیح داشته باشه -->
-        <button id="user-auth-button" class="text-gray-700 hover:text-[#FFF1DB] transition-colors">
-          <i class="fas fa-user text-xl"></i>
-        </button>
-      <% } else { %>
-        <a href="/userProfile">
-          <button class="text-gray-700 hover:text-[#FFF1DB] transition-colors">
-            <i class="fas fa-user text-xl"></i>
-          </button>
-        </a>
-      <% } %>
-      <button id="menu-btn" style="color: #333; font-size: 24px; background: none; border: none; cursor: pointer; display: block;" class="hamburger">
-        <i class="fas fa-bars"></i>
+      <div class="od-nav__item"><a class="od-nav__link" href="/shop" <%- _isCurrent('/shop') ? 'aria-current="page"' : '' %>>فروشگاه</a></div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/shop?discount=1">تخفیف‌ها</a></div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/weblog" <%- _isCurrent('/weblog') ? 'aria-current="page"' : '' %>>مجله</a></div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/about-us" <%- _isCurrent('/about-us') ? 'aria-current="page"' : '' %>>درباره ما</a></div>
+    </nav>
+
+    <div class="od-header__search">
+      <button class="od-search-trigger" type="button" data-open="search" aria-controls="od-search">
+        <%- icon('search', 'od-icon--sm') %>
+        <span>جستجوی عطر، برند یا محصول…</span>
+        <kbd>/</kbd>
       </button>
     </div>
-  </div>
 
-  <!-- منوی موبایل با ساب‌منو -->
-  <div id="mobile-menu" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; flex-direction: column; gap: 10px;">
-    <a href="/" style="display: block; padding: 8px; color: #333; text-decoration: none;">خانه</a>
-    
-    <div class="mobile-dropdown">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; cursor: pointer;" class="mobile-dropdown-trigger">
-            <span style="color: #333;">دسته بندی</span>
-            <i class="fas fa-chevron-down" style="font-size: 12px; transition: transform 0.3s;"></i>
-        </div>
-        <div class="mobile-dropdown-menu" style="display: none; padding-right: 15px;">
-            <% for(let category of menuCategories) { %>
-                <% if(category.children && category.children.length > 0) { %>
-                    <!-- دسته‌بندی با زیرمجموعه -->
-                    <div class="mobile-submenu">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; cursor: pointer;" class="mobile-submenu-trigger">
-                            <span style="color: #555;"><%= category.name %></span>
-                            <i class="fas fa-chevron-left" style="font-size: 10px; transition: transform 0.3s;"></i>
-                        </div>
-                        <div class="mobile-submenu-level2" style="display: none; padding-right: 15px;">
-                            <% for(let child of category.children) { %>
-                                <a href="/category/<%= child.slug %>" style="display: block; padding: 8px; color: #666; text-decoration: none;">
-                                    <%= child.name %>
-                                </a>
-                            <% } %>
-                        </div>
-                    </div>
-                <% } else { %>
-                    <!-- دسته‌بندی بدون زیرمجموعه -->
-                    <a href="/category/<%= category.slug %>" style="display: block; padding: 8px; color: #555; text-decoration: none;">
-                        <%= category.name %>
-                    </a>
-                <% } %>
-            <% } %>
-        </div>
+    <div class="od-header__actions">
+      <button class="od-icon-btn od-hide-desktop" type="button" data-open="search" aria-controls="od-search" aria-label="جستجو"><%- icon('search') %></button>
+      <% if (_user) { %>
+        <a class="od-icon-btn od-hide-mobile" href="/userProfile#wishlist" aria-label="علاقه‌مندی‌ها"><%- icon('heart') %></a>
+        <a class="od-icon-btn od-hide-mobile" href="/userProfile" aria-label="حساب کاربری"><%- icon('user') %></a>
+      <% } else { %>
+        <button class="od-icon-btn od-hide-mobile" type="button" data-auth-open aria-label="ورود یا ثبت‌نام"><%- icon('user') %></button>
+      <% } %>
+      <a class="od-icon-btn" href="/cart" aria-label="سبد خرید">
+        <%- icon('bag') %>
+        <span class="od-count" data-cart-count data-count="<%= _cartCount %>"><%= _cartCount ? faDigits(_cartCount) : '' %></span>
+      </a>
     </div>
-    
-    <a href="/shop" style="display: block; padding: 8px; color: #333; text-decoration: none;">فروشگاه</a>
-    <a href="/weblog" style="display: block; padding: 8px; color: #333; text-decoration: none;">وبلاگ</a>
-    <a href="/about-us" style="display: block; padding: 8px; color: #333; text-decoration: none;">درباره ما</a>
-    <a href="/contact-us" style="display: block; padding: 8px; color: #333; text-decoration: none;">تماس با ما</a>
+  </div>
+</header>
+
+<%# ---------- Mobile drawer menu ---------- %>
+<div class="od-backdrop" data-backdrop hidden></div>
+<aside class="od-drawer" id="od-menu" role="dialog" aria-modal="true" aria-label="منو" data-panel="menu" hidden>
+  <div class="od-drawer__head">
+    <a href="/" aria-label="اودر — صفحه اصلی"><img src="/logo.webp" alt="اودر" width="120" height="22" style="height:22px;width:auto" /></a>
+    <button class="od-icon-btn" type="button" data-close aria-label="بستن منو"><%- icon('x') %></button>
+  </div>
+  <div class="od-drawer__body">
+    <% if (!_user) { %>
+      <button class="od-btn od-btn--block" type="button" data-auth-open>ورود یا ثبت‌نام با شماره موبایل</button>
+    <% } else { %>
+      <a class="od-btn od-btn--soft od-btn--block" href="/userProfile"><%- icon('user') %> حساب کاربری من</a>
+    <% } %>
+    <nav aria-label="دسته‌بندی‌ها" style="margin-top:16px">
+      <% _cats.forEach(function (cat) { %>
+        <% if (cat.children && cat.children.length) { %>
+          <details class="od-mnav__group">
+            <summary>
+              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+              <%= cat.name %>
+              <%- icon('chevron-down', 'od-icon--sm') %>
+            </summary>
+            <div class="od-mnav__sub">
+              <a href="/category/<%= cat.slug %>">همه‌ی <%= cat.name %></a>
+              <% cat.children.forEach(function (child) { %>
+                <a href="/category/<%= child.slug %>"><%= child.name %></a>
+              <% }) %>
+            </div>
+          </details>
+        <% } else { %>
+          <div class="od-mnav__group">
+            <a class="od-mnav__link" href="/category/<%= cat.slug %>">
+              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+              <%= cat.name %>
+            </a>
+          </div>
+        <% } %>
+      <% }) %>
+    </nav>
+    <nav class="od-mnav__links" aria-label="صفحات">
+      <a href="/shop">همه محصولات</a>
+      <a href="/shop?discount=1">تخفیف‌ها</a>
+      <a href="/weblog">مجله اودر</a>
+      <a href="/about-us">درباره ما</a>
+      <a href="/contact-us">تماس با ما</a>
+      <a href="/terms-and-conditions">قوانین و مقررات</a>
+    </nav>
+  </div>
+</aside>
+
+<%# ---------- Search overlay ---------- %>
+<div class="od-search" id="od-search" role="dialog" aria-modal="true" aria-label="جستجو" data-panel="search" hidden>
+  <div class="od-container">
+    <form class="od-search__bar" action="/shop" method="get" role="search" data-search-form>
+      <div class="od-search__field">
+        <%- icon('search') %>
+        <label class="od-sr-only" for="od-search-input">جستجو در محصولات</label>
+        <input class="od-input" id="od-search-input" name="search" type="search" autocomplete="off" enterkeyhint="search"
+               placeholder="نام عطر، برند یا محصول…" role="combobox" aria-expanded="false" aria-controls="od-search-results" aria-autocomplete="list" />
+      </div>
+      <button class="od-btn od-btn--ghost" type="button" data-close>بستن</button>
+    </form>
+  </div>
+  <div class="od-search__body">
+    <div class="od-container" data-search-body>
+      <div data-search-idle>
+        <div class="od-search__section" data-recent-searches hidden>
+          <div class="od-search__label"><span>جستجوهای اخیر</span><button class="od-link" type="button" data-clear-recent style="font-size:12px">پاک کردن</button></div>
+          <div class="od-search__chips" data-recent-list></div>
+        </div>
+        <div class="od-search__section">
+          <div class="od-search__label"><span>دسته‌بندی‌ها</span></div>
+          <div class="od-search__chips">
+            <% _cats.forEach(function (cat) { %>
+              <a class="od-chip" href="/category/<%= cat.slug %>"><%- icon(categoryIcon(cat.name)) %> <%= cat.name %></a>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+      <div data-search-results id="od-search-results" role="listbox" aria-label="نتایج جستجو" hidden></div>
+    </div>
+  </div>
 </div>
 
+<%# ---------- Mobile bottom navigation ---------- %>
+<nav class="od-bottom-nav" aria-label="ناوبری سریع">
+  <a href="/" <%- _path === '/' ? 'aria-current="page"' : '' %>><%- icon('home') %><span>خانه</span></a>
+  <a href="/shop" <%- (_isCurrent('/shop') || _isCurrent('/category')) ? 'aria-current="page"' : '' %>><%- icon('grid') %><span>فروشگاه</span></a>
+  <button type="button" data-open="search" aria-controls="od-search"><%- icon('search') %><span>جستجو</span></button>
+  <a href="/cart" <%- _isCurrent('/cart') ? 'aria-current="page"' : '' %>>
+    <%- icon('bag') %><span>سبد خرید</span>
+    <span class="od-count" data-cart-count data-count="<%= _cartCount %>"><%= _cartCount ? faDigits(_cartCount) : '' %></span>
+  </a>
+  <% if (_user) { %>
+    <a href="/userProfile" <%- _isCurrent('/userProfile') ? 'aria-current="page"' : '' %>><%- icon('user') %><span>حساب من</span></a>
+  <% } else { %>
+    <button type="button" data-auth-open><%- icon('user') %><span>ورود</span></button>
+  <% } %>
 </nav>
+
+<%- include('./auth-sheet', { _user }) %>
+<div class="od-toasts" role="status" aria-live="polite" data-toasts></div>
+
+<script>
+  window.ODOUR = Object.assign(window.ODOUR || {}, {
+    loggedIn: <%- _user ? 'true' : 'false' %>,
+    // Server flash messages (connect-flash) shown as toasts.
+    flash: <%- JSON.stringify([].concat(
+      (typeof error !== 'undefined' && error ? error : []).map(function (t) { return { text: t, type: 'error' }; }),
+      (typeof success !== 'undefined' && success ? success : []).map(function (t) { return { text: t, type: 'success' }; })
+    )).replace(/</g, '\u003c') %>
+  });
+</script>
+<script src="/js/odour.js?v=<%= assetVersion %>" defer></script>

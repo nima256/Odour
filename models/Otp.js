@@ -27,7 +27,7 @@ const otpSchema = new mongoose.Schema(
     attempts: {
       type: Number,
       default: 0,
-      max: 3, // Maximum allowed attempts
+      max: 5, // Maximum allowed attempts
     },
     createdAt: {
       type: Date,
@@ -35,7 +35,6 @@ const otpSchema = new mongoose.Schema(
     },
     ipAddress: {
       type: String,
-      required: true,
     },
     lastSentAt: {
       type: Date,
@@ -43,7 +42,7 @@ const otpSchema = new mongoose.Schema(
     },
     purpose: {
       type: String,
-      enum: ["registration", "password_reset"],
+      enum: ["registration", "password_reset", "login"],
       default: "registration",
     },
   },
