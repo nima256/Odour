@@ -1252,8 +1252,8 @@ body.od-lock { overflow: hidden; }
 @media (max-width: 479.98px) {
   .od-buy__cta { gap: 8px; }
   .od-buy__cta .od-btn--primary-cta .od-icon { display: none; }
-  .od-buy__cta .od-qty button { width: 34px; }
-  .od-buy__cta .od-qty output { min-width: 22px; }
+  .od-buy__cta .od-qty button { width: 40px; }
+  .od-buy__cta .od-qty output { min-width: 20px; }
   .od-buy__cta .od-icon-btn { width: 48px; height: 48px; }
 }
 .od-specs td, .od-specs th, .od-attr dd, .od-prose { overflow-wrap: anywhere; }
@@ -1536,3 +1536,6 @@ a.od-bn--promo:hover .od-bn__media img { transform: scale(1.025); }
   .od-bn--shop::after { background: linear-gradient(270deg, color-mix(in srgb, var(--bn-bg) 96%, transparent) 0%, color-mix(in srgb, var(--bn-bg) 86%, transparent) 60%, color-mix(in srgb, var(--bn-bg) 45%, transparent) 100%); }
 }
 @media (min-width: 900px) { .od-bn--shop { min-height: 190px; } }
+
+/* Touch devices: every tappable chip reaches the 40px minimum. */
+@media (pointer: coarse) { .od-chip, .od-active .od-chip { min-height: 40px; } }

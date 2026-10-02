@@ -257,13 +257,19 @@
   // Shown only while the main purchase button is off-screen, so it never hides it.
   var buybar = $("[data-buybar]");
   var buyAnchor = $("[data-buy-anchor]");
-  if (buybar && buyAnchor && "IntersectionObserver" in window) {
-    new IntersectionObserver(function (entries) {
-      var e = entries[0];
-      buybar.classList.toggle("is-visible", !e.isIntersecting && e.boundingClientRect.top < 0);
-    }).observe(buyAnchor);
-  } else if (buybar) {
-    buybar.classList.add("is-visible");
+  // A scroll check (not IntersectionObserver): the button can start below the
+  // fold and be flung past in one scroll, which never changes its "not intersecting" state.
+  if (buybar && buyAnchor) {
+    var ticking = false;
+    var checkBuybar = function () {
+      ticking = false;
+      buybar.classList.toggle("is-visible", buyAnchor.getBoundingClientRect().bottom < 0);
+    };
+    window.addEventListener("scroll", function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(checkBuybar); }
+    }, { passive: true });
+    window.addEventListener("resize", checkBuybar, { passive: true });
+    checkBuybar();
   }
 
   // ------------------------------------------------------------ description read-more
