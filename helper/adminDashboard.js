@@ -47,7 +47,7 @@ async function buildDashboard() {
     Product.countDocuments(outOfStockMatch),
     Product.find(lowStockMatch).select("name slug countInStock lowStockThreshold images sku").sort({ countInStock: 1 }).limit(6).lean(),
     Order.find({})
-      .select("orderNumber totalPrice status paymentStatus paymentMethod createdAt createTarikh user shippingAddress")
+      .select("OrderNum recipientName totalPrice status paymentStatus paymentMethod createdAt user")
       .populate("user", "fullName mobile")
       .sort({ createdAt: -1 })
       .limit(7)

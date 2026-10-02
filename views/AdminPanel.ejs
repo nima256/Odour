@@ -524,328 +524,310 @@ img[src="/loading.gif"] {
     <!-- <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script> -->
      <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.0.0/quill.snow.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.0.0/quill.js"></script>
-    <script src="/js/admin-charts.js"></script>
+    <link rel="stylesheet" href="/css/admin.css?v=<%= assetVersion %>">
 </head>
-<body class="bg-gray-50">
-    <!-- Mobile Overlay -->
+<body class="adm">
+<%
+  const _fa = (n) => toPersianDigits(Math.round(Number(n) || 0));
+  const _d = dashboard;
+  const _statusPill = (st) => ({ 'در انتظار پرداخت': 'adm-pill--warn', 'در حال پردازش': 'adm-pill--info', 'بسته بندی شده': 'adm-pill--info', 'در حال ارسال': 'adm-pill--info', 'تحویل داده شد': 'adm-pill--ok', 'لغو شده': 'adm-pill--bad' }[st] || '');
+  const _date = (d) => d ? new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d)) : '';
+  const _initial = String((admin && admin.fullName) || 'م').trim().charAt(0);
+%>
+    <%- include('./partials/icons') %>
     <div id="mobileOverlay" class="mobile-overlay" onclick="closeMobileSidebar()"></div>
 
-    
-    <!-- Top Navbar -->
-    <nav class="glass-card fixed top-0 right-0 left-0 z-50 border-b border-gray-200">
-        <div class="px-4 md:px-6 py-4">
-            <div class="flex items-center justify-between">
-                <!-- Mobile Menu Button -->
-                <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
-                    <i class="fas fa-bars text-lg"></i>
-                </button>
-                
-                <!-- Logo -->
-                <div class="flex items-center space-x-reverse space-x-4">
-                    <div class="gradient-bg text-white p-2 md:p-3 rounded-lg">
-                        <i class="fas fa-store text-lg md:text-xl"></i>
-                    </div>
-                    <div class="hidden sm:block">
-                        <h1 class="text-lg md:text-xl font-bold text-gray-800">فروشگاه زیبایی اودور</h1>
-                        <p class="text-xs md:text-sm text-gray-500">پنل مدیریت</p>
-                    </div>
-                </div>
-                
-                <!-- Right Side -->
-                <div class="flex items-center space-x-reverse space-x-2 md:space-x-4">
-                    <!-- Notifications -->
-                    <div class="relative">
-                        
-                        <!-- Notifications Dropdown -->
-                        <div id="notificationsMenu" class="hidden absolute left-0 mt-2 w-80 max-w-sm glass-card rounded-lg shadow-lg border border-gray-200 z-50">
-                            <div class="p-4 border-b border-gray-200">
-                                <h3 class="font-semibold text-gray-800">اعلان‌ها</h3>
-                            </div>
-                            <div class="max-h-64 overflow-y-auto">
-                                <div class="notification-item p-4">
-                                    <div class="flex items-start space-x-reverse space-x-3">
-                                        <div class="bg-blue-100 p-2 rounded-full">
-                                            <i class="fas fa-shopping-cart text-blue-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium text-gray-800">سفارش جدید</p>
-                                            <p class="text-xs text-gray-600">سفارش #1004 ثبت شد</p>
-                                            <p class="text-xs text-gray-400 mt-1">5 دقیقه پیش</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="notification-item p-4">
-                                    <div class="flex items-start space-x-reverse space-x-3">
-                                        <div class="bg-green-100 p-2 rounded-full">
-                                            <i class="fas fa-user-plus text-green-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium text-gray-800">کاربر جدید</p>
-                                            <p class="text-xs text-gray-600">علی محمدی عضو شد</p>
-                                            <p class="text-xs text-gray-400 mt-1">10 دقیقه پیش</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="notification-item p-4">
-                                    <div class="flex items-start space-x-reverse space-x-3">
-                                        <div class="bg-yellow-100 p-2 rounded-full">
-                                            <i class="fas fa-exclamation-triangle text-yellow-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium text-gray-800">موجودی کم</p>
-                                            <p class="text-xs text-gray-600">رژ لب شانل کمتر از 5 عدد</p>
-                                            <p class="text-xs text-gray-400 mt-1">1 ساعت پیش</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-3 border-t border-gray-200">
-                                <button class="w-full text-center text-sm text-blue-600 hover:text-blue-800">
-                                    مشاهده همه اعلان‌ها
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Profile -->
-                    <div class="relative">
-                        <button onclick="toggleProfileMenu()" class="flex items-center space-x-reverse space-x-2 md:space-x-3 p-1 md:p-2 rounded-lg hover:bg-gray-100 transition-all">
-                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233b82f6'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='14' font-weight='bold'%3Eس%3C/text%3E%3C/svg%3E" alt="Profile" class="w-8 h-8 md:w-10 md:h-10 rounded-full">
-                            <div class="text-right hidden sm:block">
-                                <p class="text-sm font-semibold text-gray-800"><%= admin?.fullName %></p>
-                                <p class="text-xs text-gray-500">مدیر فروشگاه</p>
-                            </div>
-                            <i class="fas fa-chevron-down text-gray-400 hidden md:block"></i>
-                        </button>
-                        
-                        <!-- Profile Dropdown -->
-                        <div id="profileMenu" class="hidden absolute left-0 mt-2 w-48 glass-card rounded-lg shadow-lg border border-gray-200 py-2">
-                            <button onclick="logout()" class="w-full text-right px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-reverse space-x-2 rounded-lg mx-2">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>خروج از سیستم</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <header class="adm-top">
+        <button class="adm-iconbtn adm-top__menu" type="button" onclick="toggleMobileSidebar()" aria-label="منو"><%- icon('menu') %></button>
+        <a class="adm-top__brand" href="/admin" aria-label="پنل مدیریت اودر">
+            <img src="/logo.webp" alt="اودر" width="120" height="24">
+            <span>پنل مدیریت</span>
+        </a>
+        <span class="adm-top__spacer"></span>
+        <a class="adm-top__link" href="/" target="_blank" rel="noopener"><%- icon('external', 'od-icon--sm') %><span>مشاهده فروشگاه</span></a>
+        <div class="adm-user">
+            <button class="adm-user__btn" type="button" onclick="toggleProfileMenu()" aria-haspopup="menu">
+                <span class="adm-user__avatar" aria-hidden="true"><%= _initial %></span>
+                <span class="adm-user__name"><strong><%= admin?.fullName || 'مدیر' %></strong><small>مدیر فروشگاه</small></span>
+                <%- icon('chevron-down', 'od-icon--sm') %>
+            </button>
+            <div id="profileMenu" class="adm-user__menu hidden" role="menu">
+                <a href="/" target="_blank" rel="noopener" role="menuitem"><%- icon('external', 'od-icon--sm') %>مشاهده فروشگاه</a>
+                <button type="button" class="is-danger" onclick="logout()" role="menuitem"><%- icon('logout', 'od-icon--sm') %>خروج از حساب</button>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar fixed top-16 md:top-20 right-0 h-full w-64 md:w-72 glass-card border-l border-gray-200 z-40">
-        <div class="p-4 md:p-6">
-            <nav class="space-y-2 md:space-y-3">
-                <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
-                    <i class="fas fa-chart-pie text-lg"></i>
-                    <span class="font-medium">داشبورد</span>
-                </button>
-                <button onclick="showSection('products')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
-                    <i class="fas fa-box text-lg"></i>
-                    <span class="font-medium">محصولات</span>
-                </button>
-                <button onclick="showSection('categories')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
-                    <i class="fas fa-tags text-lg"></i>
-                    <span class="font-medium">مدیریت</span>
-                </button>
-                <button onclick="showSection('orders')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center justify-between group hover:bg-gradient-to-l hover:from-blue-600 hover:to-indigo-600">
-                    <div class="flex items-center space-x-reverse space-x-3">
-                        <i class="fas fa-shopping-cart text-lg group-hover:text-white"></i>
-                        <span class="font-medium group-hover:text-white">سفارشات</span>
-                    </div>
-                    <span id="newOrdersBadge" class="hidden">
-                        0
-                    </span>
-                </button>
-                </button>
-                <button onclick="showSection('weblogs')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
-                    <i class="fas fa-newspaper text-lg"></i>
-                    <span class="font-medium">مقالات</span>
-                </button>
-                <button onclick="showSection('category-manager')" class="sidebar-item w-full text-right px-3 md:px-4 py-3 md:py-4 rounded-lg text-gray-700 transition-all duration-300 flex items-center space-x-reverse space-x-3">
-                    <i class="fas fa-folder-open text-lg"></i>
-                    <span class="font-medium">مدیریت دسته‌بندی</span>
-                </button>
-            </nav>
-        </div>
+    <aside id="sidebar" class="adm-side sidebar" aria-label="بخش‌های پنل">
+        <nav>
+            <div class="adm-side__group">
+                <button type="button" data-section="dashboard" onclick="showSection('dashboard')" class="sidebar-item active"><%- icon('chart') %><span>داشبورد</span></button>
+                <button type="button" data-section="orders" onclick="showSection('orders')" class="sidebar-item"><%- icon('bag') %><span>سفارش‌ها</span><span id="newOrdersBadge" class="hidden">0</span></button>
+            </div>
+            <div class="adm-side__group">
+                <p class="adm-side__label">کاتالوگ</p>
+                <button type="button" data-section="products" onclick="showSection('products')" class="sidebar-item"><%- icon('package') %><span>محصولات</span><span class="adm-side__count adm-num"><%= _fa(_d.products.total) %></span></button>
+                <button type="button" data-section="categories" onclick="showSection('categories')" class="sidebar-item"><%- icon('tag') %><span>دسته‌ها، برندها و تخفیف</span></button>
+                <button type="button" data-section="category-manager" onclick="showSection('category-manager')" class="sidebar-item"><%- icon('folder') %><span>محتوای دسته‌بندی‌ها</span></button>
+            </div>
+            <div class="adm-side__group">
+                <p class="adm-side__label">ویترین و محتوا</p>
+                <button type="button" data-section="banners" onclick="showSection('banners')" class="sidebar-item"><%- icon('layers') %><span>بنرها</span><span class="adm-side__count adm-num"><%= _fa(_d.banners.active) %></span></button>
+                <button type="button" data-section="weblogs" onclick="showSection('weblogs')" class="sidebar-item"><%- icon('file') %><span>مقالات مجله</span></button>
+            </div>
+        </nav>
+        <div class="adm-side__foot">تغییرات بنرها و محصولات بلافاصله در <a href="/" target="_blank" rel="noopener">فروشگاه</a> نمایش داده می‌شوند.</div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main-content mr-0 md:mr-72 mt-16 md:mt-20 p-4 md:p-6">
-        <!-- Dashboard Content -->
+    <main class="main-content">
+        <!-- Dashboard -->
         <div id="dashboardContent">
-            <div class="mb-6 md:mb-8">
-                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">خوش آمدید به پنل مدیریت</h2>
-                <p class="text-gray-600">آمار کلی فروشگاه  </p>
-            </div>
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div class="mb-2 md:mb-0">
-                            <p class="text-xs md:text-sm text-gray-600 mb-1">کاربران</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(users.length) %></p>
-                            <p class="text-xs text-green-500 flex items-center mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>
-                                12%
-                            </p>
-                        </div>
-                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
-                            <i class="fas fa-users text-white text-lg md:text-xl"></i>
-                        </div>
-                    </div>
+            <div class="adm-page-head">
+                <div>
+                    <h2>سلام، <%= admin?.fullName || 'مدیر' %></h2>
+                    <p>خلاصه‌ی وضعیت فروشگاه بر اساس داده‌های واقعی سفارش‌ها و انبار</p>
                 </div>
-                
-                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div class="mb-2 md:mb-0">
-                            <p class="text-xs md:text-sm text-gray-600 mb-1">محصولات</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(products.length) %></p>
-                            <p class="text-xs text-green-500 flex items-center mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>
-                                5%
-                            </p>
-                        </div>
-                        <div class="bg-gradient-to-r from-purple-400 to-purple-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
-                            <i class="fas fa-box text-white text-lg md:text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div class="mb-2 md:mb-0">
-                            <p class="text-xs md:text-sm text-gray-600 mb-1">دسته بندی ها</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(categories.length) %></p>
-                            <p class="text-xs text-green-500 flex items-center mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>
-                                8%
-                            </p>
-                        </div>
-                        <div class="bg-gradient-to-r from-indigo-400 to-indigo-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
-                            <i class="fas fa-comments text-white text-lg md:text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div class="mb-2 md:mb-0">
-                            <p class="text-xs md:text-sm text-gray-600 mb-1">سفارشات</p>
-                            <p class="text-lg md:text-2xl font-bold text-gray-800"><%= toPersianDigits(orders.length) %></p>
-                            <p class="text-xs text-green-500 flex items-center mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>
-                                15%
-                            </p>
-                        </div>
-                        <div class="bg-gradient-to-r from-green-400 to-green-600 p-2 md:p-3 rounded-lg self-start md:self-auto">
-                            <i class="fas fa-shopping-cart text-white text-lg md:text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Sales Chart -->
-            <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-chart-line text-blue-500 ml-2"></i>
-                    نمودار فروش ماهانه
-                </h3>
-                <div class="h-64 md:h-80">
-                    <div id="salesChart" class="w-full h-full"></div>  <!-- تغییر از canvas به div -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button class="adm-btn adm-btn--ghost" type="button" onclick="showSection('banners')"><%- icon('layers', 'od-icon--sm') %>مدیریت بنرها</button>
+                    <button class="adm-btn" type="button" onclick="showSection('products'); setTimeout(addProduct, 150)"><%- icon('plus', 'od-icon--sm') %>افزودن محصول</button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 mt-8">
-                <!-- کل بازدیدها -->
-                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">کل بازدیدها</p>
-                            <p class="text-3xl font-bold text-gray-800 mt-2"><%= toPersianDigits(visitStats.totalVisits) %></p>
-                            <p class="text-xs text-gray-400 mt-1">از ابتدا تاکنون</p>
-                        </div>
-                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-chart-line text-blue-500 text-xl"></i>
-                        </div>
-                    </div>
+            <div class="adm-kpis">
+                <div class="adm-card adm-kpi adm-kpi--accent">
+                    <span class="adm-kpi__label"><%- icon('wallet') %>درآمد پرداخت‌شده</span>
+                    <span class="adm-kpi__value adm-num"><%= _fa(_d.revenue.total) %><small>تومان</small></span>
+                    <span class="adm-kpi__meta">۳۰ روز اخیر: <span class="adm-num"><%= _fa(_d.revenue.last30) %></span> تومان · <span class="adm-num"><%= _fa(_d.revenue.last30Orders) %></span> سفارش</span>
                 </div>
+                <button type="button" class="adm-card adm-kpi <%= _d.orders.needsAction ? 'is-warn' : '' %>" onclick="showSection('orders')">
+                    <span class="adm-kpi__label"><%- icon('package') %>سفارش‌های در انتظار ارسال</span>
+                    <span class="adm-kpi__value adm-num"><%= _fa(_d.orders.needsAction) %></span>
+                    <span class="adm-kpi__meta">از مجموع <span class="adm-num"><%= _fa(_d.orders.total) %></span> سفارش</span>
+                </button>
+                <button type="button" class="adm-card adm-kpi <%= _d.stock.low ? 'is-warn' : '' %>" onclick="showSection('products')">
+                    <span class="adm-kpi__label"><%- icon('alert') %>موجودی رو به اتمام</span>
+                    <span class="adm-kpi__value adm-num"><%= _fa(_d.stock.low) %></span>
+                    <span class="adm-kpi__meta">بر اساس حد هشدار هر محصول</span>
+                </button>
+                <button type="button" class="adm-card adm-kpi <%= _d.stock.out ? 'is-alert' : '' %>" onclick="showSection('products')">
+                    <span class="adm-kpi__label"><%- icon('x') %>ناموجود</span>
+                    <span class="adm-kpi__value adm-num"><%= _fa(_d.stock.out) %></span>
+                    <span class="adm-kpi__meta"><span class="adm-num"><%= _fa(_d.products.published) %></span> از <span class="adm-num"><%= _fa(_d.products.total) %></span> محصول منتشر شده</span>
+                </button>
+            </div>
 
-                <!-- بازدید امروز -->
-                <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">بازدید امروز</p>
-                            <p class="text-3xl font-bold text-gray-800 mt-2"><%= toPersianDigits(visitStats.todayVisits) %></p>
-                            <p class="text-xs <%= visitStats.visitsChangePercent >= 0 ? 'text-green-500' : 'text-red-500' %> mt-1">
-                                <i class="fas fa-arrow-<%= visitStats.visitsChangePercent >= 0 ? 'up' : 'down' %>"></i>
-                                <%= Math.abs(visitStats.visitsChangePercent).toFixed(1) %>% نسبت به دیروز
-                            </p>
-                        </div>
-                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-calendar-day text-green-500 text-xl"></i>
-                        </div>
+            <div class="adm-card" style="margin-bottom:16px">
+                <div class="adm-card__head"><h3>وضعیت سفارش‌ها</h3><button class="adm-link" type="button" onclick="showSection('orders')">همه سفارش‌ها</button></div>
+                <div class="adm-card__body">
+                    <div class="adm-pipeline">
+                        <div style="--dot:#c9a24a"><span>در انتظار پرداخت</span><strong class="adm-num"><%= _fa(_d.orders.awaitingPayment) %></strong></div>
+                        <div style="--dot:var(--a-olive-500)"><span>پردازش و بسته‌بندی</span><strong class="adm-num"><%= _fa(_d.orders.needsAction) %></strong></div>
+                        <div style="--dot:#7b6a3c"><span>در حال ارسال</span><strong class="adm-num"><%= _fa(_d.orders.shipping) %></strong></div>
+                        <div style="--dot:var(--a-success)"><span>تحویل شده</span><strong class="adm-num"><%= _fa(_d.orders.completed) %></strong></div>
+                        <div style="--dot:var(--a-danger)"><span>لغو شده</span><strong class="adm-num"><%= _fa(_d.orders.cancelled) %></strong></div>
                     </div>
                 </div>
             </div>
 
-            <!-- نمودار بازدید ۷ روز اخیر -->
-            <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6 mb-8">
-                <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-eye text-purple-500 ml-2"></i>
-                    آمار بازدید (۷ روز اخیر)
-                </h3>
-                <div class="h-64 md:h-80">
-                    <div id="visitsChart" class="w-full h-full"></div>  <!-- تغییر از canvas به div -->
-                </div>
-            </div>
+            <div class="adm-grid-2">
+                <section class="adm-card" aria-labelledby="dash-orders">
+                    <div class="adm-card__head"><h3 id="dash-orders">آخرین سفارش‌ها</h3><button class="adm-link" type="button" onclick="showSection('orders')">مدیریت سفارش‌ها</button></div>
+                    <div class="adm-card__body">
+                        <% if (!_d.recentOrders.length) { %>
+                            <p class="adm-empty">هنوز سفارشی ثبت نشده است.</p>
+                        <% } else { %>
+                            <div class="adm-list">
+                                <% _d.recentOrders.forEach(function (o) { %>
+                                    <div class="adm-list__row">
+                                        <div class="adm-list__main">
+                                            <strong><%= o.recipientName || (o.user && o.user.fullName) || 'مشتری' %> <span class="adm-num" dir="ltr" style="display:inline;color:var(--a-ink-3);font-weight:500"><%= o.OrderNum || String(o._id).slice(-6) %></span></strong>
+                                            <span><%= _date(o.createdAt) %> · <%= o.paymentMethod || '' %> · <%= o.paymentStatus || '' %></span>
+                                        </div>
+                                        <div class="adm-list__end">
+                                            <strong class="adm-num"><%= _fa(o.totalPrice) %> تومان</strong>
+                                            <span class="adm-pill <%= _statusPill(o.status) %>"><%= o.status %></span>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
+                </section>
 
-            <!-- پربازدیدترین صفحات -->
-            <div class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
-                <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-trophy text-yellow-500 ml-2"></i>
-                    پربازدیدترین صفحات
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">رتبه</th>
-                                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">صفحه</th>
-                                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">تعداد بازدید</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <% if (visitStats.topPages && visitStats.topPages.length > 0) { %>
-                                <% visitStats.topPages.forEach((page, index) => { %>
-                                    <tr class="hover:bg-gray-50 transition-all">
-                                        <td class="px-4 py-3 text-sm">
-                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full <%= index === 0 ? 'bg-yellow-100 text-yellow-700' : index === 1 ? 'bg-gray-200 text-gray-700' : index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600' %>">
-                                                <%= toPersianDigits(index + 1) %>
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-sm">
-                                            <!-- اینجا از page.link و page.displayName استفاده کن -->
-                                            <a href="<%= page.link %>" class="text-gray-800 hover:text-blue-600 hover:underline transition-colors">
-                                                <%= page.displayName %>
-                                            </a>
-                                        </td>
-                                        <td class="px-4 py-3 text-sm font-semibold text-blue-600">
-                                            <%= toPersianDigits(page.count) %>
-                                        </td>
-                                    </tr>
-                                <% }); %>
+                <div style="display:grid;gap:16px;align-content:start">
+                    <section class="adm-card" aria-labelledby="dash-quick">
+                        <div class="adm-card__head"><h3 id="dash-quick">دسترسی سریع</h3></div>
+                        <div class="adm-card__body adm-quick">
+                            <button type="button" onclick="showSection('products'); setTimeout(addProduct, 150)"><%- icon('plus') %>محصول جدید</button>
+                            <button type="button" onclick="showSection('banners'); setTimeout(function(){ window.OdourBanners && OdourBanners.open(); }, 150)"><%- icon('image') %>بنر جدید</button>
+                            <button type="button" onclick="showSection('categories')"><%- icon('tag') %>کد تخفیف</button>
+                            <button type="button" onclick="showSection('weblogs')"><%- icon('file') %>مقاله جدید</button>
+                        </div>
+                    </section>
+                    <section class="adm-card" aria-labelledby="dash-stock">
+                        <div class="adm-card__head"><h3 id="dash-stock">نیاز به شارژ انبار</h3></div>
+                        <div class="adm-card__body">
+                            <% if (!_d.stock.lowList.length) { %>
+                                <p class="adm-empty">موجودی همه‌ی محصولات بالاتر از حد هشدار است.</p>
                             <% } else { %>
-                                <tr>
-                                    <td colspan="3" class="px-4 py-8 text-center text-gray-500">
-                                        هنوز بازدیدی ثبت نشده است
-                                    </td>
-                                </tr>
+                                <div class="adm-list">
+                                    <% _d.stock.lowList.forEach(function (p) { %>
+                                        <div class="adm-list__row">
+                                            <img class="adm-list__thumb" src="<%= (p.images && p.images[0] && p.images[0].url) || '/logo.webp' %>" alt="" loading="lazy" width="42" height="42">
+                                            <div class="adm-list__main"><strong><%= p.name %></strong><span><%= p.sku || '' %></span></div>
+                                            <span class="adm-pill adm-pill--warn adm-num"><%= _fa(p.countInStock) %> عدد</span>
+                                        </div>
+                                    <% }) %>
+                                </div>
                             <% } %>
-                        </tbody>
-                    </table>
+                        </div>
+                    </section>
                 </div>
             </div>
+
+            <div class="adm-grid-2">
+                <section class="adm-card" aria-labelledby="dash-products">
+                    <div class="adm-card__head"><h3 id="dash-products">آخرین محصولات</h3><button class="adm-link" type="button" onclick="showSection('products')">همه محصولات</button></div>
+                    <div class="adm-card__body">
+                        <% if (!_d.products.recent.length) { %>
+                            <p class="adm-empty">هنوز محصولی اضافه نشده است.</p>
+                        <% } else { %>
+                            <div class="adm-list">
+                                <% _d.products.recent.forEach(function (p) { %>
+                                    <div class="adm-list__row">
+                                        <img class="adm-list__thumb" src="<%= (p.images && p.images[0] && p.images[0].url) || '/logo.webp' %>" alt="" loading="lazy" width="42" height="42">
+                                        <div class="adm-list__main"><strong><%= p.name %></strong><span><%= p.brandName || '' %> · <%= _date(p.createdAt) %></span></div>
+                                        <div class="adm-list__end">
+                                            <strong class="adm-num"><%= _fa(p.offerPrice || p.price) %></strong>
+                                            <span class="adm-pill <%= p.isPublished ? 'adm-pill--ok' : '' %>"><%= p.isPublished ? 'منتشر شده' : 'پیش‌نویس' %></span>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
+                </section>
+                <section class="adm-card" aria-labelledby="dash-banners">
+                    <div class="adm-card__head"><h3 id="dash-banners">بنرهای فعال</h3><button class="adm-link" type="button" onclick="showSection('banners')">مدیریت</button></div>
+                    <div class="adm-card__body">
+                        <p class="adm-kpi__value adm-num" style="font-size:1.6rem"><%= _fa(_d.banners.active) %><small>از <%= _fa(_d.banners.total) %> بنر</small></p>
+                        <p class="adm-note">بنرهای غیرفعال یا خارج از بازه‌ی زمانی در فروشگاه نمایش داده نمی‌شوند.</p>
+                    </div>
+                </section>
+            </div>
+
+            <details class="adm-card adm-details">
+                <summary>آمار بازدید سایت <%- icon('chevron-down', 'od-icon--sm') %></summary>
+                <div class="adm-card__body" style="padding-top:0">
+                    <div class="adm-pipeline" style="margin-bottom:14px">
+                        <div><span>کل بازدیدها</span><strong class="adm-num"><%= _fa(visitStats.totalVisits) %></strong></div>
+                        <div><span>امروز</span><strong class="adm-num"><%= _fa(visitStats.todayVisits) %></strong></div>
+                        <div><span>دیروز</span><strong class="adm-num"><%= _fa(visitStats.yesterdayVisits) %></strong></div>
+                    </div>
+                    <% if (visitStats.topPages && visitStats.topPages.length) { %>
+                        <h4 style="font-size:13px;font-weight:700;margin-bottom:6px">پربازدیدترین صفحات (۳۰ روز اخیر)</h4>
+                        <div class="adm-list">
+                            <% visitStats.topPages.forEach(function (page, index) { %>
+                                <div class="adm-list__row">
+                                    <span class="adm-pill adm-num"><%= _fa(index + 1) %></span>
+                                    <div class="adm-list__main"><a href="<%= page.link %>" target="_blank" rel="noopener"><strong><%= page.displayName %></strong></a></div>
+                                    <strong class="adm-num"><%= _fa(page.count) %></strong>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p class="adm-empty">هنوز بازدیدی ثبت نشده است.</p>
+                    <% } %>
+                </div>
+            </details>
+        </div>
+
+        <!-- Banners -->
+        <div id="bannersContent" class="hidden">
+            <div class="adm-page-head">
+                <div>
+                    <h2>بنرها</h2>
+                    <p>بنرهای صفحه اصلی، فروشگاه و دسته‌بندی‌ها؛ ترتیب، زمان‌بندی و فعال بودن هر بنر را از اینجا مدیریت کنید.</p>
+                </div>
+                <button class="adm-btn" type="button" data-banner-new><%- icon('plus', 'od-icon--sm') %>بنر جدید</button>
+            </div>
+            <div data-banner-list></div>
+
+            <dialog class="adm-dialog" data-banner-dialog aria-labelledby="banner-dialog-title">
+                <form method="dialog" data-banner-form novalidate>
+                    <div class="adm-dialog__head">
+                        <h3 id="banner-dialog-title" data-banner-title>بنر جدید</h3>
+                        <button class="adm-iconbtn" type="button" data-banner-close aria-label="بستن"><%- icon('x') %></button>
+                    </div>
+                    <div class="adm-dialog__body">
+                        <div class="adm-fields adm-fields--2">
+                            <label class="adm-field"><span>جایگاه نمایش</span>
+                                <select class="adm-input" name="placement" required>
+                                    <% Object.entries(bannerPlacements).forEach(function (pl) { %><option value="<%= pl[0] %>"><%= pl[1] %></option><% }) %>
+                                </select>
+                            </label>
+                            <label class="adm-field"><span>رنگ پنل متن</span>
+                                <select class="adm-input" name="theme">
+                                    <option value="cream">کرم</option><option value="olive">زیتونی</option><option value="dark">زیتونی تیره</option><option value="light">روشن</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="adm-fields adm-fields--2">
+                            <label class="adm-field"><span>عنوان *</span><input class="adm-input" name="title" maxlength="120" required></label>
+                            <label class="adm-field"><span>رو‌تیتر (کوچک، بالای عنوان)</span><input class="adm-input" name="eyebrow" maxlength="60"></label>
+                        </div>
+                        <label class="adm-field"><span>زیرعنوان</span><textarea class="adm-input" name="subtitle" maxlength="300" rows="2"></textarea></label>
+                        <div class="adm-fields adm-fields--2">
+                            <label class="adm-field"><span>متن دکمه</span><input class="adm-input" name="ctaText" maxlength="40" placeholder="مشاهده کالکشن"></label>
+                            <label class="adm-field"><span>لینک مقصد</span><input class="adm-input" name="url" dir="ltr" placeholder="/shop?discount=1"><small>با / شروع شود یا آدرس کامل https باشد</small></label>
+                        </div>
+                        <label class="adm-field" data-banner-catfield><span>فقط در دسته‌بندی</span>
+                            <select class="adm-input" name="categorySlug">
+                                <option value="">همه صفحات فروشگاه و دسته‌بندی</option>
+                                <% categories.forEach(function (c) { %><option value="<%= c.slug %>"><%= c.name %></option><% }) %>
+                            </select>
+                        </label>
+
+                        <p class="adm-section-title">تصاویر</p>
+                        <div class="adm-fields adm-fields--2">
+                            <div class="adm-upload" data-banner-upload="image">
+                                <span class="adm-field"><span>تصویر دسکتاپ</span></span>
+                                <div class="adm-upload__preview" data-preview>بدون تصویر</div>
+                                <div class="adm-upload__row">
+                                    <label class="adm-btn adm-btn--ghost adm-btn--sm">انتخاب<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden data-file></label>
+                                    <button class="adm-btn adm-btn--danger adm-btn--sm" type="button" data-clear hidden>حذف</button>
+                                </div>
+                                <small class="adm-note">پیشنهاد: ۱۹۲۰×۸۰۰ پیکسل</small>
+                            </div>
+                            <div class="adm-upload" data-banner-upload="mobileImage">
+                                <span class="adm-field"><span>تصویر موبایل (اختیاری)</span></span>
+                                <div class="adm-upload__preview" data-preview>همان تصویر دسکتاپ</div>
+                                <div class="adm-upload__row">
+                                    <label class="adm-btn adm-btn--ghost adm-btn--sm">انتخاب<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden data-file></label>
+                                    <button class="adm-btn adm-btn--danger adm-btn--sm" type="button" data-clear hidden>حذف</button>
+                                </div>
+                                <small class="adm-note">پیشنهاد: ۹۰۰×۱۱۰۰ پیکسل</small>
+                            </div>
+                        </div>
+                        <label class="adm-field"><span>متن جایگزین تصویر</span><input class="adm-input" name="imageAlt" maxlength="140"></label>
+
+                        <p class="adm-section-title">نمایش و زمان‌بندی</p>
+                        <div class="adm-fields adm-fields--3">
+                            <label class="adm-field"><span>شروع نمایش</span><input class="adm-input" type="datetime-local" name="startsAt"></label>
+                            <label class="adm-field"><span>پایان نمایش</span><input class="adm-input" type="datetime-local" name="endsAt"></label>
+                            <label class="adm-field"><span>ترتیب</span><input class="adm-input" type="number" name="order" step="1"></label>
+                        </div>
+                        <label class="adm-switch"><input type="checkbox" name="isActive" checked> فعال</label>
+                        <p class="adm-note" data-banner-error role="alert" style="color:var(--a-danger)"></p>
+                    </div>
+                    <div class="adm-dialog__foot">
+                        <button class="adm-btn adm-btn--ghost" type="button" data-banner-close>انصراف</button>
+                        <button class="adm-btn" type="submit" data-banner-save>ذخیره بنر</button>
+                    </div>
+                </form>
+            </dialog>
+            <script id="adm-banners-data" type="application/json"><%- JSON.stringify({ banners: banners, placements: bannerPlacements }).replace(/</g, '\\u003c') %></script>
+            <script src="/js/admin-banners.js?v=<%= assetVersion %>" defer></script>
         </div>
 
         <!-- Products Content -->
@@ -1359,17 +1341,12 @@ img[src="/loading.gif"] {
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                امتیاز
+                            <label class="block text-sm font-semibold text-gray-700 mb-2" for="editSku">
+                                کد کالا (SKU)
                             </label>
-                            <div class="flex items-center gap-2">
-                                <input name="rating" type="number" id="editRating" min="0" max="5" step="0.1"
-                                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-green-400 focus:ring-2 focus:ring-green-200 transition-all outline-none"
-                                    placeholder="0 تا 5">
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                            </div>
+                            <input type="text" id="editSku" maxlength="60" dir="ltr"
+                                class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-green-400 focus:ring-2 focus:ring-green-200 transition-all outline-none"
+                                placeholder="مثلاً AMG-JUB-100">
                         </div>
                         
                         <div>
@@ -1525,6 +1502,7 @@ img[src="/loading.gif"] {
                 </div>
 
 
+                <%- include('./partials/admin-product-extras') %>
             </div>
             
             <!-- Footer با دکمه‌ها -->
@@ -1559,6 +1537,14 @@ img[src="/loading.gif"] {
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 
+                <div id="editItemPresentationField" class="mb-4 hidden">
+                    <div class="adm-fields adm-fields--2">
+                        <label class="adm-field"><span>ترتیب نمایش</span><input type="number" id="editItemOrder" class="adm-input" step="1" placeholder="۰"><small>عدد کوچک‌تر = نمایش زودتر در منو و صفحه اصلی</small></label>
+                        <label class="adm-field"><span>آیکون</span><select id="editItemIcon" class="adm-input"><option value="">خودکار از روی نام</option><option value="cat-perfume-men">ادکلن مردانه</option><option value="cat-perfume-women">ادکلن زنانه</option><option value="cat-body">بادی و اسپری</option><option value="cat-hair">مراقبت مو</option><option value="cat-skin">مراقبت پوست</option><option value="cat-brush">لوازم جانبی</option><option value="cat-lipstick">آرایشی</option><option value="cat-device">لوازم برقی</option><option value="cat-default">عمومی</option></select></label>
+                    </div>
+                    <label class="adm-field" style="margin-top:12px"><span>توضیح کوتاه</span><textarea id="editItemDescription" class="adm-input" rows="2" maxlength="1000"></textarea></label>
+                    <label class="adm-switch" style="margin-top:12px"><input type="checkbox" id="editItemActive" checked> نمایش در فروشگاه</label>
+                </div>
                 <div id="editItemImageField" class="mb-4 hidden">
                     <label for="editItemImage"
                            class="block text-sm font-medium text-gray-700 mb-1">
@@ -1831,21 +1817,6 @@ img[src="/loading.gif"] {
         }
     });
 }
-const Parchment = Quill.import('parchment');
-const BlockEmbed = Quill.import('blots/block/embed');
-
-class CustomHTMLBlot extends BlockEmbed {
-    static create(value) {
-        const node = super.create();
-        node.innerHTML = value;
-        return node;
-    }
-    
-    static value(node) {
-        return node.innerHTML;
-    }
-}
-
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -1853,12 +1824,26 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-CustomHTMLBlot.blotName = 'html';
-CustomHTMLBlot.tagName = 'div';
-CustomHTMLBlot.className = 'custom-html';
-
-if (!Quill.imports['blots/html']) {
-    Quill.register(CustomHTMLBlot);
+// The rich-text editor loads from a CDN; if it is unavailable the rest of the
+// panel (orders, products, banners) must keep working.
+if (window.Quill) {
+    const BlockEmbed = Quill.import('blots/block/embed');
+    class CustomHTMLBlot extends BlockEmbed {
+        static create(value) {
+            const node = super.create();
+            node.innerHTML = value;
+            return node;
+        }
+        static value(node) {
+            return node.innerHTML;
+        }
+    }
+    CustomHTMLBlot.blotName = 'html';
+    CustomHTMLBlot.tagName = 'div';
+    CustomHTMLBlot.className = 'custom-html';
+    if (!Quill.imports['blots/html']) {
+        Quill.register(CustomHTMLBlot);
+    }
 }
         function setupModalCleanup() {
             const editModal = document.getElementById('editModal');
@@ -2105,6 +2090,7 @@ async function removeWeblogImage(buttonElement, imageUrl, filename) {
 
         // تابع راه‌اندازی ویرایشگر
 function initQuillEditor(initialContent = '') {
+    if (!window.Quill) return;
     if (window.quillInstance) {
         window.quillInstance.root.innerHTML = initialContent || '';
         return;
@@ -2247,6 +2233,7 @@ function initQuillEditor(initialContent = '') {
 
 
 function initWeblogQuillEditor(initialContent = '') {
+    if (!window.Quill) return;
     if (weblogQuillEditor) {
         weblogQuillEditor.root.innerHTML = initialContent;
         return;
@@ -2392,36 +2379,22 @@ function initWeblogQuillEditor(initialContent = '') {
             menu.classList.toggle('hidden');
         }
 
+        var ADMIN_SECTIONS = ['dashboard', 'products', 'categories', 'orders', 'weblogs', 'category-manager', 'banners'];
         function showSection(section) {
-            // Close mobile sidebar
+            if (!ADMIN_SECTIONS.includes(section)) section = 'dashboard';
             closeMobileSidebar();
-            
-            // Hide all sections
-            document.getElementById('dashboardContent').classList.add('hidden');
-            document.getElementById('productsContent').classList.add('hidden');
-            document.getElementById('categoriesContent').classList.add('hidden');
-            document.getElementById('ordersContent').classList.add('hidden');
-            document.getElementById('weblogsContent').classList.add('hidden');
-            document.getElementById('category-managerContent').classList.add('hidden');
-            
-            // Show selected section
-            document.getElementById(section + 'Content').classList.remove('hidden');
-            
-            // Update sidebar active state
-            document.querySelectorAll('.sidebar-item').forEach(item => {
-                item.classList.remove('active');
+            ADMIN_SECTIONS.forEach(function (s) {
+                const el = document.getElementById(s + 'Content');
+                if (el) el.classList.toggle('hidden', s !== section);
             });
-            event.target.classList.add('active');
-            
-            // Load section data
-            if (section === 'dashboard') {
-                setTimeout(() => {
-                    initChart();
-                    if (typeof initVisitsChart === 'function') {
-                        initVisitsChart();
-                    }
-                }, 100);
-            } else if (section === 'products') {
+            document.querySelectorAll('.sidebar-item').forEach(function (item) {
+                const on = item.getAttribute('data-section') === section;
+                item.classList.toggle('active', on);
+                if (on) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+            });
+            window.scrollTo({ top: 0 });
+
+            if (section === 'products') {
                 loadProducts();
             } else if (section === 'categories') {
                 loadCategories();
@@ -2432,12 +2405,13 @@ function initWeblogQuillEditor(initialContent = '') {
                 setTimeout(() => {
                     markOrdersAsSeen();
                 }, 2000);
-            } else if (section === 'weblogs') {  // اضافه کن
+            } else if (section === 'weblogs') {
                 loadWeblogs();
                 loadWeblogCategories();
+            } else if (section === 'banners') {
+                if (window.OdourBanners) window.OdourBanners.render();
             } else if (section === 'category-manager') {
                 loadCategoryManagerList();
-                // ریست کردن ویرایشگر
                 if (categoryDescQuill) {
                     categoryDescQuill.root.innerHTML = '';
                 }
@@ -2453,7 +2427,7 @@ function initWeblogQuillEditor(initialContent = '') {
             return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
         }
 
-        let products = <%- JSON.stringify(products) %>
+        let products = <%- JSON.stringify(products).replace(/</g, '\\u003c') %>
 
 
         // Product Functions
@@ -2679,9 +2653,9 @@ function initWeblogQuillEditor(initialContent = '') {
             document.getElementById('productModal').classList.remove('hidden');
         }
 
-        let categories = <%- JSON.stringify(categories) %>;
-        let brands = <%- JSON.stringify(brands) %>;
-        let discounts = <%- JSON.stringify(discounts) %>;
+        let categories = <%- JSON.stringify(categories).replace(/</g, '\\u003c') %>;
+        let brands = <%- JSON.stringify(brands).replace(/</g, '\\u003c') %>;
+        let discounts = <%- JSON.stringify(discounts).replace(/</g, '\\u003c') %>;
 
 
         let currentProductId = null;
@@ -2700,6 +2674,7 @@ function initWeblogQuillEditor(initialContent = '') {
             document.getElementById('editImages').addEventListener('change', handleImageUpload);
             
             document.getElementById('editSlug').value = '';
+            if (window.OdourProductExtras) window.OdourProductExtras.fill({});
 
             const imageInput = document.getElementById('editImages');
             const newImageInput = imageInput.cloneNode(true);
@@ -2774,7 +2749,6 @@ function initWeblogQuillEditor(initialContent = '') {
             document.getElementById('editDescription').value = product.description || '';
             document.getElementById('editPrice').value = product.price || 0;
             document.getElementById('editCountInStock').value = product.countInStock || 0;
-            document.getElementById('editRating').value = product.rating || 0;
 
             // ممکن است weight به‌دلیل getter مدل به‌شکل "250 گرم" به فرانت برسد.
             // input[type=number] فقط مقدار عددی قبول می‌کند؛ بنابراین مقدار را نرمال می‌کنیم.
@@ -2925,6 +2899,7 @@ function initWeblogQuillEditor(initialContent = '') {
             document.getElementById('editIsPopular').checked = product.isPopular || false;
 
             document.getElementById('editIsPublished').checked = product.isPublished !== false;
+            if (window.OdourProductExtras) window.OdourProductExtras.fill(product);
 
             document.getElementById('editImages').addEventListener('change', handleImageUpload);
 
@@ -3682,6 +3657,11 @@ async function removeImage(buttonElement, imageUrl, filename) {
             document.getElementById('editItemName').value = '';
             document.getElementById('editItemImage').value = '';
             document.getElementById('editItemType').value = 'product';
+            document.getElementById('editItemOrder').value = '';
+            document.getElementById('editItemIcon').value = '';
+            document.getElementById('editItemDescription').value = '';
+            document.getElementById('editItemActive').checked = true;
+            document.getElementById('editItemPresentationField').classList.remove('hidden');
         
             // نمایش فیلدهای مخصوص دسته‌بندی
             document.getElementById('editItemTypeField').classList.remove('hidden');
@@ -3716,6 +3696,7 @@ async function removeImage(buttonElement, imageUrl, filename) {
             document.getElementById('editItemTypeField').classList.add('hidden');
             document.getElementById('editItemParentField').classList.add('hidden');
             document.getElementById('editItemImageField').classList.add('hidden');
+            document.getElementById('editItemPresentationField').classList.add('hidden');
         }
 
 function addWeblog() {
@@ -3860,6 +3841,11 @@ async function deleteWeblog(id) {
                 document.getElementById('editItemImage').value = category.img || '';
                 document.getElementById('editItemType').value =
                     category.categoryType || 'product';
+                document.getElementById('editItemOrder').value = category.displayOrder || '';
+                document.getElementById('editItemIcon').value = category.icon || '';
+                document.getElementById('editItemDescription').value = category.description || '';
+                document.getElementById('editItemActive').checked = category.isActive !== false;
+                document.getElementById('editItemPresentationField').classList.remove('hidden');
         
                 // نمایش فیلدهای مخصوص دسته‌بندی
                 document.getElementById('editItemTypeField').classList.remove('hidden');
@@ -3920,6 +3906,7 @@ async function deleteWeblog(id) {
                 // Hide unused fields for brand
                 document.getElementById('editItemTypeField').classList.add('hidden');
                 document.getElementById('editItemParentField').classList.add('hidden');
+                document.getElementById('editItemPresentationField').classList.add('hidden');
                 
                 document.getElementById('editItemImage').value = '';
                 document.getElementById('editItemImageField').classList.add('hidden');
@@ -4013,6 +4000,10 @@ async function editWeblog(id) {
                 
                     body.parentId =
                         document.getElementById('editItemParent').value || null;
+                    body.displayOrder = document.getElementById('editItemOrder').value;
+                    body.icon = document.getElementById('editItemIcon').value;
+                    body.description = document.getElementById('editItemDescription').value.trim();
+                    body.isActive = document.getElementById('editItemActive').checked;
                 
                     if (isEditing) {
                         endpoint = `/admin/categories/edit/${currentEditItem}`;
@@ -5159,7 +5150,6 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
                 price: parseFloat(document.getElementById('editPrice').value),
                 offerPrice: hasDiscount && offerPriceField.value ? parseFloat(offerPriceField.value) : null,
                 countInStock: parseInt(document.getElementById('editCountInStock').value),
-                rating: parseFloat(document.getElementById('editRating').value) || 0,
                 // اگر وزن خالی باشد، کلید weight در JSON ارسال نمی‌شود و وزن قبلی حفظ می‌شود.
                 weight: weightValue === '' ? undefined : Number.parseFloat(weightValue),
                 images: images,
@@ -5174,6 +5164,7 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
                 sizes: [],
                 specifications: []
             };
+            if (window.OdourProductExtras) Object.assign(data, window.OdourProductExtras.collect());
             
             // جمع‌آوری رنگ‌ها
             document.querySelectorAll('#colorFields > div').forEach((colorDiv) => {
@@ -5390,11 +5381,11 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
             const notificationsMenu = document.getElementById('notificationsMenu');
             const profileMenu = document.getElementById('profileMenu');
             
-            if (!e.target.closest('.fa-bell') && !e.target.closest('#notificationsMenu')) {
+            if (notificationsMenu && !e.target.closest('.fa-bell') && !e.target.closest('#notificationsMenu')) {
                 notificationsMenu.classList.add('hidden');
             }
             
-            if (!e.target.closest('button[onclick="toggleProfileMenu()"]') && !e.target.closest('#profileMenu')) {
+            if (profileMenu && !e.target.closest('button[onclick="toggleProfileMenu()"]') && !e.target.closest('#profileMenu')) {
                 profileMenu.classList.add('hidden');
             }
         });
@@ -5435,10 +5426,6 @@ document.getElementById('weblogImages')?.addEventListener('change', async functi
                 errors.push('موجودی باید عددی مثبت باشد');
             }
 
-            // بررسی امتیاز
-            if (data.rating && (data.rating < 0 || data.rating > 5)) {
-                errors.push('امتیاز باید بین ۰ تا ۵ باشد');
-            }
 
             // بررسی تصاویر
             if (!data.images || data.images.length === 0) {
@@ -5838,10 +5825,6 @@ async function markOrdersAsSeen() {
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             
-            setTimeout(() => {
-                initChart();
-                initVisitsChart(); 
-            }, 100);
             setupClearErrorsOnInput();
             loadProducts();
             loadCategories();
@@ -6028,6 +6011,7 @@ async function selectCategoryForEdit(categoryId, categoryName, currentDescriptio
 }
 // مقداردهی ویرایشگر Quill برای دسته‌بندی
 function initCategoryDescQuill(initialContent = '') {
+    if (!window.Quill) return;
     if (categoryDescQuill) {
         categoryDescQuill.root.innerHTML = initialContent;
         return;
@@ -6478,7 +6462,7 @@ window.showSection = function(section) {
 // وقتی صفحه لود شد، بخش ذخیره شده رو بارگذاری کن
 document.addEventListener('DOMContentLoaded', function() {
     // ابتدا بخش‌ها رو پنهان کن (برای جلوگیری از چشمک زدن)
-    const sections = ['dashboard', 'products', 'categories', 'orders', 'weblogs', 'category-manager'];
+    const sections = ADMIN_SECTIONS;
     sections.forEach(section => {
         const content = document.getElementById(section + 'Content');
         if (content) content.classList.add('hidden');
