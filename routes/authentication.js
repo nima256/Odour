@@ -17,6 +17,8 @@ const User = require("../models/User");
 const Admin = require("../models/Admins");
 const RecentAction = require("../models/RecentAction");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
+const rateLimit = require("express-rate-limit");
+const { sendOtpSms } = require("../services/sms");
 
 const errorResponse = (res, status, message, details = {}) => {
   return res.status(status).json({
@@ -39,6 +41,166 @@ const saveSession = (req) =>
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
+// ---------------------------------------------------------------------------
+// Phone + OTP sign-in (primary storefront auth).
+// One step for both new and returning customers: request a code, verify it,
+// and the session is created. Profile details are collected at checkout.
+// ---------------------------------------------------------------------------
+const OTP_TTL_MS = 2 * 60 * 1000;
+const OTP_RESEND_AFTER_S = 60;
+const OTP_MAX_ATTEMPTS = 5;
+
+const otpRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "درخواست‌های ارسال کد بیش از حد مجاز است. لطفاً چند دقیقه دیگر تلاش کنید." },
+});
+
+const otpVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "تلاش‌های ناموفق زیاد بود. لطفاً چند دقیقه دیگر تلاش کنید." },
+});
+
+// Accepts Persian/Arabic digits, spaces, +98 / 0098 prefixes.
+const normalizeMobile = (value) => {
+  let digits = String(value || "")
+    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(/\D/g, "");
+  if (digits.startsWith("0098")) digits = `0${digits.slice(4)}`;
+  else if (digits.startsWith("98") && digits.length === 12) digits = `0${digits.slice(2)}`;
+  else if (digits.length === 10 && digits.startsWith("9")) digits = `0${digits}`;
+  return digits;
+};
+
+const safeEqual = (a, b) => {
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+};
+
+router.post("/otp/request", otpRequestLimiter, async (req, res) => {
+  try {
+    const mobile = normalizeMobile(req.body.mobile);
+    if (!/^09\d{9}$/.test(mobile)) {
+      return errorResponse(res, 400, "شماره موبایل معتبر نیست؛ مثال: ۰۹۱۲۳۴۵۶۷۸۹");
+    }
+
+    const existing = await Otp.findOne({ mobile }).lean();
+    if (existing && existing.lastSentAt) {
+      const elapsed = Math.floor((Date.now() - new Date(existing.lastSentAt).getTime()) / 1000);
+      if (elapsed < OTP_RESEND_AFTER_S && new Date(existing.expiresAt) > new Date()) {
+        return errorResponse(res, 429, "کد تأیید قبلاً ارسال شده است.", {
+          retryAfter: OTP_RESEND_AFTER_S - elapsed,
+        });
+      }
+    }
+
+    const code = crypto.randomInt(10000, 100000).toString();
+    await Otp.findOneAndUpdate(
+      { mobile },
+      {
+        mobile,
+        code,
+        purpose: "login",
+        attempts: 0,
+        expiresAt: new Date(Date.now() + OTP_TTL_MS),
+        lastSentAt: new Date(),
+        ipAddress: req.ip,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    try {
+      await sendOtpSms(mobile, code);
+    } catch (smsError) {
+      console.error("OTP SMS error:", smsError.message);
+      await Otp.deleteOne({ mobile });
+      return errorResponse(res, 502, "ارسال پیامک با خطا مواجه شد. لطفاً دوباره تلاش کنید.");
+    }
+
+    return res.json({ success: true, message: "کد تأیید ارسال شد", retryAfter: OTP_RESEND_AFTER_S });
+  } catch (error) {
+    console.error("OTP request error:", error);
+    return errorResponse(res, 500, "خطا در ارسال کد تأیید");
+  }
+});
+
+router.post("/otp/verify", otpVerifyLimiter, async (req, res) => {
+  try {
+    const mobile = normalizeMobile(req.body.mobile);
+    const otp = normalizeMobile(req.body.otp); // same digit normalization
+    if (!/^09\d{9}$/.test(mobile) || !/^\d{5}$/.test(otp)) {
+      return errorResponse(res, 400, "کد ۵ رقمی را کامل وارد کنید");
+    }
+
+    const record = await Otp.findOne({ mobile });
+    if (!record || new Date() > record.expiresAt) {
+      if (record) await Otp.deleteOne({ _id: record._id });
+      return errorResponse(res, 400, "کد تأیید منقضی شده است. کد جدید دریافت کنید.", { expired: true });
+    }
+
+    if (!safeEqual(record.code, otp)) {
+      const attempts = (record.attempts || 0) + 1;
+      if (attempts >= OTP_MAX_ATTEMPTS) {
+        await Otp.deleteOne({ _id: record._id });
+        return errorResponse(res, 400, "تعداد تلاش‌ها به پایان رسید. کد جدید دریافت کنید.", { expired: true });
+      }
+      await Otp.updateOne({ _id: record._id }, { $set: { attempts } });
+      const left = String(OTP_MAX_ATTEMPTS - attempts).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+      return errorResponse(res, 400, `کد وارد شده صحیح نیست. ${left} تلاش باقی مانده است.`, {
+        remainingAttempts: OTP_MAX_ATTEMPTS - attempts,
+      });
+    }
+
+    await Otp.deleteOne({ _id: record._id });
+
+    let user = await User.findOne({ mobile });
+    let isNew = false;
+    if (!user) {
+      try {
+        user = await User.create({ mobile });
+        isNew = true;
+      } catch (createError) {
+        if (createError.code === 11000) {
+          // The number belongs to a deactivated account (hidden by the User find hook).
+          return errorResponse(res, 403, "این حساب کاربری غیرفعال شده است. با پشتیبانی تماس بگیرید.");
+        }
+        throw createError;
+      }
+    }
+
+    await regenerateSession(req);
+    req.session.userId = user._id;
+    await saveSession(req);
+
+    return res.json({
+      success: true,
+      message: isNew ? "حساب شما ساخته شد" : "ورود با موفقیت انجام شد",
+      isNew,
+      user: { id: user._id, fullName: user.fullName || "", mobile: user.mobile },
+    });
+  } catch (error) {
+    console.error("OTP verify error:", error);
+    return errorResponse(res, 500, "خطا در تأیید کد");
+  }
+});
+
+// Customer logout (the storefront uses this; /logout is kept for older callers).
+router.post("/user/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return errorResponse(res, 500, "خطا در خروج از حساب");
+    res.clearCookie("sessionId");
+    return res.json({ success: true, message: "از حساب خود خارج شدید" });
+  });
+});
+
+// Legacy password sign-up / sign-in endpoints are kept for backwards compatibility.
 // اگر از express-validator استفاده می‌کنید، مطمئن شوید:
 const validateSignUp = [
   body('fullName').notEmpty().withMessage('نام کامل الزامی است'),
@@ -261,10 +423,10 @@ router.post("/forgotPassword", async (req, res) => {
             { upsert: true, new: true }
           );
 
+          // The code is only ever delivered by SMS — never echo it in the response.
           return res.status(200).json({
             success: true,
             message: "کد تأیید برای بازیابی رمز عبور ارسال شد",
-            otp,
           });
         } else {
           return res

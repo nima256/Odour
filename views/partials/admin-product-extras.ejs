@@ -1,0 +1,99 @@
+<%# Product editor: inventory, storefront presentation and structured fragrance data.
+    Read/written by /js/admin-product-extras.js (OdourProductExtras.fill / collect). %>
+<section class="adm-extras" data-product-extras aria-labelledby="extras-title">
+  <h4 id="extras-title">نمایش در فروشگاه و شناسنامه رایحه</h4>
+
+  <div class="adm-fields adm-fields--3">
+    <label class="adm-field">
+      <span>برچسب کارت محصول</span>
+      <select class="adm-input" data-x="badge">
+        <option value="">خودکار (تخفیف یا جدید)</option>
+        <option value="new">جدید</option>
+        <option value="bestseller">پرفروش</option>
+        <option value="limited">محدود</option>
+        <option value="exclusive">انحصاری</option>
+      </select>
+      <small>فقط یک برچسب نمایش داده می‌شود؛ برچسب دستی بر تخفیف اولویت دارد.</small>
+    </label>
+    <label class="adm-field">
+      <span>اولویت نمایش</span>
+      <input class="adm-input" type="number" step="1" min="-1000" max="1000" data-x="sortPriority" placeholder="۰">
+      <small>عدد بزرگ‌تر = نمایش زودتر در «پیشنهاد اودر»</small>
+    </label>
+    <label class="adm-field">
+      <span>حد هشدار موجودی</span>
+      <input class="adm-input" type="number" step="1" min="0" max="1000" data-x="lowStockThreshold" placeholder="۳">
+      <small>در داشبورد و کارت محصول «تنها N عدد» نمایش داده می‌شود.</small>
+    </label>
+    <label class="adm-field">
+      <span>کالکشن</span>
+      <input class="adm-input" type="text" maxlength="60" data-x="collectionName" placeholder="مثلاً کالکشن پاییز">
+    </label>
+  </div>
+
+  <details open>
+    <summary>شناسنامه رایحه <%- icon('chevron-down', 'od-icon--sm') %></summary>
+    <div class="adm-fields adm-fields--3">
+      <label class="adm-field"><span>خانواده بویایی</span><input class="adm-input" data-f="family" maxlength="60" placeholder="چوبی شرقی"></label>
+      <label class="adm-field"><span>غلظت</span><input class="adm-input" data-f="concentration" maxlength="40" list="adm-concentrations" placeholder="ادو پرفیوم"></label>
+      <label class="adm-field"><span>جنسیت</span>
+        <select class="adm-input" data-f="gender"><option value="">—</option><option>زنانه</option><option>مردانه</option><option>یونیسکس</option></select>
+      </label>
+      <label class="adm-field"><span>حجم</span><input class="adm-input" data-f="volume" maxlength="40" placeholder="۱۰۰ میلی‌لیتر"></label>
+      <label class="adm-field"><span>ماندگاری</span><input class="adm-input" data-f="longevity" maxlength="40" placeholder="۸ تا ۱۰ ساعت"></label>
+      <label class="adm-field"><span>پخش بو</span><input class="adm-input" data-f="sillage" maxlength="40" list="adm-sillage" placeholder="متوسط"></label>
+    </div>
+    <datalist id="adm-concentrations"><option>ادو کلن</option><option>ادو تویلت</option><option>ادو پرفیوم</option><option>پرفیوم</option><option>اکستریت د پرفیوم</option></datalist>
+    <datalist id="adm-sillage"><option>ملایم</option><option>متوسط</option><option>متوسط تا قوی</option><option>قوی</option></datalist>
+
+    <div class="adm-fields adm-fields--3" style="margin-top:14px">
+      <label class="adm-field"><span>نت‌های آغازین</span><input class="adm-input" data-f="top" placeholder="ترنج، فلفل صورتی"><small>با ویرگول جدا کنید</small></label>
+      <label class="adm-field"><span>نت‌های میانی</span><input class="adm-input" data-f="heart" placeholder="رز، زنبق"></label>
+      <label class="adm-field"><span>نت‌های پایه</span><input class="adm-input" data-f="base" placeholder="عود، عنبر، مشک"></label>
+    </div>
+
+    <label class="adm-field" style="margin-top:14px">
+      <span>آکوردهای اصلی</span>
+      <input class="adm-input" data-f="accords" placeholder="چوبی:100، گلی:80، شیرین:60">
+      <small>نام و شدت (۰ تا ۱۰۰) با «:» — حداکثر ۸ آکورد، به ترتیب اهمیت</small>
+    </label>
+
+    <div class="adm-fields adm-fields--3" style="margin-top:14px">
+      <div class="adm-field"><span>فصل مناسب</span>
+        <div class="adm-checks">
+          <% ['بهار', 'تابستان', 'پاییز', 'زمستان'].forEach(function (x) { %><label class="adm-check"><input type="checkbox" data-f-list="seasons" value="<%= x %>"><%= x %></label><% }) %>
+        </div>
+      </div>
+      <div class="adm-field"><span>زمان استفاده</span>
+        <div class="adm-checks">
+          <% ['روز', 'شب'].forEach(function (x) { %><label class="adm-check"><input type="checkbox" data-f-list="dayNight" value="<%= x %>"><%= x %></label><% }) %>
+        </div>
+      </div>
+      <label class="adm-field"><span>مناسب برای</span><input class="adm-input" data-f="occasions" placeholder="محل کار، مهمانی"></label>
+    </div>
+  </details>
+
+  <details>
+    <summary>داستان، نحوه استفاده و ترکیبات <%- icon('chevron-down', 'od-icon--sm') %></summary>
+    <div class="adm-fields">
+      <label class="adm-field"><span>داستان رایحه</span><textarea class="adm-input" data-f="story" maxlength="2000" rows="3" placeholder="دو سه جمله درباره حس و الهام این عطر"></textarea></label>
+      <div class="adm-fields adm-fields--2">
+        <label class="adm-field"><span>نحوه استفاده</span><textarea class="adm-input" data-f="usage" maxlength="1000" rows="3"></textarea></label>
+        <label class="adm-field"><span>ترکیبات</span><textarea class="adm-input" data-f="ingredients" maxlength="2000" rows="3" dir="ltr"></textarea></label>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>تصویر کارت شناسنامه <%- icon('chevron-down', 'od-icon--sm') %></summary>
+    <div class="adm-upload" style="margin-top:12px">
+      <div class="adm-upload__preview adm-upload__preview--tall" data-identity-preview>تصویر اول محصول استفاده می‌شود</div>
+      <div class="adm-upload__row">
+        <label class="adm-btn adm-btn--ghost adm-btn--sm">انتخاب تصویر<input type="file" accept="image/*" hidden data-identity-file></label>
+        <button type="button" class="adm-btn adm-btn--danger adm-btn--sm" data-identity-clear hidden>حذف</button>
+      </div>
+      <small class="adm-note">ترجیحاً تصویر بطری روی پس‌زمینه روشن (PNG یا WebP).</small>
+    </div>
+  </details>
+</section>
+<script src="/js/admin-product-extras.js?v=<%= assetVersion %>" defer></script>

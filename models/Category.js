@@ -98,6 +98,17 @@ const categorySchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Storefront ordering (ascending) for menus, shortcuts and filters.
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
+    // Optional key of a storefront category icon (see views/partials/icons.ejs, "cat-*").
+    icon: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     createTarikh: {
       type: String,
       default: () => getPersianDate(),

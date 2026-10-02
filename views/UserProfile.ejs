@@ -1,1757 +1,199 @@
+<%
+  const STATUS = {
+    'در انتظار پرداخت': { cls: 'pending', step: 0 },
+    'در حال پردازش': { cls: 'processing', step: 1 },
+    'بسته بندی شده': { cls: 'packed', step: 2 },
+    'در حال ارسال': { cls: 'shipping', step: 3 },
+    'تحویل داده شد': { cls: 'delivered', step: 4 },
+    'لغو شده': { cls: 'canceled', step: -1 }
+  };
+  const displayName = user.fullName || 'کاربر اودر';
+  const initial = (user.fullName || 'ا').trim().charAt(0);
+  const activeOrders = orders.filter(o => ['در حال پردازش', 'بسته بندی شده', 'در حال ارسال'].includes(o.status)).length;
+  const addresses = user.addresses || [];
+%>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>پروفایل کاربری</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
-     <link rel="stylesheet" href="/tailwind.min.css">
-     <link rel="canonical" href="https://odour.ir/userProfile" />
-     <link rel="icon" type="image/x-icon" href="/logo.ico">
-      
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "ProfilePage",
-      "name": "پروفایل کاربری",
-      "description": "مدیریت حساب کاربری، مشاهده سفارشات، اطلاعات شخصی و تاریخچه خرید در فروشگاه اودر",
-      "url": "https://odour.ir/userProfile",
-      "inLanguage": "fa-IR",
-      "dateModified": "2026-01-15T10:00:00+03:30",
-      "isPartOf": {
-        "@type": "WebSite",
-        "name": "اودر",
-        "url": "https://odour.ir"
-      },
-      "breadcrumb": {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "خانه",
-            "item": "https://odour.ir"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "حساب کاربری",
-            "item": "https://odour.ir/userProfile"
-          }
-        ]
-      },
-      "mainEntity": {
-        "@type": "Person",
-        "name": "<%= user.fullName %>",
-        "email": "<%= user.email %>",
-        "telephone": "<%= user.mobile %>",
-        "memberSince": "<%= user.createdAt ? user.createdAt.toISOString().split('T')[0] : '2024-01-01' %>",
-        "mainEntityOfPage": {
-          "@type": "ProfilePage",
-          "@id": "https://odour.ir/userProfile"
-        }
-      }
-    }
-    </script>
+<head>
+  <%- include('./partials/head', { title: 'حساب کاربری | اودر', robots: 'noindex, nofollow' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
 
-
-    <!-- <link
-      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    /> -->
-    <style>
-      @font-face {
-        font-family: "MyFont";
-        src: url("/fonts/Vazirmatn-Light.ttf");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-        }
-
-        body {
-        font-family: "MyFont", sans-serif;
-        scroll-behavior: smooth;
-        text-align: right;
-        }
-
-      .tab-active {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        color: white;
-      }
-      .order-card {
-        transition: all 0.3s ease;
-      }
-      .order-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      }
-      .cart-button {
-        background-color: #2563eb;
-        color: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s;
-        border: none;
-        cursor: pointer;
-      }
-
-      .cart-button:hover {
-        background-color: #1d4ed8;
-        transform: scale(1.05);
-      }
-
-      .cart-button:focus {
-        outline: none;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
-      }
-
-      .cart-button.success {
-        background-color: #16a34a;
-      }
-
-      .cart-button.success:hover {
-        background-color: #15803d;
-      }
-
-      .icon {
-        width: 2rem;
-        height: 2rem;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      svg {
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
-      }
-
-      .logo-container {
-        --logo-size: 2.5rem;
-      }
-
-      .logo {
-        width: var(--logo-size);
-        height: var(--logo-size);
-      }
-
-      .nav-link {
-        transition: all 0.3s ease;
-        position: relative;
-      }
-
-      .nav-link::after {
-        content: "";
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: -4px;
-        right: 50%;
-        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-        transition: all 0.3s ease;
-      }
-
-      .nav-link:hover::after {
-        width: 100%;
-        right: 0;
-      }
-
-      .icon-btn {
-        transition: all 0.3s ease;
-      }
-
-      .icon-btn:hover {
-        transform: translateY(-2px);
-      }
-
-      .mobile-menu {
-        transition: all 0.3s ease;
-        transform: translateX(100%);
-        opacity: 0;
-      }
-
-      .mobile-menu.active {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    .nav-link::after {
-    content: "";
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -4px;
-    right: 50%;
-    background: linear-gradient(90deg, #d94f86, #ec4899);
-    transition: all 0.3s ease;
-}
-    @font-face {
-      font-family: "MyFont";
-      src: url("/fonts/Vazirmatn-Light.ttf");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
-    body { 
-      font-family: "MyFont", sans-serif;
-    }
-    /* در استایل‌های موجود اضافه کنید */
-@media (min-width: 768px) {
-  .hamburger {
-    display: none !important;
-  }
-  
-  .desktop-menu {
-    display: flex !important;
-  }
-}
-
-@media (max-width: 767px) {
-  .desktop-menu {
-    display: none !important;
-  }
-  
-  .hamburger {
-    display: block !important;
-  }
-}
-.cart-count {
-    top: -8px;
-    left: -8px;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideDown {
-    from {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-.modal-backdrop-enter {
-    animation: fadeIn 0.25s ease-out forwards;
-}
-
-.modal-backdrop-exit {
-    animation: fadeOut 0.2s ease-out forwards;
-}
-
-.modal-content-enter {
-    animation: slideUp 0.25s ease-out forwards;
-}
-
-.modal-content-exit {
-    animation: slideDown 0.2s ease-out forwards;
-}
-
-/* جلوگیری از اسکرول */
-body.modal-open {
-    overflow: hidden;
-}
-
-
-  @media (min-width: 768px) {
-    .desktop-menu {
-      display: flex !important;
-    }
-    .hamburger {
-      display: none !important;
-    }
-  }
-  
-  /* استایل‌های هاور برای دسکتاپ */
-  .dropdown:hover .dropdown-menu {
-    display: block !important;
-  }
-  
-  .submenu-item {
-    position: relative;
-  }
-  
-  .submenu-item:hover .submenu-level2 {
-    display: block !important;
-  }
-  
-  .dropdown-menu a:hover,
-  .submenu-level2 a:hover {
-    background-color: #f5f5f5;
-  }
-  
-  /* اطمینان از display صحیح */
-  .dropdown-menu {
-    display: none;
-  }
-  
-  .submenu-level2 {
-    display: none;
-  }
-  
-  /* تنظیمات بیشتر برای هاور */
-  .dropdown:hover .dropdown-menu {
-    display: block;
-  }
-  
-  .submenu-item:hover > .submenu-level2 {
-    display: block;
-  }
-  
-  /* استایل برای موبایل */
-  @media (max-width: 768px) {
-    .flex.items-center.space-x-4 {
-      gap: 12px;
-    }
-  }
-  
-  .mobile-dropdown-menu,
-  .mobile-submenu-level2 {
-    transition: all 0.3s ease;
-  }
-  
-  /* استایل cart-count */
-  .cart-count {
-    top: -8px;
-    left: -8px;
-  }
-
-
-    </style>
-  </head>
-  <body
-    class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen"
-  >
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const mobileMenuButton = document.getElementById("mobile-menu-button");
-        const mobileMenu = document.getElementById("mobile-menu");
-
-        mobileMenuButton.addEventListener("click", function () {
-          mobileMenu.classList.toggle("hidden");
-        });
-
-        // بستن منو هنگام کلیک خارج از آن
-        document.addEventListener("click", function (event) {
-          if (
-            !mobileMenu.contains(event.target) &&
-            event.target !== mobileMenuButton
-          ) {
-            mobileMenu.classList.add("hidden");
-          }
-        });
-      });
-    
-    </script>
-  <!-- نوار ناوبری (مشابه صفحه اصلی) -->
-<!-- ==================== نوار ناوبری (در تمام صفحات ثابت) ==================== -->
- <%- include('./partials/navbar') %>
-
-   <!-- ==================== پاپ‌آپ احراز هویت ==================== -->
-   <div id="auth-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 modal-content">
-      <!-- Tab Navigation -->
-      <div class="flex border-b">
-        <button id="login-tab" class="tab-btn flex-1 py-4 text-center font-medium text-pink-500 border-b-2 border-pink-500">
-          ورود
-        </button>
-        <button id="register-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500">
-          ثبت نام
-        </button>
-        <button id="forgot-tab" class="tab-btn flex-1 py-4 text-center font-medium text-gray-500">
-          بازیابی رمز
-        </button>
-      </div>
-
-      <!-- Login Form -->
-      <div id="login-content" class="tab-content active p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">ورود به حساب کاربری</h2>
-        <form action="/api/authentication/signIn" method="post" id="login-form" class="space-y-5">
-          <div>
-            <label class="block text-gray-700 mb-2" for="login-phone">شماره موبایل</label>
-            <input type="tel" name="mobile" id="login-phone" class="w-full px-4 py-3 rounded-lg border" placeholder="09xxxxxxxxx" required />
-          </div>
-          <div>
-            <label class="block text-gray-700 mb-2" for="login-password">رمز عبور</label>
-            <input type="password" name="password" id="login-password" class="w-full px-4 py-3 rounded-lg border" placeholder="رمز عبور خود را وارد کنید" required />
-          </div>
-          <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
-            ورود
-          </button>
-        </form>
-      </div>
-
-      <!-- Registration Form -->
-      <div id="register-content" class="tab-content p-6">
-        <div id="register-step-1" class="form-step active">
-          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">ایجاد حساب کاربری</h2>
-          <form id="register-form" class="space-y-4">
-            <div>
-              <label class="block text-gray-700 mb-2" for="register-name">نام و نام خانوادگی</label>
-              <input type="text" name="fullName" id="register-name" class="w-full px-4 py-3 rounded-lg border" placeholder="نام کامل خود را وارد کنید" required />
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-2" for="register-phone">شماره موبایل</label>
-              <input type="tel" name="mobile" id="register-phone" class="w-full px-4 py-3 rounded-lg border" placeholder="09xxxxxxxxx" required />
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-2" for="register-email">ایمیل</label>
-              <input type="email" name="email" id="register-email" class="w-full px-4 py-3 rounded-lg border" placeholder="email@example.com" />
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-2" for="register-password">رمز عبور</label>
-              <input type="password" name="password" id="register-password" class="w-full px-4 py-3 rounded-lg border" placeholder="حداقل 8 کاراکتر" required />
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-2" for="register-confirm-password">تکرار رمز عبور</label>
-              <input type="password" name="confirmPassword" id="register-confirm-password" class="w-full px-4 py-3 rounded-lg border" placeholder="تکرار رمز عبور" required />
-            </div>
-            <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors mt-2">
-              ثبت نام
-            </button>
-          </form>
+  <main class="od-main" id="main">
+    <div class="od-container od-account">
+      <aside class="od-account__side">
+        <div class="od-card od-me">
+          <span class="od-me__avatar" aria-hidden="true"><%= initial %></span>
+          <div><strong><%= displayName %></strong><span class="od-latin"><%= faDigits(user.mobile) %></span></div>
         </div>
+        <nav class="od-card od-acc-nav" aria-label="بخش‌های حساب" data-acc-nav>
+          <a href="#orders" data-tab="orders"><%- icon('package') %>سفارش‌ها<% if (activeOrders) { %><span class="od-badge"><%= faDigits(activeOrders) %> فعال</span><% } %></a>
+          <a href="#wishlist" data-tab="wishlist"><%- icon('heart') %>علاقه‌مندی‌ها<% if (wishlist.length) { %><span class="od-badge"><%= faDigits(wishlist.length) %></span><% } %></a>
+          <a href="#addresses" data-tab="addresses"><%- icon('pin') %>آدرس‌ها</a>
+          <a href="#account" data-tab="account"><%- icon('user') %>اطلاعات حساب</a>
+          <a href="#recent" data-tab="recent"><%- icon('history') %>بازدیدهای اخیر</a>
+          <button class="od-acc-nav__logout" type="button" data-logout><%- icon('logout') %>خروج</button>
+        </nav>
+      </aside>
 
-        <div id="register-step-2" class="form-step">
-          <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">تایید شماره موبایل</h2>
-          <p class="text-gray-600 text-center mb-5">
-            کد تایید به شماره <span id="register-phone-display" class="font-bold"></span> ارسال شد
-          </p>
-          <form id="register-verification-form" class="space-y-5">
-            <div class="text-center">
-              <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
-              <div class="flex justify-center gap-2 mb-3">
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-              </div>
-              <div id="register-resend-timer" class="text-sm text-gray-500 mb-3">ارسال مجدد کد تا <span>۰۲:۰۰</span></div>
+      <div>
+        <%# ---------- Orders ---------- %>
+        <section class="od-acc-panel" id="orders" data-panel-id="orders" aria-labelledby="orders-title">
+          <div class="od-panel-title"><h1 class="od-h2" id="orders-title">سفارش‌های من</h1></div>
+          <% if (!orders.length) { %>
+            <div class="od-card od-state">
+              <div class="od-state__art"><%- icon('package') %></div>
+              <h2>هنوز سفارشی ثبت نکرده‌اید</h2>
+              <p>اولین سفارش‌تان را با ارسال سریع و ضمانت اصالت ثبت کنید.</p>
+              <a class="od-btn" href="/shop">شروع خرید</a>
             </div>
-            <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
-              تایید و ورود
-            </button>
-            <button type="button" id="register-back-btn" class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors">
-              بازگشت
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <!-- Forgot Password Form -->
-      <div id="forgot-content" class="tab-content p-6">
-        <div id="forgot-step-1" class="form-step active">
-          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">بازیابی رمز عبور</h2>
-          <form id="forgot-form" class="space-y-5">
-            <div>
-              <label class="block text-gray-700 mb-2" for="forgot-phone">شماره موبایل</label>
-              <input type="tel" id="forgot-phone" class="w-full px-4 py-3 rounded-lg border" placeholder="09xxxxxxxxx" required />
+          <% } else { %>
+            <div class="od-tabs" role="toolbar" aria-label="فیلتر سفارش‌ها" data-order-filter>
+              <button class="od-tab" type="button" aria-pressed="true" aria-selected="true" data-filter="all">همه (<%= faDigits(orders.length) %>)</button>
+              <button class="od-tab" type="button" aria-selected="false" data-filter="active">جاری</button>
+              <button class="od-tab" type="button" aria-selected="false" data-filter="done">تحویل شده</button>
+              <button class="od-tab" type="button" aria-selected="false" data-filter="other">لغو / در انتظار پرداخت</button>
             </div>
-            <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
-              ارسال کد تایید
-            </button>
-          </form>
-        </div>
-
-        <div id="forgot-step-2" class="form-step">
-          <h2 class="text-xl font-bold text-gray-800 mb-2 text-center">تایید کد</h2>
-          <p class="text-gray-600 text-center mb-5">
-            کد تایید به شماره <span id="forgot-phone-display" class="font-bold"></span> ارسال شد
-          </p>
-          <form id="forgot-verification-form" class="space-y-5">
-            <div class="text-center">
-              <label class="block text-gray-700 mb-4 text-center">کد تایید را وارد کنید</label>
-              <div class="flex justify-center gap-2 mb-3">
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-                <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-xl border rounded-lg" dir="ltr" required />
-              </div>
-              <div id="forgot-resend-timer" class="text-sm text-gray-500 mb-3">ارسال مجدد کد تا <span>۰۲:۰۰</span></div>
-            </div>
-            <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
-              تایید
-            </button>
-            <button type="button" id="forgot-back-btn" class="w-full bg-white text-pink-500 py-3 rounded-lg font-medium border border-pink-500 hover:bg-pink-50 transition-colors">
-              بازگشت
-            </button>
-          </form>
-        </div>
-
-        <div id="forgot-step-3" class="form-step">
-          <h2 class="text-xl font-bold text-gray-800 mb-5 text-center">تعیین رمز عبور جدید</h2>
-          <form id="new-password-form" class="space-y-5">
-            <div>
-              <label class="block text-gray-700 mb-2" for="new-password">رمز عبور جدید</label>
-              <input type="password" id="new-password" class="w-full px-4 py-3 rounded-lg border" placeholder="حداقل 6 کاراکتر" required />
-            </div>
-            <div>
-              <label class="block text-gray-700 mb-2" for="confirm-new-password">تکرار رمز عبور جدید</label>
-              <input type="password" id="confirm-new-password" class="w-full px-4 py-3 rounded-lg border" placeholder="تکرار رمز عبور جدید" required />
-            </div>
-            <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
-              ذخیره و ورود
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-   </div>
-    <!-- Header -->
-<br><br><br><br>
-
-    <!-- Main Content -->
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Profile Section -->
-        <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
-            <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8 lg:space-x-reverse">
-                <!-- Avatar -->
-              <div class="relative group">
-                  <div class="w-32 h-32 rounded-3xl overflow-hidden shadow-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
-                      <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                      </svg>
-                  </div>
-                  
-                  <!-- دکمه خروج با افکت hover -->
-                  <button onclick="showLogoutModal()" 
-                          class="absolute -bottom-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2.5 shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-400">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                      </svg>
-                  </button>
-              </div>
-
-                <!-- User Info -->
-              <div class="flex-1 w-full">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label class="text-sm font-medium text-gray-700 mb-2 block"
-                      >نام و نام خانوادگی</label
-                    >
-                    <input
-                      type="text"
-                      value="<%= user.fullName %>"
-                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
-                      readonly
-                    />
-                  </div>
-                  <div>
-                    <label class="text-sm font-medium text-gray-700 mb-2 block"
-                      >شماره تلفن</label
-                    >
-                    <input
-                      type="text"
-                      value="<%= toPersianDigitsForSizes(user.mobile) %>"
-                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
-                      readonly
-                    />
-                  </div>
-                  <div>
-                    <label class="text-sm font-medium text-gray-700 mb-2 block"
-                      >ایمیل</label
-                    >
-                    <input
-                      type="email"
-                      value="<%= user.email %>"
-                      class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl"
-                      readonly
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div>
-
-        <!-- Orders Section -->
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-                <h2 class="text-2xl font-bold text-white">سفارشات من</h2>
-            </div>
-
-            <!-- Tabs -->
-            <div class="flex border-b border-gray-200 bg-gray-50">
-              <% if (user.orders.length !== 0) {%>
-              <% if (currentOrders.length > 0) { %>
-                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-blue-600" data-tab="current">
-                  جاری (<%= currentOrders.length %>)
-                </button>
-              <% } %>
-              <% if (completedOrders.length > 0) { %>
-                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-green-600" data-tab="completed">
-                  تکمیل شده (<%= completedOrders.length %>)
-                </button>
-              <% } %>
-              <% if (canceledOrders.length > 0) { %>
-                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-red-600" data-tab="canceled">
-                  لغو شده (<%= canceledOrders.length %>)
-                </button>
-              <% } %>
-              <% } else {%>
-                <button class="tab-btn flex-1 py-4 px-6 text-center font-medium transition-all text-gray-600 hover:text-red-600 tab-active" data-tab="current">
-                  بدون سفارش
-                </button>
-              <% } %>
-            </div>
-
-            <!-- Tab Content -->
-             <% if (user.orders.length !== 0) {%>
-            <div class="p-6">
-                <!-- Current Orders -->
-              <% if (currentOrders.length > 0) { %>
-              <div id="current-tab" class="tab-content">
-                <% currentOrders.forEach(order => { %>
-                <div class="space-y-4">
-                <div
-                  class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer mb-4"
-                  onclick="showOrderDetails(this)"
-                  data-order='<%= JSON.stringify({
-                    id: order.OrderNum,
-                    date: order.createTarikh,
-                    totalPrice: order.totalPrice,
-                    originalPrice: order.originalPrice,
-                    discountAmount: order.discountAmount,
-                    discount: order.discount, 
-                    address: order.address,
-                    delivery: order.delivery,
-                    status: order.status,
-                    products: order.products.map(p => ({
-                      name: p.product.name,
-                      image: p.product.images[0].url,
-                      price: p.product.price,
-                      offerPrice: p.product.offerPrice,
-                      quantity: p.quantity,
-                      selectedColor: p.selectedColor,
-                      selectedSize: p.selectedSize,
-                    }))
-                  }) %>'
-                >
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-3 space-x-reverse">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center
-                                <%=
-                                order.status === 'تحویل داده شد' ? 'bg-green-500' :
-                                order.status === 'لغو شده' ? 'bg-red-500' :
-                                order.status === 'در حال ارسال' ? 'bg-blue-500' :
-                                order.status === 'بسته بندی شده' ? 'bg-orange-500' :
-                                order.status === 'در حال پردازش' ? 'bg-purple-500' :
-                                order.status === 'پرداخت شده' ? 'bg-cyan-500' :
-                                'bg-yellow-500'
-                                %>">
-
-                                <% if(order.status === 'در انتظار پرداخت'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 11H7v-2h4V6h2v7z"/>
-                                </svg>
-                                <% } else if(order.status === 'پرداخت شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9
-                                    10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } else if(order.status === 'در حال پردازش'){ %>
-                                <svg class="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".3"/>
-                                  <path fill="currentColor" d="M12 2a10 10 0 0110 10h-4a6 6 0 00-6-6V2z"/>
-                                </svg>
-                                <% } else if(order.status === 'بسته بندی شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2L3 7l9 5 9-5-9-5zm-7 7v8l7 5v-8L5 9zm14 0l-7 5v8l7-5V9z"/>
-                                </svg>
-                                <% } else if(order.status === 'در حال ارسال'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M3 5h11v8H3V5zm12 2h3l3 4v2h-6V7zm-8 9a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"/>
-                                </svg>
-                                <% } else if(order.status === 'تحویل داده شد'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9
-                                    10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } else if(order.status === 'لغو شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414
-                                    1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
-                                    11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
-                                    4.293 5.707a1 1 0 010-1.414z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } %>
-                            </div>
-                      <div>
-                        <h3 class="font-semibold text-gray-800">
-                          سفارش #<%= order.OrderNum %>
-                        </h3>
-                        <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
+            <div class="od-orders">
+              <% orders.forEach(function (order, idx) {
+                   const st = STATUS[order.status] || { cls: 'processing', step: 1 };
+                   const group = st.step >= 1 && st.step <= 3 ? 'active' : st.step === 4 ? 'done' : 'other';
+                   const items = order.products || [];
+              %>
+                <details class="od-card od-order" data-group="<%= group %>" <%= idx === 0 ? 'open' : '' %>>
+                  <summary>
+                    <div class="od-order__top">
+                      <span class="od-order__num od-latin"><%= order.OrderNum %></span>
+                      <span class="od-status od-status--<%= st.cls %>"><%= order.status %></span>
+                      <span class="od-spacer"></span>
+                      <strong class="od-num"><%= faPrice(order.totalPrice) %> تومان</strong>
+                      <%- icon('chevron-down', 'od-order__chev') %>
+                    </div>
+                    <div class="od-order__meta">
+                      <span><%= order.createTarikh %></span>
+                      <span><%= faDigits(items.reduce((n, i) => n + Number(i.quantity || 0), 0)) %> کالا</span>
+                      <% if (order.trackingNumber) { %><span>کد رهگیری: <b class="od-latin"><%= order.trackingNumber %></b></span><% } %>
+                    </div>
+                    <div class="od-order__thumbs" aria-hidden="true">
+                      <% items.slice(0, 4).forEach(function (i) { const img = i.product && i.product.images && i.product.images[0]; %>
+                        <span><% if (img) { %><img src="<%= img.url %>" alt="" loading="lazy" /><% } %></span>
+                      <% }) %>
+                      <% if (items.length > 4) { %><span><em>+<%= faDigits(items.length - 4) %></em></span><% } %>
+                    </div>
+                  </summary>
+                  <div class="od-order__body">
+                    <% if (st.step >= 1) { %>
+                      <div class="od-track" aria-label="مراحل سفارش">
+                        <% ['در حال پردازش', 'بسته‌بندی', 'ارسال', 'تحویل'].forEach(function (label, k) { %>
+                          <span class="<%= st.step >= k + 1 ? 'is-done' : '' %>"><%= label %></span>
+                        <% }) %>
                       </div>
-                    </div>
-                    <div class="text-left">
-                      <p class="text-lg font-bold text-green-600">
-                        <%= toPersianDigits(order.totalPrice) %> تومان
-                      </p>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
-                        <% if (order.status === 'لغو شده') { %>
-                            bg-red-100 text-red-800
-                        <% } else if (order.status === 'در انتظار پرداخت') { %>
-                            bg-yellow-100 text-yellow-800
-                        <% } else if (order.status === 'در حال پردازش') { %>
-                            bg-blue-100 text-blue-800
-                        <% } else if (order.status === 'بسته بندی شده') { %>
-                            bg-purple-100 text-purple-800
-                        <% } else if (order.status === 'در حال ارسال') { %>
-                            bg-indigo-100 text-indigo-800
-                        <% } else if (order.status === 'تحویل داده شد') { %>
-                            bg-green-100 text-green-800
-                        <% } %>
-                    ">
-                        <%= order.status %>
-                    </span>
-                    </div>
-                  </div>
-                  <div class="flex justify-between text-sm text-gray-600">
-                    <div class="flex flex-col space-y-1"> <!-- Added column container -->
-                      <% order.products.forEach(item => { %>
-                        <div class="flex flex-col"> <!-- Column for each product -->
-                              <span><%= item?.product?.name %> - <%= toPersianDigitsForSizes(item?.quantity) %> عدد</span>
+                    <% } %>
+                    <div class="od-order__items">
+                      <% items.forEach(function (i) { %>
+                        <div class="od-order__item">
+                          <span>
+                            <% if (i.product && i.product.slug) { %><a class="od-link" style="font-weight:500" href="/productDetails/<%= encodeURIComponent(i.product.slug) %>"><%= i.nameAtPurchase %></a><% } else { %><%= i.nameAtPurchase %><% } %>
+                            <% if (i.selectedColor || i.selectedSize) { %><small class="od-meta"> · <%= [i.selectedColor, i.selectedSize && toPersianDigitsForSizes(i.selectedSize)].filter(Boolean).join(' / ') %></small><% } %>
+                            × <%= faDigits(i.quantity) %>
+                          </span>
+                          <span class="od-num"><%= faPrice(i.priceAtPurchase * i.quantity) %> تومان</span>
                         </div>
                       <% }) %>
                     </div>
-                    <span class="text-green-600 hover:text-green-800 font-medium">
-                      مشاهده جزئیات ←
-                    </span>
+                    <dl class="od-kv">
+                      <div><dt>تحویل‌گیرنده</dt><dd><%= order.recipientName || displayName %><% if (order.recipientMobile) { %> · <span class="od-latin"><%= faDigits(order.recipientMobile) %></span><% } %></dd></div>
+                      <div><dt>روش ارسال</dt><dd><%= String(order.delivery || '').replace(/-/g, ' ') %></dd></div>
+                      <div><dt>نشانی</dt><dd><%= [order.province, order.city, order.address].filter(Boolean).join('، ') %> — کد پستی <span class="od-latin"><%= faDigits(order.postcode) %></span></dd></div>
+                      <div><dt>پرداخت</dt><dd><%= order.paymentMethod || '' %> · <%= order.paymentStatus || '' %></dd></div>
+                      <% if (order.discountAmount) { %><div><dt>تخفیف</dt><dd class="od-num"><%= faPrice(order.discountAmount) %> تومان</dd></div><% } %>
+                    </dl>
                   </div>
-                </div>
-                </div>
-                <% }) %>
-              </div>
-            <% } %>
-
-                <!-- Completed Orders -->
-                <% if (completedOrders.length > 0) { %>
-                <div id="completed-tab" class="tab-content">
-                    <% completedOrders.forEach(order => { %>
-                    <div class="space-y-4">
-                      <div
-                        class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer mb-4"
-                        onclick="showOrderDetails(this)"
-                        data-order='<%= JSON.stringify({
-                          id: order.OrderNum,
-                          date: order.createTarikh,
-                          totalPrice: order.totalPrice,
-                          originalPrice: order.originalPrice,
-                          discountAmount: order.discountAmount,
-                          discount: order.discount, 
-                          address: order.address,
-                          delivery: order.delivery,
-                          status: order.status,
-                          products: order.products.map(p => ({
-                            name: p.product.name,
-                            image: p.product.images[0].url,
-                            price: p.product.price,
-                            quantity: p.quantity,
-                            selectedColor: p.selectedColor,
-                            selectedSize: p.selectedSize,
-                          }))
-                        }) %>'
-                      >
-                        <div class="flex items-center justify-between mb-4">
-                          <div class="flex items-center space-x-3 space-x-reverse">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center
-                                <%=
-                                order.status === 'تحویل داده شد' ? 'bg-green-500' :
-                                order.status === 'لغو شده' ? 'bg-red-500' :
-                                order.status === 'در حال ارسال' ? 'bg-blue-500' :
-                                order.status === 'بسته بندی شده' ? 'bg-orange-500' :
-                                order.status === 'در حال پردازش' ? 'bg-purple-500' :
-                                order.status === 'پرداخت شده' ? 'bg-cyan-500' :
-                                'bg-yellow-500'
-                                %>">
-
-                                <% if(order.status === 'در انتظار پرداخت'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 11H7v-2h4V6h2v7z"/>
-                                </svg>
-                                <% } else if(order.status === 'پرداخت شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9
-                                    10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } else if(order.status === 'در حال پردازش'){ %>
-                                <svg class="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".3"/>
-                                  <path fill="currentColor" d="M12 2a10 10 0 0110 10h-4a6 6 0 00-6-6V2z"/>
-                                </svg>
-                                <% } else if(order.status === 'بسته بندی شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2L3 7l9 5 9-5-9-5zm-7 7v8l7 5v-8L5 9zm14 0l-7 5v8l7-5V9z"/>
-                                </svg>
-                                <% } else if(order.status === 'در حال ارسال'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M3 5h11v8H3V5zm12 2h3l3 4v2h-6V7zm-8 9a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"/>
-                                </svg>
-                                <% } else if(order.status === 'تحویل داده شد'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9
-                                    10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } else if(order.status === 'لغو شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414
-                                    1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
-                                    11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
-                                    4.293 5.707a1 1 0 010-1.414z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } %>
-                            </div>
-                              <div>
-                              <h3 class="font-semibold text-gray-800">
-                                سفارش #<%= order.OrderNum %>
-                              </h3>
-                              <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
-                            </div>
-                          </div>
-                          <div class="text-left">
-                            <p class="text-lg font-bold text-green-600">
-                              <%= toPersianDigits(order.totalPrice) %> تومان
-                            </p>
-                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
-                              <% if (order.status === 'لغو شده') { %>
-                                  bg-red-100 text-red-800
-                              <% } else if (order.status === 'در انتظار پرداخت') { %>
-                                  bg-yellow-100 text-yellow-800
-                              <% } else if (order.status === 'در حال پردازش') { %>
-                                  bg-blue-100 text-blue-800
-                              <% } else if (order.status === 'بسته بندی شده') { %>
-                                  bg-purple-100 text-purple-800
-                              <% } else if (order.status === 'در حال ارسال') { %>
-                                  bg-indigo-100 text-indigo-800
-                              <% } else if (order.status === 'تحویل داده شد') { %>
-                                  bg-green-100 text-green-800
-                              <% } %>
-                          ">
-                              <%= order.status %>
-                          </span>
-                          </div>
-                        </div>
-                        <div class="flex justify-between text-sm text-gray-600">
-                          <div class="flex flex-col space-y-1"> <!-- Added column container -->
-                            <% order.products.forEach(item => { %>
-                              <div class="flex flex-col"> <!-- Column for each product -->
-                                    <span><%= item?.product?.name %> - <%= toPersianDigitsForSizes(item?.quantity) %> عدد</span>
-                              </div>
-                            <% }) %>
-                          </div>
-                          <span class="text-green-600 hover:text-green-800 font-medium">
-                            مشاهده جزئیات ←
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <% }) %>
-                </div>
-                <% } %>
-
-                <!-- Canceled Orders -->
-                <% if (canceledOrders.length > 0) { %>
-                <div id="canceled-tab" class="tab-content">
-                  <% canceledOrders.forEach(order => { %>
-                    <div class="space-y-4">
-                      <div
-                        class="order-card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 cursor-pointer mb-4"
-                        onclick="showOrderDetails(this)"
-                        data-order='<%= JSON.stringify({
-                          id: order.OrderNum,
-                          date: order.createTarikh,
-                          totalPrice: order.totalPrice,
-                          originalPrice: order.originalPrice,
-                          discountAmount: order.discountAmount,
-                          discount: order.discount, 
-                          address: order.address,
-                          delivery: order.delivery,
-                          status: order.status,
-                          products: order.products.map(p => ({
-                            name: p.product.name,
-                            image: p.product.images[0].url,
-                            price: p.product.price,
-                            quantity: p.quantity,
-                            selectedColor: p.selectedColor,
-                            selectedSize: p.selectedSize,
-                          }))
-                        }) %>'
-                      >
-                        <div class="flex items-center justify-between mb-4">
-                          <div class="flex items-center space-x-3 space-x-reverse">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center
-                                <%=
-                                order.status === 'تحویل داده شد' ? 'bg-green-500' :
-                                order.status === 'لغو شده' ? 'bg-red-500' :
-                                order.status === 'در حال ارسال' ? 'bg-blue-500' :
-                                order.status === 'بسته بندی شده' ? 'bg-orange-500' :
-                                order.status === 'در حال پردازش' ? 'bg-purple-500' :
-                                order.status === 'پرداخت شده' ? 'bg-cyan-500' :
-                                'bg-yellow-500'
-                                %>">
-
-                                <% if(order.status === 'در انتظار پرداخت'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 11H7v-2h4V6h2v7z"/>
-                                </svg>
-                                <% } else if(order.status === 'پرداخت شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9
-                                    10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } else if(order.status === 'در حال پردازش'){ %>
-                                <svg class="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".3"/>
-                                  <path fill="currentColor" d="M12 2a10 10 0 0110 10h-4a6 6 0 00-6-6V2z"/>
-                                </svg>
-                                <% } else if(order.status === 'بسته بندی شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2L3 7l9 5 9-5-9-5zm-7 7v8l7 5v-8L5 9zm14 0l-7 5v8l7-5V9z"/>
-                                </svg>
-                                <% } else if(order.status === 'در حال ارسال'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M3 5h11v8H3V5zm12 2h3l3 4v2h-6V7zm-8 9a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"/>
-                                </svg>
-                                <% } else if(order.status === 'تحویل داده شد'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9
-                                    10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } else if(order.status === 'لغو شده'){ %>
-                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd"
-                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414
-                                    1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10
-                                    11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10
-                                    4.293 5.707a1 1 0 010-1.414z"
-                                    clip-rule="evenodd"/>
-                                </svg>
-                                <% } %>
-                            </div>
-                            <div>
-                              <h3 class="font-semibold text-gray-800">
-                                سفارش #<%= order.OrderNum %>
-                              </h3>
-                              <p class="text-sm text-gray-600"><%= order.createTarikh %></p>
-                            </div>
-                          </div>
-                          <div class="text-left">
-                            <p class="text-lg font-bold text-green-600">
-                              <%= toPersianDigits(order.totalPrice) %> تومان
-                            </p>
-                          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
-                              <% if (order.status === 'لغو شده') { %>
-                                  bg-red-100 text-red-800
-                              <% } else if (order.status === 'در انتظار پرداخت') { %>
-                                  bg-yellow-100 text-yellow-800
-                              <% } else if (order.status === 'در حال پردازش') { %>
-                                  bg-blue-100 text-blue-800
-                              <% } else if (order.status === 'بسته بندی شده') { %>
-                                  bg-purple-100 text-purple-800
-                              <% } else if (order.status === 'در حال ارسال') { %>
-                                  bg-indigo-100 text-indigo-800
-                              <% } else if (order.status === 'تحویل داده شد') { %>
-                                  bg-green-100 text-green-800
-                              <% } %>
-                          ">
-                              <%= order.status %>
-                          </span>
-                          </div>
-                        </div>
-                        <div class="flex justify-between text-sm text-gray-600">
-                          <div class="flex flex-col space-y-1"> <!-- Added column container -->
-                            <% order.products.forEach(item => { %>
-                              <div class="flex flex-col"> <!-- Column for each product -->
-                                    <span><%= item?.product?.name %> - <%= toPersianDigitsForSizes(item?.quantity) %> عدد</span>
-                              </div>
-                            <% }) %>
-                          </div>
-                          <span class="text-green-600 hover:text-green-800 font-medium">
-                            مشاهده جزئیات ←
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  <% }) %>
-                </div>
-                <% } %>
+                </details>
+              <% }) %>
             </div>
-            <% } else { %>
-              <div class="p-6">
-                <div id="current-tab" class="tab-content">
-                    <div class="text-center py-12">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">هیچ سفارشی ثبت نکرده اید</h3>
-                    </div>
-                </div>
-            <% } %>
-        </div>
-    </main>
+          <% } %>
+        </section>
 
-    <!-- Order Details Modal -->
-    <div id="order-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden items-center justify-center z-50 p-4" style="background-color: rgba(0, 0, 0, 0.7);">
-    <div class="bg-white rounded-3xl max-w-2xl w-full mx-4 shadow-2xl transform transition-all duration-300 overflow-hidden" id="order-modal-content">
-        <!-- هدر با گرادینت -->
-        <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-5">
-            <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-white">جزئیات سفارش</h3>
-                <button onclick="closeOrderModal()" class="text-white hover:text-gray-200 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+        <%# ---------- Wishlist ---------- %>
+        <section class="od-acc-panel" id="wishlist" data-panel-id="wishlist" aria-labelledby="wish-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="wish-title">علاقه‌مندی‌ها</h1></div>
+          <% if (!wishlist.length) { %>
+            <div class="od-card od-state">
+              <div class="od-state__art"><%- icon('heart') %></div>
+              <h2>فهرست علاقه‌مندی‌ها خالی است</h2>
+              <p>روی آیکون قلب محصولات بزنید تا اینجا ذخیره شوند.</p>
+              <a class="od-btn" href="/shop">مشاهده محصولات</a>
             </div>
-        </div>
+          <% } else { %>
+            <div class="od-grid od-grid--4">
+              <% wishlist.forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+            </div>
+          <% } %>
+        </section>
 
-        <div class="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
-            <!-- اطلاعات سفارش - کارت با سایه -->
-            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <span class="text-gray-500 text-sm">شماره سفارش:</span>
-                        <p id="modal-order-id" class="font-bold text-gray-800 text-lg"></p>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 text-sm">تاریخ ثبت:</span>
-                        <p id="modal-order-date" class="font-bold text-gray-800" dir="ltr" style="text-align: right;"></p>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 text-sm">وضعیت:</span>
-                        <p id="modal-order-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"></p>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 text-sm">مبلغ کل:</span>
-                        <p id="modal-order-price" class="font-bold text-blue-600 text-lg"></p>
-                    </div>
-                </div>
+        <%# ---------- Addresses ---------- %>
+        <section class="od-acc-panel" id="addresses" data-panel-id="addresses" aria-labelledby="addr-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="addr-title">آدرس‌های من</h1></div>
+          <% if (!addresses.length) { %>
+            <div class="od-card od-state">
+              <div class="od-state__art"><%- icon('pin') %></div>
+              <h2>هنوز آدرسی ذخیره نشده است</h2>
+              <p>آدرس‌هایی که هنگام ثبت سفارش وارد می‌کنید اینجا ذخیره می‌شوند تا دفعه بعد سریع‌تر خرید کنید.</p>
             </div>
+          <% } else { %>
+            <div class="od-orders">
+              <% addresses.forEach(function (a, i) { %>
+                <article class="od-card od-addr" data-address="<%= a._id %>">
+                  <strong><%= a.fullName %><% if (i === 0) { %> <span class="od-badge" style="margin-inline-start:6px">پیش‌فرض</span><% } %></strong>
+                  <p><%= [a.province, a.city, a.address].filter(Boolean).join('، ') %></p>
+                  <div class="od-addr__foot">
+                    <span>کد پستی <span class="od-latin"><%= faDigits(a.postcode) %></span> · <span class="od-latin"><%= faDigits(a.mobile) %></span></span>
+                    <button class="od-btn od-btn--danger od-btn--sm" type="button" data-address-delete="<%= a._id %>"><%- icon('trash') %>حذف</button>
+                  </div>
+                </article>
+              <% }) %>
+            </div>
+          <% } %>
+        </section>
 
-            <!-- اطلاعات مشتری -->
-            <div>
-                <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    اطلاعات مشتری
-                </h4>
-                <div class="bg-purple-50 rounded-xl p-4 space-y-2">
-                    <p class="text-gray-700"><span class="font-medium">نام:</span> <%= user.fullName %></p>
-                    <p class="text-gray-700"><span class="font-medium">آدرس:</span> <span id="addressForInfo"></span></p>
-                    <p class="text-gray-700"><span class="font-medium">تلفن:</span> <%= toPersianDigitsForSizes(user.mobile) %></p>
-                    <p class="text-gray-700"><span class="font-medium">روش ارسال:</span> <span id="deliveryForInfo"></span></p>
-                </div>
+        <%# ---------- Account ---------- %>
+        <section class="od-acc-panel" id="account" data-panel-id="account" aria-labelledby="acc-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="acc-title">اطلاعات حساب</h1></div>
+          <form class="od-card od-card__body od-form-grid" data-profile-form novalidate>
+            <div class="od-field">
+              <label class="od-label" for="acc-name">نام و نام خانوادگی</label>
+              <input class="od-input" id="acc-name" name="fullName" autocomplete="name" maxlength="50" value="<%= user.fullName || '' %>" />
             </div>
+            <div class="od-field">
+              <label class="od-label" for="acc-mobile">شماره موبایل</label>
+              <input class="od-input" id="acc-mobile" value="<%= faDigits(user.mobile) %>" dir="ltr" disabled aria-describedby="acc-mobile-hint" />
+              <p class="od-hint" id="acc-mobile-hint">ورود شما با همین شماره و کد یک‌بار مصرف انجام می‌شود.</p>
+            </div>
+            <div class="od-field od-span-2">
+              <label class="od-label" for="acc-email">ایمیل (اختیاری)</label>
+              <input class="od-input" id="acc-email" name="email" type="email" autocomplete="email" dir="ltr" value="<%= user.email || '' %>" />
+            </div>
+            <div class="od-span-2"><button class="od-btn" type="submit">ذخیره تغییرات</button></div>
+          </form>
+        </section>
 
-            <!-- محصولات -->
-            <div>
-                <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                    محصولات سفارش
-                </h4>
-                <div id="modal-products-container" class="space-y-3"></div>
-            </div>
-
-            <!-- خلاصه پرداخت -->
-            <div>
-                <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    خلاصه پرداخت
-                </h4>
-                <div class="bg-blue-50 rounded-xl p-4 space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">جمع کالاها:</span>
-                        <span id="modal-total-price" class="font-medium"></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">تخفیف:</span>
-                        <span id="modal-discount-price" class="font-medium text-red-500"></span>
-                    </div>
-                    <div class="border-t border-blue-200 pt-2 flex justify-between">
-                        <span class="font-bold text-gray-800">مبلغ نهایی:</span>
-                        <span id="modal-final-price" class="font-bold text-blue-600 text-lg"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <%# ---------- Recently viewed ---------- %>
+        <section class="od-acc-panel" id="recent" data-panel-id="recent" aria-labelledby="recent-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="recent-title">بازدیدهای اخیر</h1></div>
+          <div data-recently-viewed hidden><div class="od-grid od-grid--4" data-rv-list></div></div>
+          <div class="od-card od-state" data-rv-empty>
+            <div class="od-state__art"><%- icon('history') %></div>
+            <h2>محصولی مشاهده نکرده‌اید</h2>
+            <p>محصولاتی که می‌بینید روی همین دستگاه اینجا نمایش داده می‌شوند.</p>
+          </div>
+        </section>
+      </div>
     </div>
-</div>
+  </main>
 
-<%- include('./partials/footer') %>
-
-<div id="logout-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4" style="background-color: rgba(0, 0, 0, 0.5);">
-    <div class="bg-white rounded-2xl max-w-sm w-full mx-4 shadow-2xl transform transition-all duration-300" id="logout-modal-content">
-        <!-- هدر مودال با خط جداکننده -->
-        <div class="border-b border-gray-200 px-6 pt-6 pb-4">
-            <div class="flex items-center justify-center mb-3">
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                </div>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 text-center">
-                خروج از حساب کاربری
-            </h3>
-        </div>
-        
-        <!-- بدنه مودال -->
-        <div class="px-6 py-5">
-            <p class="text-gray-600 text-center text-base leading-relaxed">
-                آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟
-            </p>
-        </div>
-        
-        <!-- فوتر مودال با دکمه‌ها -->
-        <div class="border-t border-gray-200 px-6 py-4 flex gap-3">
-            <button onclick="confirmLogout()" 
-                    class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                خروج
-            </button>
-            <button onclick="closeLogoutModal()" 
-                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
-                انصراف
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // توابع کمکی پاپ‌آپ
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-    type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-  } top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6 w-[calc(100%-2rem)] max-w-xs sm:max-w-sm`;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-  notification.classList.add('transform', 'transition-all', 'duration-300', 'translate-y-2', 'opacity-0');
-  setTimeout(() => notification.classList.remove('translate-y-2', 'opacity-0'), 10);
-  setTimeout(() => {
-    notification.classList.add('opacity-0', 'translate-y-2');
-    setTimeout(() => notification.remove(), 300);
-  }, 800);
-}
-
-function showNotificationInPopUp(message, type = 'info') {
-  const authPopup = document.getElementById('auth-popup');
-  if (!authPopup) return;
-  const notification = document.createElement('div');
-  notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-    type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-  }`;
-  notification.textContent = message;
-  notification.classList.add('transform', 'transition-all', 'duration-300', '-translate-y-[100px]', 'opacity-0');
-  authPopup.appendChild(notification);
-  setTimeout(() => notification.classList.remove('-translate-y-[100px]', 'opacity-0'), 10);
-  setTimeout(() => {
-    notification.classList.add('opacity-0', 'translate-y-2');
-    setTimeout(() => notification.remove(), 300);
-  }, 800);
-}
-
-function switchTab(activeTab) {
-  const tabs = { login: document.getElementById("login-tab"), register: document.getElementById("register-tab"), forgot: document.getElementById("forgot-tab") };
-  const contents = { login: document.getElementById("login-content"), register: document.getElementById("register-content"), forgot: document.getElementById("forgot-content") };
-  if (!tabs[activeTab] || !contents[activeTab]) return;
-  Object.values(tabs).forEach((tab) => { if(tab) { tab.classList.remove("border-pink-500", "text-pink-500"); tab.classList.add("text-gray-500"); } });
-  Object.values(contents).forEach((content) => { if(content) content.classList.remove("active"); });
-  tabs[activeTab].classList.add("border-pink-500", "text-pink-500");
-  tabs[activeTab].classList.remove("text-gray-500");
-  contents[activeTab].classList.add("active");
-}
-
-function setupOtpInputs(containerSelector) {
-  const inputs = Array.from(document.querySelectorAll(`${containerSelector} .otp-input`));
-  if (inputs.length === 0) return;
-  inputs[inputs.length - 1].focus();
-  inputs.forEach((input, index) => {
-    input.addEventListener("input", function() { if (this.value.length === 1 && index > 0) inputs[index - 1].focus(); });
-    input.addEventListener("keydown", function(e) { if (e.key === "Backspace" && this.value.length === 0 && index < inputs.length - 1) inputs[index + 1].focus(); });
-  });
-}
-
-function getOtpValue(containerSelector) {
-  const inputs = Array.from(document.querySelectorAll(`${containerSelector} .otp-input`));
-  return inputs.map((input) => input.value).join("");
-}
-
-function startCountdown(elementId, seconds) {
-  const timerElement = document.getElementById(elementId);
-  if (!timerElement) return;
-  const timerSpan = timerElement.querySelector("span");
-  if (!timerSpan) return;
-  let remaining = seconds;
-  const interval = setInterval(() => {
-    const minutes = Math.floor(remaining / 60);
-    const secs = remaining % 60;
-    timerSpan.textContent = `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    if (remaining <= 0) {
-      clearInterval(interval);
-      timerElement.innerHTML = '<a href="#" class="text-pink-500 resend-link">ارسال مجدد کد</a>';
-      const resendLink = timerElement.querySelector('.resend-link');
-      if (resendLink) { resendLink.addEventListener('click', function(e) { e.preventDefault(); handleResendOtp(elementId); }); }
-    }
-    remaining--;
-  }, 1000);
-}
-
-function handleResendOtp(elementId) {
-  const isRegister = elementId.includes('register');
-  const phone = isRegister ? document.getElementById('register-phone')?.value : document.getElementById('forgot-phone')?.value;
-  if (!phone) { showNotificationInPopUp('شماره موبایل یافت نشد', 'error'); return; }
-  fetch("/api/mobile/sendOtp", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mobile: phone }),
-  })
-  .then((res) => res.json())
-  .then((data) => {
-    if (data.success) { showNotificationInPopUp('کد تأیید جدید ارسال شد', 'success'); startCountdown(elementId, 120); }
-    else { showNotificationInPopUp(data.message || 'خطا در ارسال کد تأیید', 'error'); }
-  })
-  .catch((err) => { console.error("Error:", err); showNotificationInPopUp('مشکلی در ارتباط با سرور به وجود آمده است', 'error'); });
-}
-
-// مدیریت منوی موبایل
-const menuBtn = document.getElementById('menu-btn');
-const mobileMenu = document.getElementById('mobile-menu');
-if (menuBtn && mobileMenu) {
-  menuBtn.onclick = function(e) {
-    e.stopPropagation();
-    if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
-      mobileMenu.style.display = 'flex';
-      document.body.classList.add('menu-open');
-    } else {
-      mobileMenu.style.display = 'none';
-      document.body.classList.remove('menu-open');
-    }
-  };
-}
-
-// مدیریت ساب‌منوهای موبایل
-document.querySelectorAll('.mobile-dropdown-trigger').forEach(trigger => {
-  trigger.onclick = function(e) {
-    e.stopPropagation();
-    const menu = this.nextElementSibling;
-    const icon = this.querySelector('i');
-    if (menu.style.display === 'none' || menu.style.display === '') {
-      menu.style.display = 'block';
-      if(icon) icon.style.transform = 'rotate(180deg)';
-    } else {
-      menu.style.display = 'none';
-      if(icon) icon.style.transform = 'rotate(0deg)';
-    }
-  };
-});
-
-
-</script>
-  <script>
-    // توابع کمکی
-    function toPersianDigits(num) {
-      if (num === undefined || num === null) return '۰';
-      return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-    }
-
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-        type === 'success' ? 'bg-green-500' :
-        type === 'error' ? 'bg-red-500' :
-        'bg-blue-500'
-      } top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6 w-[calc(100%-2rem)] max-w-xs sm:max-w-sm`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      notification.classList.add('transform', 'transition-all', 'duration-300', 'translate-y-2', 'opacity-0');
-      setTimeout(() => notification.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        notification.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => notification.remove(), 300);
-      }, 800);
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-      // منوی همبرگری موبایل
-      var menuBtn = document.getElementById('menu-btn');
-      var mobileMenu = document.getElementById('mobile-menu');
-      
-      if (menuBtn && mobileMenu) {
-        menuBtn.onclick = function(e) {
-          e.stopPropagation();
-          if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
-            mobileMenu.style.display = 'flex';
-          } else {
-            mobileMenu.style.display = 'none';
-          }
-        };
-      }
-      
-      // ساب‌منوی موبایل
-      var mobileTriggers = document.querySelectorAll('.mobile-dropdown-trigger');
-      mobileTriggers.forEach(function(trigger) {
-        trigger.onclick = function(e) {
-          e.stopPropagation();
-          var menu = this.nextElementSibling;
-          var icon = this.querySelector('i');
-          if (menu.style.display === 'none' || menu.style.display === '') {
-            menu.style.display = 'block';
-            icon.style.transform = 'rotate(180deg)';
-          } else {
-            menu.style.display = 'none';
-            icon.style.transform = 'rotate(0deg)';
-          }
-        };
-      });
-      
-      var subTriggers = document.querySelectorAll('.mobile-submenu-trigger');
-      subTriggers.forEach(function(trigger) {
-        trigger.onclick = function(e) {
-          e.stopPropagation();
-          var submenu = this.nextElementSibling;
-          var icon = this.querySelector('i');
-          if (submenu.style.display === 'none' || submenu.style.display === '') {
-            submenu.style.display = 'block';
-            icon.style.transform = 'rotate(180deg)';
-          } else {
-            submenu.style.display = 'none';
-            icon.style.transform = 'rotate(0deg)';
-          }
-        };
-      });
-
-      // ====== مدیریت پاپ‌آپ احراز هویت ======
-      var authButton = document.getElementById('user-auth-button');
-      var authPopup = document.getElementById('auth-popup');
-      
-      function switchTab(activeTab) {
-        const tabs = { login: document.getElementById('login-tab'), register: document.getElementById('register-tab'), forgot: document.getElementById('forgot-tab') };
-        const contents = { login: document.getElementById('login-content'), register: document.getElementById('register-content'), forgot: document.getElementById('forgot-content') };
-        
-        Object.values(tabs).forEach(tab => {
-          if(tab) {
-            tab.classList.remove('border-pink-500', 'text-pink-500');
-            tab.classList.add('text-gray-500');
-          }
-        });
-        Object.values(contents).forEach(content => {
-          if(content) content.classList.remove('active');
-        });
-        if(tabs[activeTab]) {
-          tabs[activeTab].classList.add('border-pink-500', 'text-pink-500');
-          tabs[activeTab].classList.remove('text-gray-500');
-        }
-        if(contents[activeTab]) contents[activeTab].classList.add('active');
-      }
-      
-      if (authButton && authPopup) {
-        authButton.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          authPopup.classList.remove('hidden');
-          switchTab('login');
-        });
-        
-        authPopup.addEventListener('click', function(e) {
-          if (e.target === authPopup) {
-            authPopup.classList.add('hidden');
-          }
-        });
-      }
-
-      // OTP inputs setup
-      function setupOtpInputs(containerSelector) {
-        const inputs = Array.from(document.querySelectorAll(`${containerSelector} .otp-input`));
-        if (inputs.length === 0) return;
-        inputs.forEach((input, index) => {
-          input.addEventListener('input', function() {
-            if (this.value.length === 1 && index > 0) {
-              inputs[index - 1].focus();
-            }
-          });
-          input.addEventListener('keydown', function(e) {
-            if (e.key === 'Backspace' && this.value.length === 0 && index < inputs.length - 1) {
-              inputs[index + 1].focus();
-            }
-          });
-        });
-      }
-      
-      setupOtpInputs('#register-step-2');
-      setupOtpInputs('#forgot-step-2');
-      
-      // Register form
-      const registerForm = document.getElementById('register-form');
-      const registerStep1 = document.getElementById('register-step-1');
-      const registerStep2 = document.getElementById('register-step-2');
-      const registerPhoneDisplay = document.getElementById('register-phone-display');
-      
-      if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const phone = document.getElementById('register-phone').value;
-          if(registerPhoneDisplay) registerPhoneDisplay.textContent = phone;
-          if(registerStep1) registerStep1.classList.remove('active');
-          if(registerStep2) registerStep2.classList.add('active');
-          
-          fetch('/api/mobile/sendOtp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mobile: phone })
-          }).catch(err => console.log('OTP send error:', err));
-        });
-      }
-      
-      const registerBackBtn = document.getElementById('register-back-btn');
-      if (registerBackBtn) {
-        registerBackBtn.addEventListener('click', function() {
-          if(registerStep2) registerStep2.classList.remove('active');
-          if(registerStep1) registerStep1.classList.add('active');
-        });
-      }
-      
-      // Login form
-      const loginForm = document.getElementById('login-form');
-      if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const formData = new FormData(loginForm);
-          fetch('/api/authentication/signIn', {
-            method: 'POST',
-            body: formData
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              showNotification(data.message, 'success');
-              setTimeout(() => location.reload(), 800);
-              if(authPopup) authPopup.classList.add('hidden');
-            } else {
-              showNotification(data.message, 'error');
-            }
-          }).catch(err => showNotification('خطا در ارتباط با سرور', 'error'));
-        });
-      }
-    });
-  </script>
-    <script>
-      function toPersianDigits(num) {
-        if (num === null || num === undefined || isNaN(num)) return "";
-        const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
-        const withCommas = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        return withCommas.replace(/\d/g, (digit) => persianDigits[digit]);
-      }
-
-      // Tab functionality
-      document.querySelectorAll(".tab-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const tabName = btn.dataset.tab;
-
-          // Update active tab
-          document.querySelectorAll(".tab-btn").forEach((b) => {
-            b.classList.remove("tab-active");
-            b.classList.add("text-gray-600");
-          });
-          btn.classList.add("tab-active");
-          btn.classList.remove("text-gray-600");
-
-          // Show tab content
-          document.querySelectorAll(".tab-content").forEach((content) => {
-            content.classList.add("hidden");
-          });
-          document.getElementById(tabName + "-tab").classList.remove("hidden");
-        });
-      });
-
-      // Order modal functionality
-        function showOrderDetails(element) {
-    const orderData = JSON.parse(element.getAttribute('data-order'));
-    const productsContainer = document.getElementById("modal-products-container");
-    
-    // جلوگیری از اسکرول بدنه
-    document.body.style.overflow = 'hidden';
-    
-    productsContainer.innerHTML = '';
-    
-    orderData.products.forEach(product => {
-        productsContainer.innerHTML += `
-            <div class="bg-green-50 rounded-xl p-3 border border-green-100">
-                <div class="flex gap-3">
-                    <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                        <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1">
-                        <h5 class="font-medium text-gray-800 text-sm">${product.name}</h5>
-                        <div class="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
-                            <span>تعداد: ${toPersianDigits(product.quantity)}</span>
-                            <span>رنگ: ${product.selectedColor || '-'}</span>
-                            <span>سایز: ${product.selectedSize || '-'}</span>
-                        </div>
-                    </div>
-                    <div class="text-left">
-                        ${product.offerPrice ? `
-                            <p class="text-gray-400 line-through text-xs">${toPersianDigits(product.price)}</p>
-                            <p class="font-bold text-pink-600">${toPersianDigits(product.offerPrice)} تومان</p>
-                        ` : `
-                            <p class="font-bold text-gray-800">${toPersianDigits(product.price)} تومان</p>
-                        `}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    // آپدیت اطلاعات
-    document.getElementById("modal-order-id").textContent = `#${orderData.id}`;
-    document.getElementById("modal-order-date").textContent = orderData.date;
-    document.getElementById("modal-order-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
-    document.getElementById("addressForInfo").textContent = orderData.address;
-    document.getElementById("deliveryForInfo").textContent = orderData.delivery;
-    
-    // آپدیت وضعیت با رنگ مناسب
-    const statusElement = document.getElementById("modal-order-status");
-    const status = orderData.status;
-    let statusColor = '';
-    switch(status) {
-        case 'تحویل داده شد': statusColor = 'bg-green-100 text-green-800'; break;
-        case 'در حال ارسال': statusColor = 'bg-blue-100 text-blue-800'; break;
-        case 'بسته بندی شده': statusColor = 'bg-purple-100 text-purple-800'; break;
-        case 'در حال پردازش': statusColor = 'bg-yellow-100 text-yellow-800'; break;
-        case 'در انتظار پرداخت': statusColor = 'bg-orange-100 text-orange-800'; break;
-        case 'لغو شده': statusColor = 'bg-red-100 text-red-800'; break;
-        default: statusColor = 'bg-gray-100 text-gray-800';
-    }
-    statusElement.className = `inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}`;
-    statusElement.textContent = status;
-    
-    // خلاصه پرداخت
-    const discountElement = document.getElementById("modal-discount-price");
-    if (orderData.discountAmount > 0) {
-        discountElement.textContent = `${toPersianDigits(orderData.discountAmount)} تومان`;
-        if (orderData.discount?.originalValue) {
-            discountElement.textContent += ` (${orderData.discount.originalValue})`;
-        }
-    } else {
-        discountElement.textContent = "بدون تخفیف";
-    }
-    
-    document.getElementById("modal-total-price").textContent = `${toPersianDigits(orderData.originalPrice)} تومان`;
-    document.getElementById("modal-final-price").textContent = `${toPersianDigits(orderData.totalPrice)} تومان`;
-    
-    // نمایش مودال
-    const modal = document.getElementById('order-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-        document.getElementById('order-modal-content').classList.add('scale-100');
-    }, 10);
-}
-
-function closeOrderModal() {
-    const modal = document.getElementById('order-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    // آزاد کردن اسکرول بدنه
-    document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
-}
-
-const orderModal = document.getElementById('order-modal');
-if (orderModal) {
-    // حذف event listener های قبلی
-    const newOrderModal = orderModal.cloneNode(true);
-    orderModal.parentNode.replaceChild(newOrderModal, orderModal);
-    
-    // اضافه کردن event listener جدید
-    newOrderModal.addEventListener('click', (e) => {
-        if (e.target === newOrderModal) {
-            closeOrderModal();
-        }
-    });
-}
-
-// بستن با دکمه ESC
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const modal = document.getElementById('order-modal');
-        if (modal && !modal.classList.contains('hidden')) {
-            closeOrderModal();
-        }
-    }
-});
-
-      async function logout() {
-        if (confirm('آیا از خروج از حساب کاربری خود مطمئن هستید؟')) {
-            try {
-                const response = await fetch('/api/authentication/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('با موفقیت خارج شدید', 'success');
-                    // ریدایرکت به صفحه اصلی بعد از 1 ثانیه
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1000);
-                } else {
-                    showNotification(data.message || 'خطا در خروج از حساب', 'error');
-                }
-            } catch (error) {
-                console.error('Logout error:', error);
-                showNotification('خطا در ارتباط با سرور', 'error');
-            }
-        }
-    }
-
-    // توابع کنترل مودال خروج
-function showLogoutModal() {
-    const modal = document.getElementById('logout-modal');
-    const modalContent = document.getElementById('logout-modal-content');
-    
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.classList.add('modal-open');
-        
-        // اضافه کردن انیمیشن
-        if (modalContent) {
-            modalContent.classList.remove('modal-content-exit');
-            modalContent.classList.add('modal-content-enter');
-        }
-    }
-}
-
-function closeLogoutModal() {
-    const modal = document.getElementById('logout-modal');
-    const modalContent = document.getElementById('logout-modal-content');
-    
-    if (modalContent) {
-        modalContent.classList.remove('modal-content-enter');
-        modalContent.classList.add('modal-content-exit');
-        
-        setTimeout(() => {
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.classList.remove('modal-open');
-            }
-        }, 200);
-    } else if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.classList.remove('modal-open');
-    }
-}
-
-// بستن با کلیک روی پس‌زمینه
-document.addEventListener('click', function(event) {
-    const modal = document.getElementById('logout-modal');
-    if (event.target === modal) {
-        closeLogoutModal();
-    }
-});
-
-// بستن با دکمه Escape
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        const modal = document.getElementById('logout-modal');
-        if (modal && !modal.classList.contains('hidden')) {
-            closeLogoutModal();
-        }
-    }
-});
-
-// تابع خروج واقعی
-async function confirmLogout() {
-    try {
-        const response = await fetch('/api/authentication/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            closeLogoutModal();
-            showNotification('با موفقیت خارج شدید', 'success');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1000);
-        } else {
-            showNotification(data.message || 'خطا در خروج از حساب', 'error');
-            closeLogoutModal();
-        }
-    } catch (error) {
-        console.error('Logout error:', error);
-        showNotification('خطا در ارتباط با سرور', 'error');
-        closeLogoutModal();
-    }
-}
-    </script>
-    
-  </body>
+  <%- include('./partials/footer') %>
+  <script src="/js/account.js?v=<%= assetVersion %>" defer></script>
+</body>
 </html>

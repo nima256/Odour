@@ -1,1424 +1,243 @@
+<%
+  const hasItems = !guest && cartItems && cartItems.length > 0;
+  const addr = (typeof savedAddress !== 'undefined' && savedAddress) ? savedAddress : {};
+  const deliveryOptions = [
+    { value: 'تیپاکس', title: 'تیپاکس', note: 'ارسال به سراسر ایران' },
+    { value: 'چاپار', title: 'چاپار', note: 'ارسال به سراسر ایران' },
+    { value: 'ارسال-سریع-به-کرج', title: 'ارسال سریع در کرج', note: 'تحویل سریع درون‌شهری' },
+    { value: 'ارسال-سریع-به-تهران', title: 'ارسال سریع از کرج به تهران', note: 'تحویل سریع به تهران' }
+  ];
+%>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>سبد خرید | اودر</title>
-    <meta property="og:title" content="سبد خرید">
-    <link rel="stylesheet" href="/tailwind.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vazir-font/30.1.0/font-face.css" />
-    <link rel="icon" type="image/x-icon" href="/logo.ico">
-<link rel="canonical" href="https://odour.ir/cart" />
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "سبد خرید | اودر",
-    "description": "محصولات انتخاب شده برای خرید",
-    "url": "https://odour.ir/cart"
-  }
-  </script>
-    <style>
-      @font-face {
-        font-family: "MyFont";
-        src: url("/fonts/Vazirmatn-Light.ttf");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      
-      body {
-        font-family: "MyFont", sans-serif;
-        background: linear-gradient(135deg, #FFF1DB 0%, #fff7ef 48%, #FFF1DB 100%);
-        position: relative;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
+<head>
+  <%- include('./partials/head', { title: 'سبد خرید | اودر', robots: 'noindex, nofollow' }) %>
+</head>
+<body class="od<%= hasItems ? ' od-has-paybar' : '' %>">
+  <%- include('./partials/navbar') %>
 
-      .main-content {
-        flex: 1;
-      }
-
-      footer {
-        position: relative;
-        margin-top: auto;
-        width: 100%;
-      }
-
-      .cart-button {
-        background-color: #636337;
-        color: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(99, 99, 55, 0.2);
-        transition: all 0.3s;
-        border: none;
-        cursor: pointer;
-      }
-
-      .cart-button:hover {
-        background-color: #4a4a2a;
-        transform: scale(1.05);
-      }
-
-      .cart-button:focus {
-        outline: none;
-        box-shadow: 0 0 0 4px rgba(99, 99, 55, 0.5);
-      }
-
-      .cart-button.success {
-        background-color: #4a4a2a;
-      }
-
-      .icon {
-        width: 2rem;
-        height: 2rem;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      svg {
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
-      }
-
-      .logo-container {
-        --logo-size: 2.5rem;
-      }
-
-      .logo {
-        width: var(--logo-size);
-        height: var(--logo-size);
-      }
-
-      .nav-link {
-        transition: all 0.3s ease;
-        position: relative;
-      }
-
-      .nav-link::after {
-        content: "";
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: -4px;
-        right: 50%;
-        background: linear-gradient(90deg, #636337, #8a8a5a);
-        transition: all 0.3s ease;
-      }
-
-      .nav-link:hover::after {
-        width: 100%;
-        right: 0;
-      }
-
-      .icon-btn {
-        transition: all 0.3s ease;
-      }
-
-      .icon-btn:hover {
-        transform: translateY(-2px);
-      }
-
-      .mobile-menu {
-        transition: all 0.3s ease;
-        transform: translateX(100%);
-        opacity: 0;
-      }
-
-      .mobile-menu.active {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      
-      .page {
-        display: none;
-      }
-
-      .active-page {
-        display: block;
-      }
-
-      input:focus,
-      select:focus {
-        outline: none;
-        border-color: #636337;
-        box-shadow: 0 0 0 2px rgba(99, 99, 55, 0.2);
-      }
-
-      .product-image {
-        width: 80px;
-        height: 80px;
-        background-color: #FFF1DB;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-
-      .product-image svg {
-        width: 60px;
-        height: 60px;
-      }
-      
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      
-      .animate-spin {
-        animation: spin 1s linear infinite;
-      }
-
-      @media (min-width: 768px) {
-        .hamburger {
-          display: none !important;
-        }
-        .desktop-menu {
-          display: flex !important;
-        }
-      }
-
-      @media (max-width: 767px) {
-        .desktop-menu {
-          display: none !important;
-        }
-        .hamburger {
-          display: block !important;
-        }
-      }
-
-      .cart-count {
-        top: -8px;
-        left: -8px;
-      }
-
-      .dropdown:hover .dropdown-menu {
-        display: block !important;
-      }
-      
-      .submenu-item {
-        position: relative;
-      }
-      
-      .submenu-item:hover .submenu-level2 {
-        display: block !important;
-      }
-      
-      .dropdown-menu a:hover,
-      .submenu-level2 a:hover {
-        background-color: #FFF1DB;
-      }
-      
-      .dropdown-menu {
-        display: none;
-      }
-      
-      .submenu-level2 {
-        display: none;
-      }
-      
-      .dropdown:hover .dropdown-menu {
-        display: block;
-      }
-      
-      .submenu-item:hover > .submenu-level2 {
-        display: block;
-      }
-      
-      @media (max-width: 768px) {
-        .flex.items-center.space-x-4 {
-          gap: 12px;
-        }
-      }
-      
-      .mobile-dropdown-menu,
-      .mobile-submenu-level2 {
-        transition: all 0.3s ease;
-      }
-
-      /* دکمه‌های اصلی صفحه */
-      .btn-primary {
-        background-color: #636337;
-        color: white;
-        transition: all 0.3s ease;
-      }
-      
-      .btn-primary:hover {
-        background-color: #4a4a2a;
-        transform: translateY(-2px);
-      }
-      
-      .btn-secondary {
-        background-color: #9ca3af;
-        color: white;
-        transition: all 0.3s ease;
-      }
-      
-      .btn-secondary:hover {
-        background-color: #6b7280;
-        transform: translateY(-2px);
-      }
-      
-      .price-text {
-        color: #636337;
-        font-weight: bold;
-      }
-      
-      .total-text {
-        color: #636337;
-        font-weight: bold;
-        font-size: 1.25rem;
-      }
-
-      .payment-method-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 14px;
-        cursor: pointer;
-        transition: border-color .2s ease, box-shadow .2s ease;
-      }
-      .payment-method-card:has(input:checked) {
-        border-color: #636337;
-        box-shadow: 0 0 0 2px rgba(99, 99, 55, .12);
-      }
-      .snapp-pay-card {
-        position: relative;
-        min-height: 72px;
-        padding: 10px 14px;
-        direction: rtl;
-        text-align: right;
-        gap: 10px;
-      }
-      .snapp-pay-card .snapp-pay-radio {
-        width: 16px;
-        height: 16px;
-        flex: 0 0 16px;
-        margin: 0;
-        cursor: pointer;
-        accent-color: #008EFA;
-      }
-      .snapp-pay-logo-box {
-        width: 48px;
-        height: 48px;
-        flex: 0 0 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        background: #fff;
-        box-shadow: 0 1px 5px rgba(26, 28, 35, .10);
-      }
-      .snapp-pay-logo {
-        width: 40px;
-        height: 40px;
-        display: block;
-        object-fit: contain;
-      }
-      .snapp-pay-content {
-        min-width: 0;
-        display: flex;
-        flex: 1 1 auto;
-        flex-direction: column;
-        justify-content: center;
-        gap: 2px;
-      }
-      .snapp-pay-title {
-        margin: 0;
-        color: #1A1C23;
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.65;
-      }
-      .snapp-pay-description {
-        margin: 0;
-        color: #616475;
-        font-size: 12px;
-        font-weight: 400;
-        line-height: 1.65;
-      }
-      .torob-pay-logo {
-        width: 40px;
-        height: 40px;
-        flex: 0 0 40px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #ef4444;
-        color: #fff;
-        font-size: 12px;
-        font-weight: 800;
-        white-space: nowrap;
-      }
-      @media (max-width: 767px) {
-        .snapp-pay-card { min-height: 68px; padding: 9px 11px; gap: 8px; }
-        .snapp-pay-card .snapp-pay-radio { width: 14px; height: 14px; flex-basis: 14px; }
-        .snapp-pay-logo-box { width: 44px; height: 44px; flex-basis: 44px; border-radius: 9px; }
-        .snapp-pay-logo { width: 40px; height: 40px; }
-        .snapp-pay-title { font-size: 13px; line-height: 1.6; }
-        .snapp-pay-description { font-size: 11px; line-height: 1.6; }
-        .torob-pay-logo { width: 32px; height: 32px; flex-basis: 32px; font-size: 10px; }
-      }
-    </style>
-  </head>
-  <body>
-    <%- include('./partials/navbar') %>
-    <br /><br />
-    
-    <div style="background: linear-gradient(135deg, #FFF1DB 0%, #fff7ef 48%, #FFF1DB 100%);">
-      <div class="container mx-auto px-4 py-8 max-w-4xl">
-        
-        <!-- Cart Page -->
-        <% if (cartItems.length === 0) { %>
-        <div id="cart-page" class="page active-page mt-5">
-          <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h1 class="text-2xl font-bold mb-6 text-center" style="color: #636337;">
-              سبد خرید شما خالی است
-            </h1>
+  <main class="od-main" id="main">
+    <div class="od-container">
+      <% if (guest) { %>
+        <div class="od-state" style="min-height:56vh;align-content:center">
+          <div class="od-state__art"><%- icon('bag') %></div>
+          <h1 class="od-h2">سبد خرید شما</h1>
+          <p>برای مشاهده سبد خرید و ثبت سفارش، با شماره موبایل وارد شوید. فقط چند ثانیه طول می‌کشد.</p>
+          <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+            <button class="od-btn" type="button" data-auth-open>ورود با شماره موبایل</button>
+            <a class="od-btn od-btn--secondary" href="/shop">ادامه خرید</a>
           </div>
         </div>
-        <% } else { %>
-        <div id="cart-page" class="page active-page mt-5 mb-5">
-          <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h1 class="text-2xl font-bold mb-6 text-right" style="color: #636337;">
-              سبد خرید
-            </h1>
-
-            <div class="space-y-6 mb-8" id="cart-items"></div>
-
-            <div class="border-t border-gray-200 pt-4 mt-6">
-              <div class="flex justify-between items-center mb-2">
-                <div class="font-bold text-xl price-text" id="subtotal">0 تومان</div>
-                <div class="text-gray-600">جمع کل</div>
-              </div>
-
-              <div class="flex justify-between items-center mb-2 border-t border-gray-200 pt-2">
-                <div class="font-bold text-xl total-text" id="total">0 تومان</div>
-                <div class="text-gray-600">مبلغ قابل پرداخت</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="text-left">
-            <button
-              id="next-step"
-              class="btn-primary px-6 py-3 rounded-md transition text-lg"
-              style="background-color: #636337; color: white;"
-            >
-              ادامه فرآیند خرید <span class="mr-2">←</span>
-            </button>
+      <% } else if (!hasItems) { %>
+        <div class="od-state" style="min-height:56vh;align-content:center">
+          <div class="od-state__art"><%- icon('bag') %></div>
+          <h1 class="od-h2">سبد خرید شما خالی است</h1>
+          <p>محصولات محبوب و تخفیف‌های این هفته را ببینید.</p>
+          <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+            <a class="od-btn" href="/shop">رفتن به فروشگاه</a>
+            <a class="od-btn od-btn--secondary" href="/shop?discount=1">تخفیف‌ها</a>
           </div>
         </div>
-        <% } %>
-        
-        <!-- Shipping Page -->
-        <div id="shipping-page" class="page">
-          <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h1 class="text-2xl font-bold mb-6 text-right" style="color: #636337;">
-              اطلاعات ارسال
-            </h1>
-            <form action="/api/order" method="post" id="order-form">
-              <div class="space-y-4 mb-6">
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">نام و نام خانوادگی</label>
-                  <input type="text" id="full-name" class="border border-gray-300 rounded-md px-3 py-2 text-right bg-gray-100" disabled placeholder="<%= user.fullName %>" />
-                </div>
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">استان <span class="text-red-500">*</span></label>
-                  <select id="province" class="border border-gray-300 rounded-md px-3 py-2 text-right focus:border-[#636337] focus:ring-1 focus:ring-[#636337]" required>
-                    <option value="">انتخاب استان</option>
-                  </select>
-                </div>
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">شهر <span class="text-red-500">*</span></label>
-                  <select id="city" class="border border-gray-300 rounded-md px-3 py-2 text-right focus:border-[#636337] focus:ring-1 focus:ring-[#636337]" required disabled>
-                    <option value="">ابتدا استان را انتخاب کنید</option>
-                  </select>
-                </div>
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">کد پستی</label>
-                  <input type="text" name="postcode" id="postal-code" class="border border-gray-300 rounded-md px-3 py-2 text-right focus:border-[#636337] focus:ring-1 focus:ring-[#636337]" required />
-                </div>
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">آدرس</label>
-                  <textarea id="address" name="address" rows="3" class="border border-gray-300 rounded-md px-3 py-2 text-right focus:border-[#636337] focus:ring-1 focus:ring-[#636337]" required></textarea>
-                </div>
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">شماره تماس</label>
-                  <input type="tel" id="phone" class="border border-gray-300 rounded-md px-3 py-2 text-right bg-gray-100" disabled placeholder="<%= user.mobile %>" />
-                </div>
-                <div class="flex flex-col">
-                  <label class="text-gray-600 mb-1 text-right">روش ارسال</label>
-                  <select id="shipping-method" class="border border-gray-300 rounded-md px-3 py-2 text-right focus:border-[#636337] focus:ring-1 focus:ring-[#636337]" name="delivery">
-                    <option value="تیپاکس">تیپاکس</option>
-                    <option value="چاپار">چاپار</option>
-                    <option value="ارسال-سریع-به-کرج">ارسال سریع به کرج</option>
-                    <option value="ارسال-سریع-به-تهران">ارسال سریع از کرج به تهران</option>
-                  </select>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          <div class="flex justify-between">
-            <button id="go-to-summary" class="btn-primary px-6 py-3 rounded-md transition text-lg" style="background-color: #636337; color: white;">
-              مشاهده خلاصه سفارش <span class="mr-2">→</span>
-            </button>
-            <button id="back-to-cart" class="btn-secondary px-6 py-3 rounded-md transition text-lg" style="background-color: #9ca3af; color: white;">
-              <span class="ml-2">←</span> بازگشت
-            </button>
+      <% } else { %>
+        <div class="od-listing-head" style="padding-top:18px">
+          <h1>سبد خرید و تسویه</h1>
+          <div class="od-steps" aria-hidden="true">
+            <span class="is-done"><b>۱</b>سبد</span><i></i>
+            <span class="is-active"><b>۲</b>اطلاعات ارسال</span><i></i>
+            <span><b>۳</b>پرداخت</span>
           </div>
         </div>
 
-        <!-- Summary Page -->
-        <div id="summary-page" class="page">
-          <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h1 class="text-2xl font-bold mb-6 text-right" style="color: #636337;">
-              خلاصه سفارش
-            </h1>
-
-            <div class="space-y-4 mb-6">
-              <div class="border-b border-gray-200 pb-4">
-                <h2 class="text-lg font-bold mb-3 text-right" style="color: #636337;">اطلاعات خریدار</h2>
-                <div class="text-gray-600 text-right" id="summary-customer-info"></div>
+        <form class="od-checkout" id="order-form" action="/api/order" method="post" novalidate data-checkout>
+          <div>
+            <%# ---------- 1. Items ---------- %>
+            <section class="od-card od-block" aria-labelledby="items-title">
+              <div class="od-card__head">
+                <h2 class="od-block__title" id="items-title"><b>۱</b>محصولات (<span data-item-count class="od-num"><%= faDigits(cartItems.reduce((n, i) => n + Number(i.quantity || 0), 0)) %></span>)</h2>
+                <a class="od-link" href="/shop" style="font-size:13px">افزودن محصول</a>
               </div>
-
-              <div class="border-b border-gray-200 pb-4">
-                <h2 class="text-lg font-bold mb-3 text-right" style="color: #636337;">محصولات</h2>
-                <div id="summary-products" class="space-y-4"></div>
-              </div>
-
-              <div>
-                <div class="flex justify-between items-center mb-2">
-                  <div class="text-gray-800" id="summary-subtotal">0 تومان</div>
-                  <div class="text-gray-600">جمع کل</div>
-                </div>
-
-                <div id="summary-discount-box" class="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <div id="summary-discount-form" class="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      id="discount-code"
-                      placeholder="کد تخفیف"
-                      class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-right focus:border-[#636337] focus:ring-1 focus:ring-[#636337] bg-white"
-                    />
-                    <button
-                      type="button"
-                      id="apply-discount"
-                      class="btn-primary px-5 py-2 rounded-md transition whitespace-nowrap"
-                      style="background-color: #636337; color: white;"
-                    >
-                      اعمال کد تخفیف
-                    </button>
-                  </div>
-
-                  <div id="summary-applied-discount" class="hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <div class="text-right">
-                        <div class="text-green-700 font-bold">
-                          کد <span id="summary-discount-code"></span> اعمال شد
+              <div class="od-card__body" style="padding-block:0">
+                <div class="od-lines" data-lines>
+                  <% cartItems.forEach(function (item) { const pr = productPricing(item); %>
+                    <article class="od-line" data-line="<%= item.lineId %>" data-product-id="<%= item._id %>"
+                             data-color="<%= item.selectedColor %>" data-variant-id="<%= item.selectedVariantId %>"
+                             data-size="<%= item.selectedSize %>" data-size-id="<%= item.selectedSizeId %>"
+                             data-price="<%= item.price %>" data-offer="<%= item.offerPrice || 0 %>" data-qty="<%= item.quantity %>" data-stock="<%= item.stock %>">
+                      <a class="od-line__img" href="/productDetails/<%= encodeURIComponent(item.slug) %>" tabindex="-1" aria-hidden="true">
+                        <img src="<%= item.image.url %>" alt="" loading="lazy" width="76" height="86" />
+                      </a>
+                      <div class="od-line__body">
+                        <% if (item.brandName) { %><span class="od-pcard__brand"><%= item.brandName %></span><% } %>
+                        <h3 class="od-line__name"><a href="/productDetails/<%= encodeURIComponent(item.slug) %>"><%= item.name %></a></h3>
+                        <% if (item.selectedColor || item.selectedSize) { %>
+                          <div class="od-line__variant">
+                            <% if (item.selectedColor) { %><span><i style="background:<%= item.colorRgb || '#ddd' %>"></i>رنگ: <%= item.selectedColor %></span><% } %>
+                            <% if (item.selectedSize) { %><span>سایز: <%= toPersianDigitsForSizes(item.selectedSize) %></span><% } %>
+                          </div>
+                        <% } %>
+                        <% if (!item.available) { %><span class="od-line__warn">این محصول ناموجود شده است؛ لطفاً آن را حذف کنید.</span><% } %>
+                        <div class="od-line__foot">
+                          <div class="od-row" style="gap:6px">
+                            <div class="od-qty">
+                              <button type="button" data-line-qty="1" aria-label="افزایش تعداد" <%= item.quantity >= item.stock ? 'disabled' : '' %>><%- icon('plus') %></button>
+                              <output class="od-num" data-line-qty-value><%= faDigits(item.quantity) %></output>
+                              <button type="button" data-line-qty="-1" aria-label="کاهش تعداد" <%= item.quantity <= 1 ? 'disabled' : '' %>><%- icon('minus') %></button>
+                            </div>
+                            <button class="od-icon-btn" type="button" data-line-remove aria-label="حذف <%= item.name %> از سبد"><%- icon('trash') %></button>
+                          </div>
+                          <div class="od-line__price">
+                            <strong class="od-num" data-line-total><%= faPrice(pr.now * item.quantity) %> <small style="font-weight:500;font-size:11px">تومان</small></strong>
+                            <s class="od-num" data-line-was <%- pr.hasDiscount ? '' : 'hidden' %>><%= faPrice((pr.was || 0) * item.quantity) %></s>
+                          </div>
                         </div>
-                        <div class="text-xs text-gray-500 mt-1">نوع تخفیف: <span id="summary-discount-type"></span></div>
                       </div>
-                      <button
-                        type="button"
-                        id="remove-discount"
-                        class="px-4 py-2 rounded-md border border-red-300 text-red-600 hover:bg-red-50 transition whitespace-nowrap"
-                      >
-                        حذف تخفیف
-                      </button>
-                    </div>
+                    </article>
+                  <% }) %>
+                </div>
+              </div>
+            </section>
+
+            <%# ---------- 2. Delivery ---------- %>
+            <section class="od-card od-block" aria-labelledby="ship-title" id="ship">
+              <div class="od-card__head"><h2 class="od-block__title" id="ship-title"><b>۲</b>اطلاعات ارسال</h2></div>
+              <div class="od-card__body">
+                <div class="od-form-grid">
+                  <div class="od-field">
+                    <label class="od-label" for="fullName">نام و نام خانوادگی تحویل‌گیرنده<span class="od-req">*</span></label>
+                    <input class="od-input" id="fullName" name="fullName" autocomplete="name" required minlength="3" maxlength="50"
+                           value="<%= addr.fullName || user.fullName || '' %>" aria-describedby="fullName-err" />
+                    <p class="od-error" id="fullName-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="recipientMobile">شماره موبایل تحویل‌گیرنده<span class="od-req">*</span></label>
+                    <input class="od-input" id="recipientMobile" name="recipientMobile" type="tel" inputmode="numeric" autocomplete="tel-national" dir="ltr" maxlength="14"
+                           value="<%= faDigits(addr.mobile || user.mobile || '') %>" aria-describedby="recipientMobile-err" />
+                    <p class="od-error" id="recipientMobile-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="province">استان<span class="od-req">*</span></label>
+                    <select class="od-select" id="province" name="province" required autocomplete="address-level1" data-value="<%= addr.province || '' %>" aria-describedby="province-err">
+                      <option value="">انتخاب استان</option>
+                    </select>
+                    <p class="od-error" id="province-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="city">شهر<span class="od-req">*</span></label>
+                    <select class="od-select" id="city" name="city" required autocomplete="address-level2" data-value="<%= addr.city || '' %>" disabled aria-describedby="city-err">
+                      <option value="">ابتدا استان را انتخاب کنید</option>
+                    </select>
+                    <p class="od-error" id="city-err"></p>
+                  </div>
+                  <div class="od-field od-span-2">
+                    <label class="od-label" for="address">نشانی کامل<span class="od-req">*</span></label>
+                    <textarea class="od-textarea" id="address" name="address" rows="2" required minlength="10" maxlength="500" autocomplete="street-address"
+                              placeholder="خیابان، کوچه، پلاک، واحد" aria-describedby="address-err"><%= addr.address || '' %></textarea>
+                    <p class="od-error" id="address-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="postcode">کد پستی ۱۰ رقمی<span class="od-req">*</span></label>
+                    <input class="od-input" id="postcode" name="postcode" inputmode="numeric" autocomplete="postal-code" dir="ltr" maxlength="12"
+                           value="<%= faDigits(addr.postcode || '') %>" placeholder="۱۲۳۴۵۶۷۸۹۰" aria-describedby="postcode-err" />
+                    <p class="od-error" id="postcode-err"></p>
                   </div>
                 </div>
 
-                <div id="summary-discount-row" class="hidden flex justify-between py-2">
-                  <div class="text-gray-600">تخفیف</div>
-                  <div id="summary-discount" class="text-green-600 font-medium"></div>
-                </div>
+                <fieldset style="border:0;padding:0;margin:20px 0 0">
+                  <legend class="od-label" style="margin-bottom:10px">روش ارسال</legend>
+                  <div class="od-choices od-choices--2">
+                    <% deliveryOptions.forEach(function (d, i) { %>
+                      <label class="od-choice">
+                        <input type="radio" name="delivery" value="<%= d.value %>" <%= i === 0 ? 'checked' : '' %> />
+                        <span class="od-choice__text"><strong><%= d.title %></strong><span><%= d.note %> · هزینه ارسال هنگام تحویل</span></span>
+                        <span class="od-choice__mark"><%- icon('truck') %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </fieldset>
+              </div>
+            </section>
 
-                <div id="summary-min-order-row" class="hidden flex justify-between py-2 text-xs text-gray-500">
-                  <div class="text-gray-500 mt-1" style="font-size: 15px;">حداقل مبلغ سفارش برای تخفیف:</div>
-                  <div style="font-size: 15px;" id="summary-min-order"></div>
-                </div>
-
-                <div class="flex justify-between py-4 border-t border-gray-200 font-bold">
-                  <div class="text-gray-500 mt-1">جمع کل:</div>
-                  <div id="summary-total" class="price-text"></div>
+            <%# ---------- 3. Payment ---------- %>
+            <section class="od-card od-block" aria-labelledby="pay-title" id="pay">
+              <div class="od-card__head"><h2 class="od-block__title" id="pay-title"><b>۳</b>روش پرداخت</h2></div>
+              <div class="od-card__body">
+                <div class="od-choices">
+                  <label class="od-choice">
+                    <input type="radio" name="paymentMethod" value="zarinpal" checked />
+                    <span class="od-choice__text"><strong>پرداخت آنلاین</strong><span>درگاه امن زرین‌پال با تمام کارت‌های بانکی</span></span>
+                    <span class="od-choice__mark"><%- icon('card') %></span>
+                  </label>
+                  <label class="od-choice" id="snapp-pay-option" hidden>
+                    <input type="radio" name="paymentMethod" value="snappay" />
+                    <span class="od-choice__text"><strong id="snapp-pay-title"></strong><span id="snapp-pay-description"></span></span>
+                    <img class="od-choice__logo" src="/images/snapp-pay-checkout.svg" alt="اسنپ‌پی" width="40" height="40" />
+                  </label>
+                  <label class="od-choice" id="torob-pay-option" hidden>
+                    <input type="radio" name="paymentMethod" value="torobpay" />
+                    <span class="od-choice__text"><strong id="torob-pay-title">پرداخت اعتباری با ترب‌پی</strong><span id="torob-pay-description"></span></span>
+                    <span class="od-choice__mark">ترب‌پی</span>
+                  </label>
+                  <p class="od-checking" data-checking>در حال بررسی روش‌های پرداخت اقساطی…</p>
                 </div>
               </div>
+            </section>
+          </div>
+
+          <%# ---------- Summary ---------- %>
+          <aside class="od-summary" aria-labelledby="sum-title">
+            <div class="od-card od-card__body od-stack" style="--od-stack:14px">
+              <h2 class="od-h3" id="sum-title">خلاصه سفارش</h2>
+              <div class="od-summary__rows">
+                <div class="od-summary__row"><span>قیمت کالاها</span><strong class="od-num" data-sum-gross></strong></div>
+                <div class="od-summary__row od-summary__row--save" data-sum-save-row hidden><span>سود شما از تخفیف کالاها</span><strong class="od-num" data-sum-save></strong></div>
+                <div class="od-summary__row od-summary__row--save" data-sum-code-row hidden><span>کد تخفیف</span><strong class="od-num" data-sum-code></strong></div>
+                <div class="od-summary__row"><span>هزینه ارسال</span><strong>هنگام تحویل</strong></div>
+              </div>
+
+              <div data-coupon-form <%- discountCode ? 'hidden' : '' %>>
+                <label class="od-label" for="discount-code" style="display:block;margin-bottom:6px">کد تخفیف دارید؟</label>
+                <div class="od-coupon">
+                  <input class="od-input" id="discount-code" autocomplete="off" dir="ltr" placeholder="CODE" />
+                  <button class="od-btn od-btn--secondary" type="button" data-coupon-apply>اعمال</button>
+                </div>
+              </div>
+              <div class="od-coupon-applied" data-coupon-applied <%- discountCode ? '' : 'hidden' %>>
+                <span><%- icon('tag', 'od-icon--sm') %> کد <strong data-coupon-code dir="ltr"><%= discountCode || '' %></strong> اعمال شد</span>
+                <button class="od-link" type="button" data-coupon-remove>حذف</button>
+              </div>
+
+              <div class="od-summary__total"><span>مبلغ قابل پرداخت</span><strong class="od-num" data-sum-total></strong></div>
+              <p class="od-error" data-form-error role="alert"></p>
+              <button class="od-btn od-btn--lg od-btn--block od-pay-cta" type="submit" data-pay>ثبت سفارش و پرداخت</button>
+              <p class="od-secure"><%- icon('shield') %>پرداخت امن · ضمانت اصالت کالا</p>
             </div>
-          </div>
+          </aside>
 
-          <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 class="text-lg font-bold mb-4 text-right" style="color: #636337;">روش پرداخت</h2>
-            <div class="space-y-3">
-              <label class="payment-method-card flex items-center gap-3">
-                <input type="radio" name="payment-method" value="zarinpal" checked />
-                <div>
-                  <div class="font-bold text-gray-800">پرداخت آنلاین</div>
-                  <div class="text-sm text-gray-500">پرداخت یک‌جا از طریق درگاه بانکی</div>
-                </div>
-              </label>
-              <% const cartHasSpecialPrice = cartItems.some(item => Number(item.offerPrice) > 0 && Number(item.offerPrice) < Number(item.price)); %>
-              <% if (cartHasSpecialPrice) { %>
-                <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                  برای کالاهای دارای قیمت ویژه، در پرداخت اسنپ‌پی و ترب‌پی فقط ۵۰٪ تخفیف فعلی محصول اعمال می‌شود.
-                </div>
-              <% } %>
-              <label id="snapp-pay-option" class="payment-method-card snapp-pay-card hidden flex items-center">
-                <input class="snapp-pay-radio" type="radio" name="payment-method" value="snappay" aria-label="پرداخت با اسنپ‌پی" />
-                <span class="snapp-pay-logo-box" aria-hidden="true">
-                  <img src="/images/snapp-pay-checkout.svg" class="snapp-pay-logo" alt="" />
-                </span>
-                <div class="snapp-pay-content">
-                  <div id="snapp-pay-title" class="snapp-pay-title"></div>
-                  <div id="snapp-pay-description" class="snapp-pay-description"></div>
-                </div>
-              </label>
-              <div id="snapp-pay-loading" class="text-xs text-gray-500">در حال بررسی امکان پرداخت اعتباری اسنپ‌پی…</div>
-
-              <label id="torob-pay-option" class="payment-method-card hidden flex items-center gap-3">
-                <input type="radio" name="payment-method" value="torobpay" />
-                <span class="torob-pay-logo" aria-hidden="true">ترب‌پی</span>
-                <div class="flex-1">
-                  <div id="torob-pay-title" class="font-bold text-gray-800">پرداخت اعتباری با ترب‌پی</div>
-                  <div id="torob-pay-description" class="text-sm text-gray-500 mt-1"></div>
-                </div>
-              </label>
-              <div id="torob-pay-loading" class="text-xs text-gray-500">در حال بررسی امکان پرداخت اعتباری ترب‌پی…</div>
-            </div>
+          <div class="od-paybar">
+            <div class="od-paybar__total"><span>مبلغ قابل پرداخت</span><strong class="od-num" data-sum-total></strong></div>
+            <button class="od-btn" type="submit" data-pay>ثبت سفارش و پرداخت</button>
           </div>
-
-          <div class="flex justify-between">
-            <button id="complete-purchase" class="btn-primary px-6 py-3 rounded-md transition text-lg" style="background-color: #636337; color: white;">
-              تکمیل خرید و پرداخت
-            </button>
-            <button id="back-to-shipping" class="btn-secondary px-6 py-3 rounded-md transition text-lg" style="background-color: #9ca3af; color: white;">
-              <span class="ml-2">←</span> بازگشت
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <%- include('./partials/footer') %>
+        </form>
+      <% } %>
     </div>
+  </main>
 
-    <script src="/js/iran-locations.js"></script>
+  <%- include('./partials/footer') %>
+
+  <% if (hasItems) { %>
     <script>
-      // توابع کمکی
-      function toPersianDigits(num) {
-        if (num === undefined || num === null) return '۰';
-        return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-      }
-
-      function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `fixed z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm sm:text-base ${
-          type === 'success' ? 'bg-green-500' : 
-          type === 'error' ? 'bg-red-500' : 
-          'bg-blue-500'
-        } top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-6 sm:right-6 w-[calc(100%-2rem)] max-w-xs sm:max-w-sm`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        notification.classList.add('transform', 'transition-all', 'duration-300', 'translate-y-2', 'opacity-0');
-        setTimeout(() => notification.classList.remove('translate-y-2', 'opacity-0'), 10);
-        setTimeout(() => {
-          notification.classList.add('opacity-0', 'translate-y-2');
-          setTimeout(() => notification.remove(), 300);
-        }, 1400);
-      }
-
-      const cartItemsFromServer = <%- JSON.stringify(cartItems) %>;
-      const activeDiscount = <%- JSON.stringify(activeDiscount || null) %>;
-      let appliedDiscount = Number(<%- JSON.stringify(discountAmount || 0) %>);
-      let currentDiscountCode = <%- JSON.stringify(discountCode || null) %>;
-      let discountRules = activeDiscount ? {
-        minOrderAmount: Number(activeDiscount.minOrderAmount || 0),
-        type: activeDiscount.type,
-        amount: Number(activeDiscount.amount || 0),
-        maxDiscountAmount: activeDiscount.type === "percent"
-          ? Number(activeDiscount.maxDiscountAmount || activeDiscount.calculatedAmount || Infinity)
-          : Infinity,
-        calculatedAmount: Number(activeDiscount.calculatedAmount || 0),
-      } : null;
-      let eligibilityTimer = null;
-      let eligibilityRequestId = 0;
-      let torobEligibilityRequestId = 0;
-      const ODOUR256_CODE = "ODOUR256";
-
-      function isOdour256Code(code = currentDiscountCode) {
-        return String(code || "").trim().toUpperCase() === ODOUR256_CODE;
-      }
-
-      function hasSpecialPrice(product) {
-        const regular = Number(product?.price || 0);
-        const offer = Number(product?.offerPrice || 0);
-        return offer > 0 && offer < regular;
-      }
-
-      function getSnappPaySpecialPrice(product) {
-        const regular = Math.round(Number(product?.price || 0));
-        if (!hasSpecialPrice(product)) return regular;
-        const offer = Math.round(Number(product.offerPrice || 0));
-        const originalDiscount = regular - offer;
-        return regular - Math.floor(originalDiscount / 2);
-      }
-
-      function getProductUnitPrice(product, paymentMethod = selectedPaymentMethod()) {
-        if (!hasSpecialPrice(product)) return Number(product?.price || 0);
-        return ["snappay", "torobpay"].includes(paymentMethod)
-          ? getSnappPaySpecialPrice(product)
-          : Number(product.offerPrice);
-      }
-
-      function calculateDiscountBaseSubtotal(paymentMethod = selectedPaymentMethod()) {
-        if (!isOdour256Code()) return calculateSubtotal(paymentMethod);
-        return cartItemsFromServer.reduce((total, product) => {
-          if (hasSpecialPrice(product)) return total;
-          return total + getProductUnitPrice(product, paymentMethod) * Number(product.quantity || 0);
-        }, 0);
-      }
-
-      // Apply discount code
-      async function applyDiscountCode() {
-        const codeInput = document.getElementById("discount-code");
-        const code = codeInput.value.trim();
-
-        if (!code) {
-          showNotification("لطفا کد تخفیف را وارد کنید", 'error');
-          return;
-        }
-
-        if (String(currentDiscountCode || "").toUpperCase() === code.toUpperCase() && isDiscountStillValid()) {
-          showNotification("این کد تخفیف قبلاً اعمال شده است", 'error');
-          return;
-        }
-
-        const subtotal = calculateSubtotal();
-
-        try {
-          const response = await fetch("/api/cart/apply-discount", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              discountCode: code,
-              subtotal: subtotal,
-              paymentMethod: selectedPaymentMethod(),
-            }),
-          });
-
-          const data = await response.json();
-          
-            if (!response.ok || !data.success) {
-              // نمایش پیغام خطای دریافتی از سرور
-              const errorMessage = data.message || "خطا در اعمال کد تخفیف";
-              showNotification(errorMessage, 'error');
-              
-              // اگر خطا مربوط به استفاده قبلی بود، کد تخفیف رو ریست کن
-              if (errorMessage.includes("قبلاً از این کد تخفیف استفاده کرده‌اید") || 
-                  errorMessage.includes("هر کاربر فقط یک بار")) {
-                resetDiscount();
-                updateTotals();
-              }
-              return;
-            }
-
-
-            appliedDiscount = data.discount.calculatedAmount;
-            currentDiscountCode = data.discount.code || code;
-            discountRules = {
-              minOrderAmount: data.discount.minOrderAmount || 0,
-              type: data.discount.type,
-              originalValue: data.discount.originalValue,
-              amount: data.discount.amount,
-              maxDiscountAmount: data.discount.maxDiscountAmount || Infinity,
-              calculatedAmount: data.discount.calculatedAmount
-            };
-            showNotification(data.message, 'success');
-            updateTotals();
-            if (document.getElementById("summary-page")?.classList.contains("active-page")) {
-              renderSummary();
-            }
-
-        } catch (err) {
-          console.error("Error:", err);
-          showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-        }
-      }
-
-      function isDiscountStillValid() {
-        if (!discountRules || !currentDiscountCode) return false;
-        const discountBaseSubtotal = calculateDiscountBaseSubtotal();
-        if (isOdour256Code() && discountBaseSubtotal <= 0) return false;
-        if (discountRules.minOrderAmount && discountBaseSubtotal < discountRules.minOrderAmount) return false;
-        return true;
-      }
-
-      function calculateDiscountAmount() {
-        if (!currentDiscountCode || !isDiscountStillValid()) return 0;
-        const discountBaseSubtotal = calculateDiscountBaseSubtotal();
-        if (discountRules.type === "percent") {
-          const percentAmount = Math.floor((discountBaseSubtotal * discountRules.amount) / 100);
-          return discountRules.maxDiscountAmount ? Math.min(percentAmount, discountRules.maxDiscountAmount) : percentAmount;
-        }
-        return Math.min(discountRules.amount, discountBaseSubtotal);
-      }
-
-      function formatPrice(price) {
-        return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
-      }
-
-      function calculateSubtotal(paymentMethod = selectedPaymentMethod()) {
-        return cartItemsFromServer.reduce((total, product) => {
-          const price = getProductUnitPrice(product, paymentMethod);
-          return total + (price * Number(product.quantity || 0));
-        }, 0);
-      }
-
-      function calculateTotal() {
-        return calculateSubtotal() - appliedDiscount;
-      }
-
-      function calculateFinalTotal() {
-        return Math.max(0, calculateTotal());
-      }
-
-      function selectedPaymentMethod() {
-        return document.querySelector('input[name="payment-method"]:checked')?.value || "zarinpal";
-      }
-
-      function schedulePaymentEligibilityChecks() {
-        clearTimeout(eligibilityTimer);
-        eligibilityTimer = setTimeout(() => {
-          checkSnappPayEligibility();
-          checkTorobPayEligibility();
-        }, 250);
-      }
-
-      async function checkSnappPayEligibility() {
-        const option = document.getElementById("snapp-pay-option");
-        const loading = document.getElementById("snapp-pay-loading");
-        if (!option || cartItemsFromServer.length === 0) {
-          console.warn("[SnappPay][checkout][skip]", {
-            optionExists: Boolean(option),
-            cartItemsCount: cartItemsFromServer.length,
-          });
-          return;
-        }
-
-        const requestId = ++eligibilityRequestId;
-        const delivery = document.getElementById("shipping-method")?.value || "";
-        console.log("[SnappPay][checkout][eligible-request]", {
-          requestId,
-          delivery,
-          selectedPaymentMethod: selectedPaymentMethod(),
-          cartItemsCount: cartItemsFromServer.length,
-        });
-
-        loading?.classList.remove("hidden");
-        try {
-          const response = await fetch("/api/order/snapp-pay/eligible", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ delivery }),
-          });
-
-          let data;
-          try {
-            data = await response.json();
-          } catch (jsonError) {
-            console.error("[SnappPay][checkout][invalid-json]", {
-              status: response.status,
-              statusText: response.statusText,
-              error: jsonError,
-            });
-            throw jsonError;
-          }
-
-          console.log("[SnappPay][checkout][eligible-response]", {
-            requestId,
-            httpOk: response.ok,
-            status: response.status,
-            data,
-          });
-
-          if (requestId !== eligibilityRequestId) {
-            console.warn("[SnappPay][checkout][stale-response-ignored]", {
-              requestId,
-              currentRequestId: eligibilityRequestId,
-            });
-            return;
-          }
-
-          if (response.ok && data.success && data.enabled && data.eligible) {
-            // هر دو خط کنار لوگو کاملاً داینامیک‌اند و بدون متن ثابت/جایگزین،
-            // مستقیماً از title_message و description سرویس eligible نمایش داده می‌شوند.
-            const titleEl = document.getElementById("snapp-pay-title");
-            const descriptionEl = document.getElementById("snapp-pay-description");
-            if (titleEl) titleEl.textContent = String(data.title_message ?? "");
-            if (descriptionEl) descriptionEl.textContent = String(data.description ?? "");
-            option.classList.remove("hidden");
-            console.log("[SnappPay][checkout][option-visible]", {
-              title_message: data.title_message,
-              description: data.description,
-              amountToman: data.amountToman,
-            });
-          } else {
-            console.warn("[SnappPay][checkout][option-hidden]", {
-              httpOk: response.ok,
-              success: data?.success,
-              enabled: data?.enabled,
-              eligible: data?.eligible,
-              reason: data?.reason,
-              message: data?.message,
-              fullResponse: data,
-            });
-
-            const input = option.querySelector("input");
-            const wasSelected = Boolean(input?.checked);
-            option.classList.add("hidden");
-            if (input) input.checked = false;
-            if (wasSelected) {
-              const zarinpal = document.querySelector('input[name="payment-method"][value="zarinpal"]');
-              if (zarinpal) {
-                zarinpal.checked = true;
-                zarinpal.dispatchEvent(new Event("change", { bubbles: true }));
-              }
-            }
-          }
-        } catch (error) {
-          console.error("[SnappPay][checkout][eligible-error]", error);
-          const input = option.querySelector("input");
-          const wasSelected = Boolean(input?.checked);
-          option.classList.add("hidden");
-          if (input) input.checked = false;
-          if (wasSelected) {
-            const zarinpal = document.querySelector('input[name="payment-method"][value="zarinpal"]');
-            if (zarinpal) {
-              zarinpal.checked = true;
-              zarinpal.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-          }
-        } finally {
-          if (requestId === eligibilityRequestId) loading?.classList.add("hidden");
-        }
-      }
-
-      async function checkTorobPayEligibility() {
-        const option = document.getElementById("torob-pay-option");
-        const loading = document.getElementById("torob-pay-loading");
-        if (!option || cartItemsFromServer.length === 0) return;
-
-        const requestId = ++torobEligibilityRequestId;
-        loading?.classList.remove("hidden");
-        try {
-          const response = await fetch("/api/order/torob-pay/eligible", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              delivery: document.getElementById("shipping-method")?.value || "",
-            }),
-          });
-          const data = await response.json();
-          if (requestId !== torobEligibilityRequestId) return;
-
-          if (response.ok && data.success && data.enabled && data.eligible) {
-            document.getElementById("torob-pay-title").textContent = data.title || "پرداخت اعتباری با ترب‌پی";
-            const descriptionParts = [];
-            if (data.description) descriptionParts.push(data.description);
-            if (Number(data.amountToman) >= 0) {
-              descriptionParts.push(`مبلغ قابل پرداخت: ${formatPrice(Number(data.amountToman))}`);
-            }
-            document.getElementById("torob-pay-description").textContent = descriptionParts.join(" • ");
-            option.classList.remove("hidden");
-          } else {
-            const input = option.querySelector("input");
-            const wasSelected = Boolean(input?.checked);
-            option.classList.add("hidden");
-            if (input) input.checked = false;
-            if (wasSelected) {
-              const zarinpal = document.querySelector('input[name="payment-method"][value="zarinpal"]');
-              if (zarinpal) {
-                zarinpal.checked = true;
-                zarinpal.dispatchEvent(new Event("change", { bubbles: true }));
-              }
-            }
-          }
-        } catch (error) {
-          console.error("TorobPay eligibility check failed:", error);
-          const input = option.querySelector("input");
-          const wasSelected = Boolean(input?.checked);
-          option.classList.add("hidden");
-          if (input) input.checked = false;
-          if (wasSelected) {
-            const zarinpal = document.querySelector('input[name="payment-method"][value="zarinpal"]');
-            if (zarinpal) {
-              zarinpal.checked = true;
-              zarinpal.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-          }
-        } finally {
-          if (requestId === torobEligibilityRequestId) loading?.classList.add("hidden");
-        }
-      }
-
-      function loadProvinces() {
-        const provinceSelect = document.getElementById('province');
-        const provinces = Object.keys(window.iranLocations || iranLocations);
-        provinces.forEach(province => {
-          const option = document.createElement('option');
-          option.value = province;
-          option.textContent = province;
-          provinceSelect.appendChild(option);
-        });
-      }
-
-      function validateProvinceAndCity() {
-        const province = document.getElementById('province').value;
-        const city = document.getElementById('city').value;
-        if (!province) {
-          showNotification("لطفاً استان را انتخاب کنید", 'error');
-          return false;
-        }
-        if (!city) {
-          showNotification("لطفاً شهر را انتخاب کنید", 'error');
-          return false;
-        }
-        return true;
-      }
-
-      function loadCities(province) {
-        const citySelect = document.getElementById('city');
-        citySelect.innerHTML = '<option value="">انتخاب شهر</option>';
-        const locations = window.iranLocations || iranLocations;
-        if (province && locations[province]) {
-          citySelect.disabled = false;
-          const cities = locations[province];
-          cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            citySelect.appendChild(option);
-          });
-        } else {
-          citySelect.disabled = true;
-          citySelect.innerHTML = '<option value="">ابتدا استان را انتخاب کنید</option>';
-        }
-      }
-
-      function renderCartItems() {
-        const cartItemsContainer = document.getElementById("cart-items");
-        const cartTotalsSection = document.querySelector(".border-t.border-gray-200.pt-4.mt-6");
-        
-        cartItemsContainer.innerHTML = "";
-
-        if (cartItemsFromServer.length === 0) {
-          cartItemsContainer.innerHTML = `
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h1 class="text-2xl font-bold text-center" style="color: #636337;">سبد خرید شما خالی است</h1>
-            </div>
-          `;
-          const nextStepBtn = document.getElementById("next-step");
-          if (nextStepBtn) nextStepBtn.style.display = "none";
-          if (cartTotalsSection) cartTotalsSection.style.display = "none";
-          updateTotals();
-          return;
-        }
-
-        if (cartTotalsSection) cartTotalsSection.style.display = "block";
-
-        cartItemsFromServer.forEach((product) => {
-          const unitPrice = getProductUnitPrice(product);
-          const lineTotal = unitPrice * Number(product.quantity || 0);
-          const productHasSpecialPrice = hasSpecialPrice(product);
-
-          const itemElement = document.createElement("div");
-          itemElement.className = "flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4";
-          itemElement.innerHTML = `
-            <div class="flex items-start mb-4 md:mb-0">
-              <div class="product-image ml-4">
-                <img src="${product.image.url}" alt="" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
-              </div>
-              <div class="flex-1">
-                <h3 class="font-bold text-gray-800 text-right">${product.name}</h3>
-                <div class="text-sm text-gray-500 mt-2 text-right">
-                  ${product.selectedColor ? `<span class="inline-flex items-center ml-3"><span class="font-semibold">رنگ:</span> <span class="mr-1">${product.selectedColor}</span></span>` : ''}
-                  ${product.selectedSize ? `<span class="inline-flex items-center"><span class="font-semibold">سایز:</span> <span class="mr-1">${product.selectedSize}</span></span>` : ''}
-                </div>
-                ${productHasSpecialPrice ? `
-                  <div class="text-gray-600 line-through text-sm text-right">${formatPrice(product.price)}</div>
-                  <div class="price-text font-bold text-xl text-right">${formatPrice(unitPrice)}</div>
-                ` : `<p class="text-gray-600 text-right">${formatPrice(unitPrice)}</p>`}
-              </div>
-            </div>
-            <div class="flex items-center self-end md:self-auto">
-              <div class="flex items-center border border-gray-300 rounded-md overflow-hidden ml-4">
-                <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity + 1})">+</button>
-                <span class="px-4 py-1">${toPersianDigits(product.quantity)}</span>
-                <button class="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition" onclick="updateQuantity('${product._id}', ${product.quantity - 1})" ${product.quantity <= 1 ? "disabled" : ""}>-</button>
-              </div>
-              <div id="product-total-${product._id}" class="font-bold price-text">${formatPrice(lineTotal)}</div>
-              <button onclick="deleteProduct('${product._id}')" class="action-btn p-1 md:p-2 text-red-600 hover:bg-red-50 rounded-full transition-all">
-                <i class="fas fa-trash text-sm"></i>
-              </button>
-            </div>
-          `;
-          cartItemsContainer.appendChild(itemElement);
-        });
-
-        const nextStepBtn = document.getElementById("next-step");
-        if (nextStepBtn) nextStepBtn.style.display = "block";
-        updateTotals();
-      }
-
-      function deleteProduct(id) {
-        if (confirm('آیا از حذف این محصول اطمینان دارید؟')) {
-          fetch(`/api/cart/remove/${id}`, { method: "DELETE" })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                const index = cartItemsFromServer.findIndex(item => item._id === id);
-                if (index !== -1) cartItemsFromServer.splice(index, 1);
-                updateTotals();
-                renderCartItems();
-                showNotification("محصول از سبد خرید شما حذف شد", 'success');
-              } else {
-                showNotification(data.message, 'error');
-              }
-            })
-            .catch((err) => {
-              console.error("Error:", err);
-              showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-            });
-        }
-      }
-
-      function updateTotals() {
-        const subtotalElement = document.getElementById("subtotal");
-        if (!subtotalElement) return;
-        const subtotal = calculateSubtotal();
-        appliedDiscount = isDiscountStillValid() ? calculateDiscountAmount() : 0;
-
-        if (currentDiscountCode && !isDiscountStillValid()) {
-          showNotification(`کد تخفیف ${currentDiscountCode} به دلیل تغییر در سبد خرید دیگر قابل استفاده نیست`, 'error');
-          resetDiscount();
-        }
-
-        const total = calculateFinalTotal();
-
-        document.getElementById("subtotal").textContent = formatPrice(subtotal);
-        document.getElementById("total").textContent = formatPrice(total);
-
-        schedulePaymentEligibilityChecks();
-      }
-
-      function resetDiscount() {
-        appliedDiscount = 0;
-        currentDiscountCode = null;
-        discountRules = null;
-        const codeInput = document.getElementById("discount-code");
-        if (codeInput) codeInput.value = "";
-      }
-
-      async function removeDiscountCode() {
-        const removeBtn = document.getElementById("remove-discount");
-        if (removeBtn) removeBtn.disabled = true;
-
-        try {
-          const response = await fetch("/api/cart/discount", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-          });
-          const data = await response.json();
-
-          if (!response.ok || !data.success) {
-            showNotification(data.message || "خطا در حذف کد تخفیف", 'error');
-            return;
-          }
-
-          resetDiscount();
-          updateTotals();
-          renderSummary();
-          showNotification(data.message || "کد تخفیف حذف شد", 'success');
-        } catch (err) {
-          console.error("Remove discount error:", err);
-          showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-        } finally {
-          if (removeBtn) removeBtn.disabled = false;
-        }
-      }
-
-      function updateQuantity(productId, newQuantity) {
-        if (newQuantity < 1) return;
-        fetch("/api/cart/update", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId, quantity: newQuantity }),
-        })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            const item = cartItemsFromServer.find(item => item._id === productId);
-            if (item) item.quantity = newQuantity;
-            const totalEl = document.getElementById(`product-total-${productId}`);
-            if (totalEl && item) {
-              const price = getProductUnitPrice(item);
-              totalEl.textContent = formatPrice(price * newQuantity);
-            }
-            updateTotals();
-            renderCartItems();
-          } else {
-            showNotification(data.message, 'error');
-          }
-        })
-        .catch((err) => {
-          console.error("Error:", err);
-          showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-        });
-      }
-
-      function renderSummary() {
-        const fullName = document.getElementById("full-name").getAttribute("placeholder");
-        const province = document.getElementById("province").value;
-        const city = document.getElementById("city").value;
-        const postalCode = document.getElementById("postal-code").value;
-        const address = document.getElementById("address").value;
-        const shipping = document.getElementById("shipping-method").value;
-        const phone = document.getElementById("phone").getAttribute("placeholder");
-
-        document.getElementById("summary-customer-info").innerHTML = `
-          <p>${fullName}</p>
-          <p>استان: ${province}</p>
-          <p>شهر: ${city}</p>
-          <p>کد پستی: ${postalCode}</p>
-          <p>آدرس: ${address}</p>
-          <p>تلفن: ${phone}</p>
-          <p>روش ارسال: ${shipping}</p>
-        `;
-
-        const summaryProducts = document.getElementById("summary-products");
-        summaryProducts.innerHTML = "";
-
-        cartItemsFromServer.forEach((product) => {
-          const unitPrice = getProductUnitPrice(product);
-          const lineTotal = unitPrice * Number(product.quantity || 0);
-
-          const productElement = document.createElement("div");
-          productElement.className = "flex justify-between items-center";
-          productElement.innerHTML = `
-            <div class="flex items-center">
-              <div class="product-image ml-4" style="width: 50px; height: 50px;">
-                <img src="${product.image.url}" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-              </div>
-              <div class="text-right">
-                <div class="price-text font-medium">${formatPrice(lineTotal)}</div>
-                ${(product.selectedColor || product.selectedSize) ? `
-                  <div class="text-xs text-gray-500 mt-1">
-                    ${product.selectedColor ? `رنگ: ${product.selectedColor}` : ''}
-                    ${product.selectedColor && product.selectedSize ? ' | ' : ''}
-                    ${product.selectedSize ? `سایز: ${product.selectedSize}` : ''}
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-            <div class="text-gray-600 text-right">${product.name} × ${product.quantity}</div>
-          `;
-          summaryProducts.appendChild(productElement);
-        });
-
-        const subtotal = calculateSubtotal();
-        const finalTotal = calculateFinalTotal();
-
-        document.getElementById("summary-subtotal").textContent = formatPrice(subtotal);
-        document.getElementById("summary-total").textContent = formatPrice(finalTotal);
-        schedulePaymentEligibilityChecks();
-
-        const discountForm = document.getElementById("summary-discount-form");
-        const appliedDiscountBox = document.getElementById("summary-applied-discount");
-
-        if (appliedDiscount > 0 && currentDiscountCode && discountRules) {
-          discountForm?.classList.add("hidden");
-          appliedDiscountBox?.classList.remove("hidden");
-          document.getElementById("summary-discount-row").classList.remove("hidden");
-          document.getElementById("summary-discount").textContent = "- " + formatPrice(appliedDiscount);
-          document.getElementById("summary-discount-code").textContent = currentDiscountCode;
-          const discountTypeText = discountRules.type === "percent" ? `${discountRules.amount}%` : formatPrice(discountRules.amount);
-          document.getElementById("summary-discount-type").textContent = discountTypeText;
-          if (discountRules.minOrderAmount) {
-            document.getElementById("summary-min-order").textContent = formatPrice(discountRules.minOrderAmount);
-            document.getElementById("summary-min-order-row").classList.remove("hidden");
-          } else {
-            document.getElementById("summary-min-order-row").classList.add("hidden");
-          }
-        } else {
-          discountForm?.classList.remove("hidden");
-          appliedDiscountBox?.classList.add("hidden");
-          document.getElementById("summary-discount-row").classList.add("hidden");
-          document.getElementById("summary-min-order-row").classList.add("hidden");
-        }
-      }
-
-      function showPage(pageId) {
-        document.querySelectorAll(".page").forEach((page) => page.classList.remove("active-page"));
-        document.getElementById(pageId).classList.add("active-page");
-        if (pageId === "summary-page") renderSummary();
-        if (pageId === "shipping-page") {
-          document.querySelectorAll(".error-message").forEach(err => err.remove());
-          document.querySelectorAll("input.error, textarea.error").forEach(field => field.classList.remove("error"));
-        }
-        window.scrollTo(0, 0);
-      }
-
-      // Initialize
-      document.addEventListener("DOMContentLoaded", () => {
-        loadProvinces();
-        document.getElementById("province").addEventListener("change", (e) => loadCities(e.target.value));
-        renderCartItems();
-        checkSnappPayEligibility();
-        checkTorobPayEligibility();
-
-        document.querySelectorAll('input[name="payment-method"]').forEach((input) => {
-          input.addEventListener("change", () => {
-            renderCartItems();
-            if (document.getElementById("summary-page")?.classList.contains("active-page")) {
-              renderSummary();
-            }
-          });
-        });
-
-        document.getElementById("apply-discount")?.addEventListener("click", applyDiscountCode);
-        document.getElementById("remove-discount")?.addEventListener("click", removeDiscountCode);
-        document.getElementById("discount-code")?.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            applyDiscountCode();
-          }
-        });
-        document.getElementById("next-step")?.addEventListener("click", () => showPage("shipping-page"));
-        document.getElementById("back-to-cart").addEventListener("click", () => showPage("cart-page"));
-        document.getElementById("go-to-summary").addEventListener("click", () => {
-          const completeBtn = document.getElementById("complete-purchase");
-          if (completeBtn.disabled) {
-            showNotification("لطفاً صبر کنید، در حال اتصال به درگاه پرداخت...", 'info');
-            return;
-          }
-          const postalCode = document.getElementById("postal-code").value;
-          const address = document.getElementById("address").value;
-          if (!validateProvinceAndCity()) return;
-          
-          const regex = /^\d{10}$/;
-          if (!postalCode) {
-            showNotification("لطفاً کد پستی را وارد کنید", 'error');
-            return;
-          }
-          if (!regex.test(postalCode)) {
-            showNotification("کد پستی باید دقیقاً ۱۰ رقم باشد", 'error');
-            return;
-          }
-          if (!address) {
-            showNotification("لطفاً آدرس را وارد کنید", 'error');
-            return;
-          }
-          if (address.length < 10) {
-            showNotification("آدرس نمی‌تواند کمتر از ۱۰ کاراکتر باشد", 'error');
-            return;
-          }
-          showPage("summary-page");
-        });
-
-        document.getElementById("back-to-shipping").addEventListener("click", () => {
-          const completeBtn = document.getElementById("complete-purchase");
-          if (completeBtn.disabled) {
-            showNotification("لطفاً صبر کنید، در حال اتصال به درگاه پرداخت...", 'info');
-            return;
-          }
-          showPage("shipping-page");
-        });
-
-        document.getElementById("complete-purchase").addEventListener("click", async (e) => {
-          if (document.getElementById("complete-purchase").disabled) return;
-          
-          const completeBtn = document.getElementById("complete-purchase");
-          const backBtn = document.getElementById("back-to-shipping");
-          const originalBtnText = completeBtn.innerHTML;
-          
-          completeBtn.disabled = true;
-          backBtn.disabled = true;
-          
-          completeBtn.innerHTML = `
-            <svg class="animate-spin h-5 w-5 ml-2 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            در حال انتقال به درگاه...
-          `;
-          completeBtn.classList.add("opacity-50", "cursor-not-allowed");
-          
-          try {
-            const orderForm = document.getElementById("order-form");
-            const formDataOrder = new FormData(orderForm);
-            formDataOrder.append("province", document.getElementById("province").value);
-            formDataOrder.append("city", document.getElementById("city").value);
-            formDataOrder.append("paymentMethod", selectedPaymentMethod());
-            
-            const response = await fetch("/api/order", {
-              method: "POST",
-              body: formDataOrder,
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-              if (data.paymentUrl) {
-                showNotification("درحال انتقال به درگاه پرداخت...");
-                window.location.href = data.paymentUrl;
-              }
-            } else {
-              completeBtn.disabled = false;
-              backBtn.disabled = false;
-              completeBtn.innerHTML = originalBtnText;
-              completeBtn.classList.remove("opacity-50", "cursor-not-allowed");
-              showNotification(data.message, 'error');
-            }
-          } catch (err) {
-            console.error("Error:", err);
-            completeBtn.disabled = false;
-            backBtn.disabled = false;
-            completeBtn.innerHTML = originalBtnText;
-            completeBtn.classList.remove("opacity-50", "cursor-not-allowed");
-            showNotification("مشکلی در ارتباط با سرور به وجود آمده است", 'error');
-          }
-        });
-      });
-
-      // منوی همبرگری
-      var menuBtn = document.getElementById('menu-btn');
-      var mobileMenu = document.getElementById('mobile-menu');
-      if (menuBtn && mobileMenu) {
-        menuBtn.onclick = function(e) {
-          e.stopPropagation();
-          if (mobileMenu.style.display === 'none' || mobileMenu.style.display === '') {
-            mobileMenu.style.display = 'flex';
-          } else {
-            mobileMenu.style.display = 'none';
-          }
-        };
-      }
-
-      window.addEventListener('resize', function() {
-        if (window.innerWidth >= 768) {
-          if (mobileMenu) mobileMenu.style.display = 'none';
+      window.ODOUR = Object.assign(window.ODOUR || {}, {
+        checkout: {
+          discount: <%- JSON.stringify(activeDiscount ? {
+            code: activeDiscount.code, type: activeDiscount.type, amount: Number(activeDiscount.amount || 0),
+            minOrderAmount: Number(activeDiscount.minOrderAmount || 0),
+            maxDiscountAmount: activeDiscount.type === 'percent' ? Number(activeDiscount.maxDiscountAmount || activeDiscount.calculatedAmount || 0) : 0
+          } : null).replace(/</g, '\\u003c') %>
         }
       });
     </script>
-  </body>
+    <script src="/js/iran-locations.js?v=<%= assetVersion %>" defer></script>
+    <script src="/js/checkout.js?v=<%= assetVersion %>" defer></script>
+  <% } %>
+</body>
 </html>

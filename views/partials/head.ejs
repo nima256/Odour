@@ -1,0 +1,15 @@
+<%# Shared <head> contents for storefront pages. Params: title, description, canonical, robots, ogImage %>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title><%= typeof title !== 'undefined' && title ? title : 'فروشگاه لوازم آرایشی و بهداشتی اودر' %></title>
+<meta name="description" content="<%= typeof description !== 'undefined' && description ? description : 'فروشگاه اودر؛ خرید عطر، ادکلن، لوازم آرایشی و مراقبتی اصل با ضمانت اصالت کالا و ارسال سریع.' %>" />
+<% if (typeof robots !== 'undefined' && robots) { %><meta name="robots" content="<%= robots %>" /><% } %>
+<% if (typeof canonical !== 'undefined' && canonical) { %><link rel="canonical" href="<%= canonical %>" /><% } %>
+<meta name="theme-color" content="#fffcf3" />
+<meta property="og:site_name" content="اودر" />
+<meta property="og:locale" content="fa_IR" />
+<meta property="og:title" content="<%= typeof title !== 'undefined' && title ? title : 'فروشگاه اودر' %>" />
+<% if (typeof ogImage !== 'undefined' && ogImage) { %><meta property="og:image" content="<%= ogImage %>" /><% } %>
+<link rel="icon" type="image/x-icon" href="/logo.ico" />
+<link rel="preload" href="/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/css/odour.css?v=<%= assetVersion %>" />

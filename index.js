@@ -27,6 +27,18 @@ require("dotenv").config();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+// Compress before static so CSS/JS/fonts/models are served compressed too.
+app.use(compression({
+  level: 6, 
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.path.match(/\.(css|js|html|svg|json|xml|glb)$/)) {
+      return true;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
 // Public folder for css js font and etc.
 app.use(express.static(path.join(__dirname, 'public/'), {
   maxAge: '30d',
@@ -38,16 +50,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
   immutable: true
 }));
 
-app.use(compression({
-  level: 6, 
-  threshold: 1024,
-  filter: (req, res) => {
-    if (req.path.match(/\.(css|js|html|svg|json|xml)$/)) {
-      return true;
-    }
-    return compression.filter(req, res);
-  }
-}));
+
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -60,6 +63,7 @@ const Product = require("./models/Product");
 const Category = require("./models/Category");
 const Brand = require("./models/Brand");
 const Weblog = require("./models/Weblog");
+const Banner = require("./models/Banner");
 const User = require("./models/User");
 
 // For production
@@ -165,7 +169,9 @@ app.use(
   })
 );
 
-app.enable('trust proxy');
+// Trust only the reverse proxy in front of the app (default: one hop). `true` would let
+// clients spoof X-Forwarded-For and bypass the OTP/login rate limits.
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
 
 app.use((req, res, next) => {
   const host = req.get('host');
@@ -253,6 +259,21 @@ const initDirectories = () => {
 
 initDirectories();
 
+const viewHelpers = require("./helper/viewHelpers");
+Object.assign(app.locals, viewHelpers);
+// Changes on every deploy/restart; appended to first-party assets because
+// /public is served with a 30-day immutable cache.
+app.locals.assetVersion = process.env.ASSET_VERSION || Date.now().toString(36);
+
+// Safe defaults so shared partials work on every page (routes override these).
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path;
+  res.locals.user = null;
+  res.locals.cartCount = 0;
+  res.locals.menuCategories = [];
+  next();
+});
+
 // Routes
 const authenticationRoutes = require("./routes/authentication");
 const mobileRoutes = require("./routes/mobile");
@@ -263,12 +284,16 @@ const weblogRoutes = require('./routes/weblog');
 const torobRoutes = require("./routes/torobRoutes");
 const { getProductVariants, buildPageUrl } = require("./controllers/torobController")._private;
 const { isLoggedIn } = require("./middlewares/isLoggedIn");
+const { CARD_FIELDS, buildMenuCategories, findProductsInCategoryNamed, pageContext } = require("./helper/storefront");
+const { SORTS, parseFilters, listProducts, buildFacets, activeFilterChips } = require("./helper/catalog");
+const { parseFragranceProfile } = require("./helper/fragranceProfile");
 
 // app.use("/api/", apiLimiter);
 app.use("/api/authentication", authenticationRoutes);
 app.use("/api/mobile", mobileRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/order", orderRoutes);
+app.use("/api", require("./routes/storefront"));
 app.use('/', torobRoutes);
 app.use("/admin", adminRoutes);
 app.use('/', weblogRoutes);
@@ -317,8 +342,8 @@ app.use(async (req, res, next) => {
     parentId: null,  // فقط دسته‌بندی‌های اصلی
     isActive: true 
   })
-  .limit(5)  // فقط 5 تا
-  .sort({ name: 1 });  // مرتب بر اساس نام
+  .sort({ displayOrder: 1, name: 1 })
+  .limit(5);
   
   res.locals.footerCategories = footerCategories;
   next();
@@ -327,475 +352,166 @@ app.use(async (req, res, next) => {
 
 app.get("/", async (req, res) => {
   try {
-    // ====== 1. دسته‌بندی‌های اصلی برای منوی نوبار (با ساختار درختی) ======
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-    
-    // ====== 2. دسته‌بندی‌های اصلی با تعداد محصولات (برای اسلایدر هوم پیج) ======
-    const parentCategories = await Category.find({ 
-      categoryType: "product",
-      parentId: null,
-      isActive: true 
-    });
-    
-    const products = await Product.find({ isPopular: true })
-      .sort({ createdAt: -1 })
-      .limit(4);
-      
-    // SPECIAL OFFER: در حالت جدید، ۶ جایگاه به‌صورت دستی از پنل مدیریت تعیین می‌شوند.
-    // برای سازگاری با داده‌های قدیمی، تا وقتی هیچ جایگاه دستی ثبت نشده باشد
-    // از محصولات قدیمی isFeatured (فقط در صورت داشتن تخفیف واقعی) استفاده می‌کنیم.
-    let isFeaturedProducts = await Product.find({
-      isPublished: true,
-      specialOfferPosition: { $gte: 1, $lte: 6 },
+    const published = { isPublished: true };
+    const offerQuery = {
+      ...published,
       offerPrice: { $gt: 0 },
       $expr: { $lt: ["$offerPrice", "$price"] },
-    })
+    };
+
+    // SPECIAL OFFER: six slots chosen manually in the admin panel. For older data,
+    // fall back to discounted products flagged isFeatured.
+    let isFeaturedProducts = await Product.find({ ...offerQuery, specialOfferPosition: { $gte: 1, $lte: 6 } })
+      .select(CARD_FIELDS)
       .sort({ specialOfferPosition: 1 })
-      .limit(6);
-
+      .limit(6)
+      .lean();
     if (isFeaturedProducts.length === 0) {
-      isFeaturedProducts = await Product.find({
-        isPublished: true,
-        isFeatured: true,
-        offerPrice: { $gt: 0 },
-        $expr: { $lt: ["$offerPrice", "$price"] },
-      })
+      isFeaturedProducts = await Product.find({ ...offerQuery, isFeatured: true })
+        .select(CARD_FIELDS)
         .sort({ createdAt: -1 })
-        .limit(6);
-    }
-      
-    const isNewProduct = await Product.find({ isNewProduct: true })
-      .sort({ createdAt: -1 })
-      .limit(10);
-      
-     const perfumeProducts = await Product.aggregate([
-      {
-        $lookup: {
-          from: 'categories', // اسم کالکشن Categories در دیتابیس
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryDetails'
-        }
-      },
-      {
-        $unwind: {
-          path: '$categoryDetails',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'categoryDetails.name': 'ادکلن',
-          isPublished: true
-        }
-      },
-      {
-        $sort: { createdAt: -1 }
-      },
-      {
-        $limit: 4
-      },
-      {
-        $project: {
-          // فیلدهایی که می‌خواهید برگردانده شوند
-          name: 1,
-          price: 1,
-          slug: 1,
-          images: 1,
-          categoryDetails: 1,
-          createdAt: 1
-        }
-      }
-    ]);
-    
-     const haircareProducts = await Product.aggregate([
-      {
-        $lookup: {
-          from: 'categories', // اسم کالکشن Categories در دیتابیس
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryDetails'
-        }
-      },
-      {
-        $unwind: {
-          path: '$categoryDetails',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'categoryDetails.name': 'مراقبت مو',
-          isPublished: true
-        }
-      },
-      {
-        $sort: { createdAt: -1 }
-      },
-      {
-        $limit: 4
-      },
-      {
-        $project: {
-          // فیلدهایی که می‌خواهید برگردانده شوند
-          name: 1,
-          price: 1,
-          slug: 1,
-          images: 1,
-          categoryDetails: 1,
-          createdAt: 1
-        }
-      }
-    ]);
-    
-     const skincareProducts = await Product.aggregate([
-      {
-        $lookup: {
-          from: 'categories', // اسم کالکشن Categories در دیتابیس
-          localField: 'category',
-          foreignField: '_id',
-          as: 'categoryDetails'
-        }
-      },
-      {
-        $unwind: {
-          path: '$categoryDetails',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'categoryDetails.name': 'مراقبت پوستی',
-          isPublished: true
-        }
-      },
-      {
-        $sort: { createdAt: -1 }
-      },
-      {
-        $limit: 4
-      },
-      {
-        $project: {
-          // فیلدهایی که می‌خواهید برگردانده شوند
-          name: 1,
-          slug: 1,
-          price: 1,
-          images: 1,
-          categoryDetails: 1,
-          createdAt: 1
-        }
-      }
-    ]);
-    
-    
-    const beautyCategory = await Category.findOne({
-      name: "آرایشی",
-      categoryType: "product",
-      isActive: true
-    });
-    
-    let beautycareProducts = [];
-    
-    if (beautyCategory) {
-      // آیدی خود آرایشی + تمام زیر‌دسته‌های آن
-      const beautyCategoryIds = await getAllCategoryIds(beautyCategory._id);
-    
-      beautycareProducts = await Product.find({
-        category: { $in: beautyCategoryIds },
-        isPublished: true
-      })
-        .sort({ createdAt: -1 })
-        .limit(4);
-    
-    } else {
-      console.log("دسته آرایشی پیدا نشد");
-    }
-    
-    const weblogs = await Weblog.find({}).sort({ createdAt: -1 }).limit(4);
-    const user = await User.findById(req.session.userId);
-    const cartCount = user?.cart?.length || 0;
-
-    // تابع بازگشتی برای گرفتن همه IDهای زیرمجموعه‌ها
-    async function getAllChildCategoryIds(categoryId) {
-      let ids = [categoryId];
-      const children = await Category.find({ parentId: categoryId, isActive: true });
-      
-      for (const child of children) {
-        const childIds = await getAllChildCategoryIds(child._id);
-        ids = [...ids, ...childIds];
-      }
-      
-      return ids;
+        .limit(8)
+        .lean();
     }
 
-    // محاسبه تعداد محصولات هر دسته با احتساب زیرمجموعه‌ها
-    const categoriesWithCounts = await Promise.all(
-      parentCategories.map(async (cat) => {
-        const allCategoryIds = await getAllChildCategoryIds(cat._id);
-        const count = await Product.countDocuments({ 
-          category: { $in: allCategoryIds },
-          isOutOfStock: { $ne: true }
-        });
-        
-        return {
-          ...cat._doc,
-          productCount: count,
-        };
-      })
-    );
+    const [menuCategories, isNewProduct, perfumeProducts, skincareProducts, haircareProducts, beautycareProducts, weblogs, user, banners] =
+      await Promise.all([
+        buildMenuCategories(),
+        Product.find({ ...published, isNewProduct: true }).select(CARD_FIELDS).sort({ createdAt: -1 }).limit(8).lean(),
+        findProductsInCategoryNamed("ادکلن", 8),
+        findProductsInCategoryNamed("مراقبت پوستی", 4),
+        findProductsInCategoryNamed("مراقبت مو", 4),
+        findProductsInCategoryNamed("آرایشی", 4),
+        Weblog.find({ isPublished: true }).select("title slug description images readingTime createdAt").sort({ createdAt: -1 }).limit(3).lean(),
+        req.session.userId ? User.findById(req.session.userId).select("cart fullName mobile") : null,
+        Banner.activeByPlacement(["home_hero", "home_promo", "home_collection", "home_category", "home_editorial", "home_strip"]),
+      ]);
 
     res.render("Home", {
-      menuCategories,  
-      categories: categoriesWithCounts,
-      products,
-      weblogs,
+      banners,
+      menuCategories,
       user,
-      cartCount,
+      cartCount: user?.cart?.length || 0,
       isFeaturedProducts,
       isNewProduct,
       perfumeProducts,
-      haircareProducts,
       skincareProducts,
+      haircareProducts,
       beautycareProducts,
+      weblogs,
     });
-    
   } catch (error) {
     console.error("Home page error:", error);
-    res.status(500).render("500", { message: "خطای سرور" });
+    res.status(500).render("500");
   }
 });
 
 const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
+// Shop & category listing share one renderer (helper/catalog.js does the querying).
+async function renderCatalog(req, res, { category = null } = {}) {
+  const filters = parseFilters(req.query);
+  const [result, menuCategories, user] = await Promise.all([
+    listProducts(filters, { scopeCategoryId: category ? category._id : null }),
+    buildMenuCategories(),
+    req.session.userId ? User.findById(req.session.userId).select("cart fullName mobile") : null,
+  ]);
+  const facets = await buildFacets(result.context);
+
+  // Subcategories of the current scope (or top-level categories on /shop) as quick filters.
+  const subcategories = await Category.find({
+    categoryType: "product",
+    isActive: true,
+    parentId: category ? category._id : null,
+  })
+    .select("name slug icon")
+    .sort({ displayOrder: 1, name: 1 })
+    .lean();
+
+  const breadcrumb = [];
+  for (let node = category; node; node = node.parentId && node.parentId.name ? node.parentId : null) {
+    breadcrumb.unshift({ name: node.name, slug: node.slug });
+  }
+
+  // Header banner: one made for this category wins over a general shop banner.
+  const shopBanners = (await Banner.activeByPlacement(["shop_top"])).shop_top;
+  const banner =
+    (category && shopBanners.find((b) => b.categorySlug === category.slug)) ||
+    shopBanners.find((b) => !b.categorySlug) ||
+    null;
+
+  const categoryNames = Object.fromEntries(subcategories.map((c) => [c.slug, c.name]));
+  res.render("Shop", {
+    menuCategories,
+    user,
+    cartCount: user?.cart?.length || 0,
+    category,
+    subcategories,
+    breadcrumb,
+    filters,
+    facets,
+    activeChips: activeFilterChips(filters, categoryNames),
+    sorts: SORTS,
+    products: result.products,
+    total: result.total,
+    page: result.page,
+    pages: result.pages,
+    basePath: category ? `/category/${category.slug}` : "/shop",
+    banner,
+  });
+}
+
 app.get(
   "/shop",
   asyncHandler(async (req, res) => {
-    const products = await Product.find({ isPublished: true })
-      .sort({ createdAt: -1 })
-      .populate("category")
-      .populate("brand");    const categories = await Category.find({ categoryType: "product" });
-    const brands = await Brand.find({});
-    const user = await User.findById(req.session.userId);
-
-    // ====== 1. دسته‌بندی‌های اصلی برای منوی نوبار (با ساختار درختی) ======
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
-    if (!products || !categories || !brands) {
-      const error = new Error("خطا در بارگزاری فروشگاه");
-      error.statusCode = 500;
-      throw error;
-    }
-
-    const cartCount = user?.cart?.length || 0;
-
-    // تابع بازگشتی برای گرفتن همه IDهای زیرمجموعه‌ها
-    async function getAllChildCategoryIds(categoryId) {
-      let ids = [categoryId];
-      const children = await Category.find({ parentId: categoryId, isActive: true });
-      
-      for (const child of children) {
-        const childIds = await getAllChildCategoryIds(child._id);
-        ids = [...ids, ...childIds];
-      }
-      
-      return ids;
-    }
-
-    // محاسبه تعداد محصولات هر دسته با احتساب زیرمجموعه‌ها
-    const categoriesWithCounts = await Promise.all(
-      categories.map(async (cat) => {
-        const allCategoryIds = await getAllChildCategoryIds(cat._id);
-        const count = await Product.countDocuments({ 
-          category: { $in: allCategoryIds },
-          isOutOfStock: { $ne: true }
-        });
-        
-        return {
-          ...cat._doc,
-          productCount: count,
-        };
-      })
-    );
-
-    res.render("Shop", {
-      products,
-      categories: categoriesWithCounts,
-      brands,
-      cartCount,
-      user,
-      menuCategories,
-    });
+    await renderCatalog(req, res);
   })
 );
 
-app.get("/api/products/filtered", async (req, res) => {
-  try {
-    const {
-      categories = [],
-      brands = [],
-      maxPrice,
-      searchQuery,
-      discountOnly,
-      sortBy,
-      page = 1,
-      limit = 12,
-    } = req.query;
-
-    let query = { isPublished: true };
-
-    if (String(discountOnly) === "true") {
-      query.offerPrice = { $gt: 0 };
-      query.$expr = { $lt: ["$offerPrice", "$price"] };
-    }
-
-    // فیلتر دسته‌بندی‌ها
-    if (categories.length > 0) {
-      query.category = { $in: categories };
-    }
-
-    // فیلتر برندها
-    if (brands.length > 0) {
-      query.brandName = { $in: brands };
-    }
-
-    // فیلتر قیمت
-    if (maxPrice) {
-      query.$or = [
-        { offerPrice: { $lte: maxPrice } },
-        { price: { $lte: maxPrice } },
-      ];
-    }
-
-    // جستجو
-    if (searchQuery) {
-      query.$or = [
-        { name: { $regex: searchQuery, $options: "i" } },
-        { lilDescription: { $regex: searchQuery, $options: "i" } },
-      ];
-    }
-
-    // مرتب‌سازی
-    let sortOption = {};
-    switch (sortBy) {
-      case "price-low":
-        sortOption = { price: 1 };
-        break;
-      case "price-high":
-        sortOption = { price: -1 };
-        break;
-      case "newest":
-        sortOption = { createdAt: -1 };
-        break;
-      case "rating":
-        sortOption = { rating: -1 };
-        break;
-      default:
-        sortOption = { rating: -1, reviewsNum: -1 };
-    }
-
-    const total = await Product.countDocuments(query);
-    const products = await Product.find(query)
-      .sort(sortOption)
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    res.json({
-      success: true,
-      total,
-      page,
-      pages: Math.ceil(total / limit),
-      products,
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
 app.get("/productDetails/:slug", async (req, res, next) => {
   try {
-    const slug = req?.params?.slug;
-    const user = await User.findById(req.session.userId);
-    if (!slug) {
-      const error = new Error("محصول انتخاب نشده است");
-      error.statusCode = 400;
-      throw error;
-    }
-
+    const slug = req.params.slug;
     const product = await Product.findOne({ slug });
     if (!product) {
-      // شاید این اسلاگ، اسلاگ قدیمی یک محصول باشد
-      const redirectedProduct = await Product.findOne({ oldSlugs: slug });
+      // Maybe an old slug of a renamed product.
+      const redirectedProduct = await Product.findOne({ oldSlugs: slug }).select("slug").lean();
       if (redirectedProduct) {
         const queryString = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
-        return res.redirect(301, `/productDetails/${redirectedProduct.slug}${queryString}`);
+        return res.redirect(301, `/productDetails/${encodeURIComponent(redirectedProduct.slug)}${queryString}`);
       }
-      return res.status(404).render("404"); // یا هر چیزی که الان برای ۴۰۴ داری
+      return res.status(404).render("404");
     }
 
+    const categoryIds = (product.category || []).map((id) => id);
+    const [menuCategories, user, relatedProducts, categoryDocs] = await Promise.all([
+      buildMenuCategories(),
+      req.session.userId ? User.findById(req.session.userId).select("cart fullName mobile") : null,
+      Product.find({ _id: { $ne: product._id }, isPublished: true, category: { $in: categoryIds } })
+        .select(CARD_FIELDS)
+        .sort({ sortPriority: -1, createdAt: -1 })
+        .limit(8)
+        .lean(),
+      Category.find({ _id: { $in: categoryIds }, isActive: true }).select("name slug parentId").lean(),
+    ]);
 
-    const cartCount = user?.cart?.length || 0;
+    // Deepest category first for the breadcrumb.
+    const leaf = categoryDocs.find((c) => !categoryDocs.some((other) => String(other.parentId) === String(c._id))) || categoryDocs[0];
+    const parent = leaf && leaf.parentId ? categoryDocs.find((c) => String(c._id) === String(leaf.parentId)) : null;
 
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
+    res.render("ProductDetails", {
+      product,
+      user,
+      cartCount: user?.cart?.length || 0,
+      menuCategories,
+      priceInIRR: (product.offerPrice || product.price) * 10,
+      torobMetaHelper: require("./helper/torobProductMeta"),
+      requestedTorobVariantId: String(req.query.variant || ""),
+      requestedTorobSizeId: String(req.query.size || ""),
+      fragrance: parseFragranceProfile(product.specifications, product.fragrance),
+      relatedProducts,
+      breadcrumb: [parent, leaf].filter(Boolean),
     });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
-    const priceInIRR = (product.offerPrice || product.price) * 10;
-
-    res.render("ProductDetails", { product, user, cartCount, menuCategories, priceInIRR });
   } catch (err) {
     next(err);
   }
@@ -804,19 +520,13 @@ app.get("/productDetails/:slug", async (req, res, next) => {
 app.get(
   "/cart",
   asyncHandler(async (req, res) => {
+    const menuCategories = await buildMenuCategories();
     if (!req.session.userId) {
-      res.status(401);
-      req.session.icon = "error";
-      req.session.text = "ابتدا وارد حساب کاربری خود شوید";
-      req.flash("error", req.session.text);
-      res.redirect("/");
-      return;
+      // Carts live on the account; guests get a sign-in prompt on the page itself.
+      return res.render("Cart", { guest: true, menuCategories, cartItems: [], user: null, cartCount: 0 });
     }
 
-    const user = await User.findById(req.session.userId)
-      .populate("cart.productId")
-      .populate("orders");
-
+    const user = await User.findById(req.session.userId).populate("cart.productId");
     if (!user) {
       const error = new Error("کاربر پیدا نشد");
       error.statusCode = 404;
@@ -824,26 +534,31 @@ app.get(
     }
 
     const cartItems = user.cart
+      .filter((item) => item.productId)
       .map((item) => {
-        if (!item.productId) {
-          console.warn(`کالای شما پیدا نشد`);
-          return null;
-        }
         const prod = item.productId;
+        const color = item.selectedVariantId ? prod.colors?.id?.(item.selectedVariantId) : null;
+        const size = item.selectedSizeId ? prod.sizes?.id?.(item.selectedSizeId) : null;
         return {
           _id: prod._id,
+          lineId: String(item._id),
           name: prod.name,
           slug: prod.slug,
+          brandName: prod.brandName || "",
           price: prod.price,
           offerPrice: prod.offerPrice,
           weight: prod.weight,
-          image: prod.images?.[0] || "",
+          image: (color && color.image && color.image.url ? { url: color.image.url } : prod.images?.[0]) || { url: "/logo.webp" },
           quantity: item.quantity,
+          stock: Number(prod.countInStock || 0),
           selectedColor: item.selectedColor || "",
-          selectedSize: item.selectedSize || ""
+          selectedVariantId: item.selectedVariantId || "",
+          selectedSize: item.selectedSize || "",
+          selectedSizeId: item.selectedSizeId || "",
+          colorRgb: color ? color.rgb : "",
+          available: Number(prod.countInStock || 0) > 0 && !(size && size.isOutOfStock) && !(color && color.isOutOfStock),
         };
-      })
-      .filter((item) => item !== null);
+      });
 
     const subtotal = cartItems.reduce((sum, item) => {
       const hasSpecialPrice =
@@ -882,39 +597,18 @@ app.get(
       req.session.OrderNum = generateOrderNumber();
     }
 
-
-   const cartCount = user?.cart?.length || 0;
-
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
     res.render("Cart", {
+      guest: false,
       cartItems,
       user,
+      savedAddress: (user.addresses && user.addresses[0]) || null,
       OrderNum: req.session.OrderNum,
       subtotal,
       discountAmount,
       finalTotal,
       discountCode: req.session.discount?.code || null,
       activeDiscount: req.session.discount || null,
-      cartCount,
+      cartCount: user.cart.length,
       menuCategories,
     });
   })
@@ -972,159 +666,49 @@ app.get("/weblog", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).render("error", { message: "خطا در بارگزاری وبلاگ" });
+    res.status(500).render("500", { message: "خطا در بارگذاری مجله" });
   }
 });
 
-app.get("/about-us", async (req, res) => {
-  const user = await User.findById(req.session.userId)
-    .populate("cart.productId")
-    .populate("orders");
+app.get(
+  "/about-us",
+  asyncHandler(async (req, res) => {
+    res.render("aboutus", await pageContext(req));
+  })
+);
 
-  const cartCount = user?.cart?.length || 0;
 
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
+app.get(
+  "/connect-us",
+  asyncHandler(async (req, res) => {
+    res.render("connect", await pageContext(req));
+  })
+);
 
-  res.render("aboutus", {user, cartCount, menuCategories});
-});
 
-app.get("/connect-us", async (req, res) => {
-   const user = await User.findById(req.session.userId)
-    .populate("cart.productId")
-    .populate("orders");
-  
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
+app.get(
+  "/contact-us",
+  asyncHandler(async (req, res) => {
+    res.render("contact", await pageContext(req));
+  })
+);
 
-  const cartCount = user?.cart?.length || 0;
 
-  res.render("connect" , {user, cartCount, menuCategories});
-});
+app.get(
+  "/terms-and-conditions",
+  asyncHandler(async (req, res) => {
+    res.render("terms", await pageContext(req));
+  })
+);
 
-app.get("/contact-us", async (req, res) => {
-  const user = await User.findById(req.session.userId)
-    .populate("cart.productId")
-    .populate("orders");
 
-  const cartCount = user?.cart?.length || 0;
+app.get(
+  "/privacy-policy",
+  asyncHandler(async (req, res) => {
+    res.render("privacy", await pageContext(req));
+  })
+);
 
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
-  res.render("contact", {user, cartCount, menuCategories});
-});
-
-app.get("/terms-and-conditions", async (req, res) => {
-    const user = await User.findById(req.session.userId)
-    .populate("cart.productId")
-    .populate("orders");
-
-  const cartCount = user?.cart?.length || 0;
-
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
-  res.render("terms", {user, cartCount, menuCategories});
-});
-
-app.get("/privacy-policy", async (req, res) => {
-   const user = await User.findById(req.session.userId)
-    .populate("cart.productId")
-    .populate("orders");
-
-  const cartCount = user?.cart?.length || 0;
-
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
-  res.render("privacy", {user, cartCount, menuCategories});
-});
 
 app.get("/api/weblogs/:id/related", async (req, res) => {
   try {
@@ -1164,201 +748,43 @@ app.get("/api/weblogs/:slug", async (req, res) => {
   }
 });
 
-app.get("/userProfile", async (req, res) => {
-  if (!req.session.userId) {
-    res.status(401);
-    req.session.icon = "error";
-    req.session.text = "ابتدا وارد حساب کاربری خود شوید";
-    req.flash("error", req.session.text);
-    res.redirect("/");
-    return;
-  }
-  const user = await User.findById(req.session.userId).populate({
-    path: "orders",
-    populate: {
-      path: "products.product",
-      model: "Product",
-    },
-  });
-
-  const currentOrders = user.orders.filter((o) =>
-    ["در حال پردازش", "در حال ارسال", "بسته بندی شده"].includes(o.status)
-  );
-  const completedOrders = user.orders.filter(
-    (o) => o.status === "تحویل داده شد"
-  );
-  const canceledOrders = user.orders.filter((o) => o.status === "لغو شده");
-
-  const cartCount = user?.cart?.length || 0;
-
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-
-
-  res.render("UserProfile", {
-    user,
-    currentOrders,
-    completedOrders,
-    canceledOrders,
-    cartCount,
-    menuCategories
-  });
-});
-
-app.get("/category/:slug", async (req, res) => {
-  try {
-    const user = await User.findById(req.session.userId)
-      .populate("cart.productId")
-      .populate("orders");
-
-    const cartCount = user?.cart?.length || 0;
-    const { slug } = req.params;
-    
-    const currentCategory = await Category.findOne({ 
-      slug: slug,
-      isActive: true 
-    }).populate('parentId');
-    
-    if (!currentCategory) {
-      return res.status(404).render("404", { message: "دسته‌بندی یافت نشد" });
+app.get(
+  "/userProfile",
+  asyncHandler(async (req, res) => {
+    if (!req.session.userId) {
+      return res.redirect("/?login=1&next=%2FuserProfile");
     }
-    
-    // تابع بازگشتی برای گرفتن همه زیرمجموعه‌ها
-    async function getAllChildCategories(parentId) {
-      const children = await Category.find({ parentId, isActive: true });
-      let allChildren = [...children];
-      
-      for (const child of children) {
-        const grandChildren = await getAllChildCategories(child._id);
-        allChildren = [...allChildren, ...grandChildren];
-      }
-      
-      return allChildren;
+    const [user, menuCategories] = await Promise.all([
+      User.findById(req.session.userId)
+        .populate({ path: "orders", options: { sort: { createdAt: -1 } }, populate: { path: "products.product", model: "Product", select: "name slug images" } })
+        .populate({ path: "wishlist", match: { isPublished: true }, select: CARD_FIELDS }),
+      buildMenuCategories(),
+    ]);
+    if (!user) {
+      req.session.destroy(() => res.redirect("/"));
+      return;
     }
-    
-    const allChildCategories = await getAllChildCategories(currentCategory._id);
-    
-    // محاسبه تعداد محصولات برای هر زیرمجموعه
-    const childCategoriesWithCount = await Promise.all(
-      allChildCategories.map(async (cat) => {
-        let allChildIds = [cat._id];
-        
-        async function getChildIds(parentId) {
-          const children = await Category.find({ parentId, isActive: true });
-          for (const child of children) {
-            allChildIds.push(child._id);
-            await getChildIds(child._id);
-          }
-        }
-        
-        await getChildIds(cat._id);
-        
-        const productCount = await Product.countDocuments({
-          category: { $in: allChildIds },
-          isOutOfStock: { $ne: true }
-        });
-        
-        return {
-          ...cat.toObject(),
-          productCount
-        };
-      })
-    );
-    
-    // پیدا کردن مسیر دسته‌بندی (breadcrumb)
-    let breadcrumb = [];
-    let parent = currentCategory;
-    while (parent) {
-      breadcrumb.unshift({
-        name: parent.name,
-        slug: parent.slug
-      });
-      parent = parent.parentId;
-    }
-    
-    // پیدا کردن تمام IDهای دسته‌بندی (خودش + همه فرزندان)
-    let categoryIds = [currentCategory._id];
-    
-    async function getAllChildIds(parentId) {
-      const children = await Category.find({ parentId, isActive: true });
-      for (const child of children) {
-        categoryIds.push(child._id);
-        await getAllChildIds(child._id);
-      }
-    }
-    
-    await getAllChildIds(currentCategory._id);
-    
-    const products = await Product.find({
-      category: { $in: categoryIds },
-      isOutOfStock: { $ne: true },
-      isPublished: true
-    })
-      .populate("category")
-      .populate("brand")
-      .sort({ createdAt: -1 });
-    
-    const brands = await Brand.find({
-      _id: { $in: [...new Set(products.map(p => p.brand?._id || p.brand).filter(Boolean))] }
-    });
 
-    const allCategories = await Category.find({ 
-      categoryType: "product",
-      isActive: true 
-    });
-    
-    // ساخت ساختار درختی برای منو
-    const categoryMap = {};
-    allCategories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat.toObject(), children: [] };
-    });
-    
-    const menuCategories = [];
-    allCategories.forEach(cat => {
-      if (cat.parentId && categoryMap[cat.parentId]) {
-        categoryMap[cat.parentId].children.push(categoryMap[cat._id]);
-      } else if (!cat.parentId) {
-        menuCategories.push(categoryMap[cat._id]);
-      }
-    });
-    
-    res.render("category", {
-      currentCategory,
-      childCategories: childCategoriesWithCount,
-      products,
-      brands,
-      allCategories: await Category.find({ categoryType: "product", parentId: null, isActive: true }),
-      breadcrumb,
-      path: `/category/${slug}`,
-      title: `${currentCategory.name} | فروشگاه`,
-      description: `خرید ${currentCategory.name}`,
+    res.render("UserProfile", {
       user,
-      cartCount,
-      menuCategories
+      orders: user.orders || [],
+      wishlist: (user.wishlist || []).filter(Boolean),
+      cartCount: user.cart?.length || 0,
+      menuCategories,
     });
-    
-  } catch (error) {
-    console.error("Category page error:", error);
-    res.status(500).render("500", { message: "خطای سرور" });
-  }
-});
+  })
+);
+
+app.get(
+  "/category/:slug",
+  asyncHandler(async (req, res) => {
+    const category = await Category.findOne({ slug: req.params.slug, isActive: true, categoryType: "product" })
+      .populate({ path: "parentId", populate: { path: "parentId" } })
+      .lean();
+    if (!category) return res.status(404).render("404");
+    await renderCatalog(req, res, { category });
+  })
+);
 
 function toPersianDate(dateString) {
   if (!dateString) return '';
@@ -1405,8 +831,8 @@ app.get('/weblog/:slug', async (req, res) => {
     }
     
     // افزایش بازدید
-    post.viewCount = (post.viewCount || 0) + 1;
-    await post.save();
+    // Atomic increment: no full-document re-validation just for a page view.
+    await Weblog.updateOne({ _id: post._id }, { $inc: { viewCount: 1 } });
     
     // دریافت مقالات مرتبط (دسته‌بندی مشابه)
     let relatedPosts = [];
@@ -1446,7 +872,7 @@ app.get('/weblog/:slug', async (req, res) => {
     
   } catch (error) {
     console.error('Error in weblog details route:', error);
-    res.status(500).render('error', { message: 'خطا در بارگذاری مقاله' });
+    res.status(500).render('500', { message: 'خطا در بارگذاری مقاله' });
   }
 });
 
@@ -1601,6 +1027,8 @@ const connectWithRetry = async () => {
 
     app.listen(process.env.PORT || 8080, () => {
       console.log(`Server running on http://localhost:${process.env.PORT || 8080}`);
+      // Idempotent data/index migrations run in the background; they never block startup.
+      require("./helper/migrations").runStartupMigrations();
     });
   } catch (err) {
     console.error("Failed to connect to MongoDB - retrying in 5 sec", err);

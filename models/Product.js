@@ -65,6 +65,12 @@ const productSchema = new mongoose.Schema(
       type: Number,
       min: [0, "قیمت تخفیف‌خورده نمی‌تواند منفی باشد"],
     },
+    // Price the customer actually pays (offerPrice when it's a real discount).
+    // Maintained in pre("save"); used to filter/sort the catalogue by price.
+    finalPrice: {
+      type: Number,
+      index: true,
+    },
     catName: { type: String, default: "" },
     brandName: { type: String, default: "" },
     catId: { type: String, default: "" },
@@ -95,12 +101,6 @@ const productSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
-    rating: {
-      type: Number,
-      min: [0, "امتیاز نمی‌تواند کمتر از ۰ باشد"],
-      max: [5, "امتیاز نمی‌تواند بیشتر از ۵ باشد"],
-      default: 0,
-    },
     isFeatured: { type: Boolean, default: false },
     // جایگاه دستی محصول در اسلایدر SPECIAL OFFER صفحه اصلی (۱ تا ۶).
     // null یعنی این محصول در بخش پیشنهاد ویژه نمایش داده نشود.
@@ -119,11 +119,6 @@ const productSchema = new mongoose.Schema(
       min: [0, "وزن نمی‌تواند منفی باشد"],
     },
 
-    reviewsNum: {
-      type: Number,
-      min: [0, "تعداد نظرات نمی‌تواند منفی باشد"],
-      default: 0,
-    },
     colors: [
       {
         // _id این subdocument شناسه پایدار هر تنوع رنگی برای ترب است.
@@ -143,6 +138,51 @@ const productSchema = new mongoose.Schema(
       type: Number,
       min: [0, "تخفیف نمی‌تواند منفی باشد"],
       max: [100, "تخفیف نمی‌تواند بیشتر از ۱۰۰٪ باشد"],
+    },
+    // ---------- Merchandising (admin-managed storefront presentation) ----------
+    sku: { type: String, trim: true, maxlength: 60, index: { sparse: true } },
+    // Stock at or below this number shows a "low stock" note and appears on the dashboard.
+    lowStockThreshold: { type: Number, min: 0, default: 3 },
+    // One editorial badge at most. "Sale" is derived from the price automatically.
+    badge: {
+      type: String,
+      enum: ["", "new", "bestseller", "limited", "exclusive"],
+      default: "",
+    },
+    collectionName: { type: String, trim: true, maxlength: 60, default: "" },
+    // Higher values are listed first in the "recommended" sort.
+    sortPriority: { type: Number, default: 0, index: true },
+
+    // ---------- Structured fragrance identity (perfumes) ----------
+    // Values are stored as Persian labels so the shop filters can use them directly.
+    // When a field is empty the storefront falls back to matching specification rows.
+    fragrance: {
+      family: { type: String, trim: true, maxlength: 60 },
+      concentration: { type: String, trim: true, maxlength: 40 },
+      gender: { type: String, trim: true, maxlength: 30 },
+      volume: { type: String, trim: true, maxlength: 40 },
+      top: [{ type: String, trim: true, maxlength: 40 }],
+      heart: [{ type: String, trim: true, maxlength: 40 }],
+      base: [{ type: String, trim: true, maxlength: 40 }],
+      accords: [
+        {
+          _id: false,
+          name: { type: String, trim: true, maxlength: 40 },
+          strength: { type: Number, min: 0, max: 100 },
+        },
+      ],
+      longevity: { type: String, trim: true, maxlength: 40 },
+      sillage: { type: String, trim: true, maxlength: 40 },
+      seasons: [{ type: String, enum: ["بهار", "تابستان", "پاییز", "زمستان"] }],
+      dayNight: [{ type: String, enum: ["روز", "شب"] }],
+      occasions: [{ type: String, trim: true, maxlength: 40 }],
+      story: { type: String, trim: true, maxlength: 2000 },
+      usage: { type: String, trim: true, maxlength: 1000 },
+      ingredients: { type: String, trim: true, maxlength: 2000 },
+      identityImage: {
+        url: { type: String, trim: true },
+        filename: { type: String, trim: true },
+      },
     },
     isNewProduct: { type: Boolean, default: false },
     sizes: [
@@ -251,8 +291,15 @@ productSchema.pre("validate", async function () {
   }
 });
 
+const computeFinalPrice = (price, offerPrice) => {
+  const base = Number(price) || 0;
+  const offer = Number(offerPrice) || 0;
+  return offer > 0 && offer < base ? offer : base;
+};
+
 productSchema.pre("save", function () {
   this.updateTarikh = getPersianDate();
+  this.finalPrice = computeFinalPrice(this.price, this.offerPrice);
   this.isOutOfStock = Number(this.countInStock || 0) <= 0;
 
   for (const color of this.colors || []) {
@@ -304,9 +351,10 @@ productSchema.index({ offerPrice: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ isPopular: 1 });
 productSchema.index({ isNewProduct: 1 });
-productSchema.index({ rating: -1 });
 productSchema.index({ "colors.rgb": 1 });
 productSchema.index({ isPublished: 1, publishedAt: -1, createdAt: -1 });
 productSchema.index({ isPublished: 1, updatedAt: -1 });
+
+productSchema.statics.computeFinalPrice = computeFinalPrice;
 
 module.exports = mongoose.model("Product", productSchema);

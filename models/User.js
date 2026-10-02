@@ -3,12 +3,14 @@ const Schema = mongoose.Schema;
 const { getPersianDate } = require("../helper/getPersianDate");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const userSchema = new mongoose.Schema(
   {
+    // Phone + OTP sign-in only needs the mobile number; the name is collected
+    // at checkout, so fullName/email/password are optional for those accounts.
     fullName: {
       type: String,
-      required: [true, "نام کامل الزامی است"],
       trim: true,
       minlength: [3, "نام کامل نمی‌تواند کمتر از ۳ کاراکتر باشد"],
       maxlength: [50, "نام کامل نمی‌تواند بیشتر از ۵۰ کاراکتر باشد"],
@@ -26,14 +28,17 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "ایمیل الزامی است"],
-      unique: true,
       lowercase: true,
-      validate: [validator.isEmail, "ایمیل معتبر نیست"],
+      trim: true,
+      // Empty strings would collide in the unique index, so store "no email" as undefined.
+      set: (value) => (value ? value : undefined),
+      validate: {
+        validator: (value) => !value || validator.isEmail(value),
+        message: "ایمیل معتبر نیست",
+      },
     },
     password: {
       type: String,
-      required: [true, "رمز عبور الزامی است"],
       minlength: [8, "رمز عبور باید حداقل ۸ کاراکتر باشد"],
       select: false, // Never return password in queries
     },
@@ -74,6 +79,24 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Order",
+      },
+    ],
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+    // Delivery addresses saved at checkout (most recent first) to prefill the next order.
+    addresses: [
+      {
+        fullName: { type: String, trim: true, maxlength: 60 },
+        mobile: { type: String, trim: true },
+        province: { type: String, trim: true, maxlength: 100 },
+        city: { type: String, trim: true, maxlength: 100 },
+        address: { type: String, trim: true, maxlength: 500 },
+        postcode: { type: String, trim: true },
+        updatedAt: { type: Date, default: Date.now },
       },
     ],
     role: {
@@ -153,6 +176,11 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 
+// Partial unique index: many OTP accounts have no email at all.
+userSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { email: { $type: "string" } } }
+);
 userSchema.index({ role: 1 });
 userSchema.index({ "addresses.city": 1 });
 userSchema.index({ "addresses.province": 1 });

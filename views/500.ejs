@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'خطای موقت | اودر', robots: 'noindex' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <div class="od-container od-state" style="min-height:60vh;align-content:center">
+      <div class="od-state__art"><%- icon('alert') %></div>
+      <h1 class="od-h2">مشکلی موقتی پیش آمد</h1>
+      <p><%= typeof message !== 'undefined' && message ? message : 'صفحه در حال حاضر در دسترس نیست. چند لحظه دیگر دوباره تلاش کنید.' %></p>
+      <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+        <a class="od-btn" href="javascript:location.reload()">تلاش دوباره</a>
+        <a class="od-btn od-btn--secondary" href="/">صفحه اصلی</a>
+      </div>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

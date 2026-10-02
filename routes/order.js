@@ -226,7 +226,17 @@ const validateOrderInput = [
   body("city").trim().isLength({ min: 2, max: 100 }).withMessage("شهر الزامی است"),
   body("delivery").optional().trim(),
   body("paymentMethod").optional().trim(),
+  // Recipient details collected at checkout (phone + OTP accounts start without a name).
+  body("fullName").optional({ values: "falsy" }).trim().isLength({ min: 3, max: 50 }).withMessage("نام و نام خانوادگی باید بین ۳ تا ۵۰ حرف باشد"),
+  body("recipientMobile").optional({ values: "falsy" }).trim().matches(/^09\d{9}$/).withMessage("شماره موبایل گیرنده معتبر نیست"),
 ];
+
+// Keeps the five most recent distinct delivery addresses for checkout prefill.
+const rememberAddress = (user, entry) => {
+  const same = (a) => a.postcode === entry.postcode && a.address === entry.address;
+  const others = (user.addresses || []).filter((a) => !same(a));
+  user.addresses = [{ ...entry, updatedAt: new Date() }, ...others.map((a) => (a.toObject ? a.toObject() : a))].slice(0, 5);
+};
 
 class CheckoutError extends Error {
   constructor(message, statusCode = 400, details = {}) {
@@ -878,6 +888,15 @@ router.post("/", upload.none(), isLoggedIn, validateOrderInput, async (req, res)
     user = await User.findById(req.session.userId).populate("cart.productId");
     if (!user) throw new CheckoutError("کاربر یافت نشد", 404);
 
+    const recipientName = String(req.body.fullName || user.fullName || "").trim();
+    if (recipientName.length < 3) {
+      throw new CheckoutError("لطفاً نام و نام خانوادگی تحویل‌گیرنده را وارد کنید", 400, {
+        errors: [{ path: "fullName", msg: "نام و نام خانوادگی الزامی است" }],
+      });
+    }
+    if (!user.fullName) user.fullName = recipientName;
+    const recipientMobile = String(req.body.recipientMobile || user.mobile || "").trim();
+
     originalCart = user.cart.map((item) => ({
       productId: item.productId?._id || item.productId,
       quantity: item.quantity,
@@ -932,6 +951,8 @@ router.post("/", upload.none(), isLoggedIn, validateOrderInput, async (req, res)
       province: req.body.province,
       city: req.body.city,
       user: user._id,
+      recipientName,
+      recipientMobile,
       products: quote.products,
       delivery: quote.delivery,
       originalPrice: quote.subtotal,
@@ -959,6 +980,14 @@ router.post("/", upload.none(), isLoggedIn, validateOrderInput, async (req, res)
 
     user.cart = [];
     user.orders.push(order._id);
+    rememberAddress(user, {
+      fullName: recipientName,
+      mobile: recipientMobile,
+      province: req.body.province,
+      city: req.body.city,
+      address: req.body.address,
+      postcode: req.body.postcode,
+    });
     await user.save();
 
     let paymentUrl;

@@ -29,6 +29,9 @@ const {
 
 const { getPersianDate } = require("../helper/getPersianDate");
 const Weblog = require("../models/Weblog");
+const Banner = require("../models/Banner");
+const { buildDashboard } = require("../helper/adminDashboard");
+const { normalizeProductExtras } = require("../helper/productExtras");
 
 const { isAdminLoggedIn } = require("../middlewares/adminAuth");
 const { logAfterAction } = require("../middlewares/recentAction");
@@ -544,7 +547,15 @@ const formattedMonthlyStats = Object.values(monthlyStats)
     totalOrders: orders.length,
   };
 
+  const [dashboard, banners] = await Promise.all([
+    buildDashboard(),
+    Banner.find({}).sort({ placement: 1, order: 1, createdAt: 1 }).lean(),
+  ]);
+
   res.render("AdminPanel", {
+    dashboard,
+    banners,
+    bannerPlacements: Banner.PLACEMENTS,
     users,
     products,
     categories,
@@ -620,6 +631,7 @@ router.post("/products/add", async (req, res, next) => {
       );
     }
     
+    normalizeProductExtras(req.body);
     const tempImages = req.body.images || [];
     const colorsData = req.body.colors || [];
     const sizesData = req.body.sizes || [];
@@ -781,10 +793,6 @@ const validateProductUpdate = [
     .optional()
     .isInt({ min: 0 })
     .withMessage("موجودی نمی‌تواند منفی باشد"),
-  body("rating")
-    .optional()
-    .isFloat({ min: 0, max: 5 })
-    .withMessage("امتیاز باید بین ۰ تا ۵ باشد"),
   body("weight")
     // وزن در ویرایش اختیاری است؛ null یا فیلد ارسال‌نشده نباید خطای اعتبارسنجی بدهد.
     .optional({ nullable: true, checkFalsy: true })
@@ -885,14 +893,14 @@ router.put("/products/edit/:id",async (req, res, next) => {
       });
     }
 
-    const updateData = { ...req.body };
+    const updateData = normalizeProductExtras({ ...req.body });
     updateData.englishName = updateData.englishName || null;
 
     if (!updateData.slug || !String(updateData.slug).trim()) {
       delete updateData.slug;
     }
 
-    const numericFields = ["price", "countInStock", "rating"];
+    const numericFields = ["price", "countInStock"];
     numericFields.forEach((field) => {
       if (updateData[field] !== undefined && updateData[field] !== "") {
         updateData[field] = Number(updateData[field]);
@@ -1119,6 +1127,19 @@ router.delete("/products/delete/:id",async (req, res, next) => {
   }
 });
 
+// Optional storefront presentation fields shared by category add/edit.
+function categoryPresentation(body) {
+  const out = {};
+  if (body.displayOrder !== undefined && body.displayOrder !== "") {
+    const n = Math.round(Number(body.displayOrder));
+    if (Number.isFinite(n)) out.displayOrder = Math.max(-1000, Math.min(1000, n));
+  }
+  if (body.icon !== undefined) out.icon = /^cat-[a-z-]+$/.test(String(body.icon)) ? String(body.icon) : "";
+  if (body.description !== undefined) out.description = String(body.description || "").trim().slice(0, 1000);
+  if (body.isActive !== undefined) out.isActive = body.isActive === true || body.isActive === "true";
+  return out;
+}
+
 router.post("/categories/add", async (req, res) => {
   try {
     const {
@@ -1127,6 +1148,7 @@ router.post("/categories/add", async (req, res) => {
         parentId = null,
         img = null
     } = req.body;
+    const presentation = categoryPresentation(req.body);
     
     if (!name) {
       return res.status(400).json({
@@ -1156,7 +1178,8 @@ router.post("/categories/add", async (req, res) => {
         name: name.trim(),
         categoryType,
         parentId: parentId || null,
-        img: normalizedImg || null
+        img: normalizedImg || null,
+        ...presentation
     });
     
     await category.save();
@@ -1234,6 +1257,7 @@ router.put("/categories/edit/:id", async (req, res) => {
                 categoryType: categoryType || "product",
                 parentId: parentId || null,
                 img: normalizedImg || null,
+                ...categoryPresentation(req.body),
                 updateTarikh: getPersianDate()
             },
             {
@@ -2080,8 +2104,7 @@ router.post("/products/duplicate/:id", async (req, res) => {
     duplicateData.updateTarikh = getPersianDate();
     
     // بازنشانی آمارها
-    duplicateData.rating = 0;
-    duplicateData.reviewsNum = 0;
+    delete duplicateData.sku;
     duplicateData.isNewProduct = true;
     duplicateData.isFeatured = false;
     duplicateData.specialOfferPosition = null;
@@ -3085,6 +3108,121 @@ router.post("/upload-temp-image", upload.single("image"), async (req, res) => {
     console.error("Temp upload error:", error);
     res.status(500).json({ error: error.message });
   }
+});
+
+
+// ============================================================== Banners
+// Admin-managed storefront banners (see models/Banner.js for placements).
+const bannerUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /^image\/(jpe?g|png|webp|avif)$/i.test(file.mimetype)),
+});
+
+const BANNER_FIELDS = ["placement", "eyebrow", "title", "subtitle", "ctaText", "url", "imageAlt", "theme", "categorySlug"];
+
+function bannerPayload(body) {
+  const data = {};
+  BANNER_FIELDS.forEach((key) => {
+    if (body[key] !== undefined) data[key] = String(body[key] == null ? "" : body[key]).trim();
+  });
+  if (body.isActive !== undefined) data.isActive = body.isActive === true || body.isActive === "true";
+  if (body.order !== undefined && body.order !== "") data.order = Math.round(Number(body.order)) || 0;
+  ["startsAt", "endsAt"].forEach((key) => {
+    if (body[key] === undefined) return;
+    const d = body[key] ? new Date(body[key]) : null;
+    data[key] = d && !Number.isNaN(d.getTime()) ? d : null;
+  });
+  ["image", "mobileImage"].forEach((key) => {
+    if (body[key] === undefined) return;
+    const url = body[key] && typeof body[key] === "object" ? String(body[key].url || "") : String(body[key] || "");
+    const safe = url && (url.startsWith("/uploads/banners/") || url.startsWith("/images/banners/") || url.startsWith("/images/editorial/") || url.startsWith("/uploads/")) && !url.includes("..");
+    data[key] = safe ? { url, filename: url.split("/").pop() } : undefined;
+  });
+  return data;
+}
+
+function bannerError(res, error) {
+  if (error && error.name === "ValidationError") {
+    return res.status(400).json({ success: false, message: Object.values(error.errors).map((e) => e.message).join("، ") });
+  }
+  console.error("Banner error:", error && error.message);
+  return res.status(500).json({ success: false, message: "خطا در ذخیره بنر" });
+}
+
+router.get("/banners", async (req, res) => {
+  const banners = await Banner.find({}).sort({ placement: 1, order: 1, createdAt: 1 }).lean();
+  res.json({ success: true, banners, placements: Banner.PLACEMENTS });
+});
+
+router.post("/banners/upload", bannerUpload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: "فایل تصویر معتبر انتخاب نشده است" });
+    const mobile = req.query.kind === "mobile";
+    const dir = path.join("public", "uploads", "banners");
+    fs.mkdirSync(dir, { recursive: true });
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e6)}${mobile ? "-m" : ""}.webp`;
+    await sharp(req.file.buffer)
+      .rotate()
+      .resize(mobile ? 900 : 2000, mobile ? 1400 : 1200, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(path.join(dir, filename));
+    res.json({ success: true, url: `/uploads/banners/${filename}`, filename });
+  } catch (error) {
+    console.error("Banner upload error:", error.message);
+    res.status(400).json({ success: false, message: "پردازش تصویر ممکن نشد" });
+  }
+});
+
+router.post("/banners/reorder", async (req, res) => {
+  const ids = Array.isArray(req.body.ids) ? req.body.ids.filter((id) => mongoose.Types.ObjectId.isValid(id)) : [];
+  if (!ids.length) return res.status(400).json({ success: false, message: "ترتیب نامعتبر است" });
+  await Banner.bulkWrite(ids.map((id, i) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: (i + 1) * 10 } } } })));
+  res.json({ success: true });
+});
+
+router.post("/banners", async (req, res) => {
+  try {
+    const banner = await Banner.create(bannerPayload(req.body));
+    res.status(201).json({ success: true, banner });
+  } catch (error) {
+    bannerError(res, error);
+  }
+});
+
+router.put("/banners/:id", async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ success: false, message: "شناسه نامعتبر است" });
+    const banner = await Banner.findById(req.params.id);
+    if (!banner) return res.status(404).json({ success: false, message: "بنر یافت نشد" });
+    banner.set(bannerPayload(req.body));
+    await banner.save();
+    res.json({ success: true, banner });
+  } catch (error) {
+    bannerError(res, error);
+  }
+});
+
+router.post("/banners/:id/toggle", async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ success: false, message: "شناسه نامعتبر است" });
+  const banner = await Banner.findById(req.params.id);
+  if (!banner) return res.status(404).json({ success: false, message: "بنر یافت نشد" });
+  banner.isActive = !banner.isActive;
+  await banner.save();
+  res.json({ success: true, banner });
+});
+
+router.delete("/banners/:id", async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ success: false, message: "شناسه نامعتبر است" });
+  const banner = await Banner.findByIdAndDelete(req.params.id);
+  if (!banner) return res.status(404).json({ success: false, message: "بنر یافت نشد" });
+  // Remove uploaded files that are no longer referenced (seeded /images/ files are kept).
+  for (const img of [banner.image, banner.mobileImage]) {
+    if (img && img.url && img.url.startsWith("/uploads/banners/") && !(await Banner.exists({ $or: [{ "image.url": img.url }, { "mobileImage.url": img.url }] }))) {
+      fs.promises.unlink(path.join("public", img.url)).catch(() => {});
+    }
+  }
+  res.json({ success: true });
 });
 
 module.exports = router;
