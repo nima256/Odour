@@ -71,11 +71,15 @@
         <% if (subcategories.length) { %>
           <nav class="od-subcats" aria-label="زیردسته‌ها">
             <% subcategories.forEach(function (c) { %>
-              <a class="od-chip" href="/category/<%= c.slug %>"><%- icon(categoryIcon(c.name)) %><%= c.name %></a>
+              <a class="od-chip" href="/category/<%= c.slug %>"><%- icon(categoryIcon(c.name, c.icon)) %><%= c.name %></a>
             <% }) %>
           </nav>
         <% } %>
       </header>
+
+      <% if (typeof banner !== 'undefined' && banner && !filters.search && (!filters.page || filters.page === 1)) { %>
+        <%- include('./partials/banner', { b: banner, eager: true }) %>
+      <% } %>
 
       <div class="od-shop">
         <%# ---------- Filters: sidebar on desktop, bottom sheet on mobile ---------- %>

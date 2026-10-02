@@ -1,3 +1,15 @@
+<%
+  const B = (typeof banners !== 'undefined' && banners) ? banners : {};
+  const list = (k) => B[k] || [];
+  const hero = list('home_hero')[0] || {
+    eyebrow: 'عطر، آرایش و مراقبت', title: 'هر رایحه، یک داستان',
+    subtitle: 'مجموعه‌ای از بهترین عطرها، محصولات آرایشی و مراقبتی؛ اصل، با ارسال سریع و تضمین اصالت.',
+    ctaText: 'شروع خرید', url: '/shop'
+  };
+  // Split the hero title on «،» so the second half takes the accent colour.
+  const heroParts = String(hero.title || '').split('،');
+  const rail = (title, eyebrow, href, linkText, items, id, band) => ({ title, eyebrow, href, linkText, items: items || [], id, band });
+%>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -24,15 +36,17 @@
   <%- include('./partials/navbar') %>
 
   <main class="od-main" id="main">
-    <%# ---------------- Hero ---------------- %>
+    <%# ---------------- Hero (copy managed as the home_hero banner) ---------------- %>
     <section class="od-hero" aria-labelledby="hero-title">
       <div class="od-container od-hero__grid">
         <div class="od-hero__copy">
-          <span class="od-eyebrow">عطر، آرایش و مراقبت</span>
-          <h1 class="od-display" id="hero-title">هر رایحه،<br><em>یک داستان</em></h1>
-          <p class="od-lead">مجموعه‌ای از بهترین عطرها، محصولات آرایشی و مراقبتی؛ اصل، با ارسال سریع و تضمین اصالت.</p>
+          <% if (hero.eyebrow) { %><span class="od-eyebrow"><%= hero.eyebrow %></span><% } %>
+          <h1 class="od-display" id="hero-title">
+            <%= heroParts[0] %><% if (heroParts.length > 1) { %>،<br><em><%= heroParts.slice(1).join('،').trim() %></em><% } %>
+          </h1>
+          <% if (hero.subtitle) { %><p class="od-lead"><%= hero.subtitle %></p><% } %>
           <div class="od-hero__ctas">
-            <a class="od-btn od-btn--lg" href="/shop">شروع خرید <%- icon('arrow-left', 'od-icon--sm') %></a>
+            <% if (hero.ctaText && hero.url) { %><a class="od-btn od-btn--lg" href="<%= hero.url %>"><%= hero.ctaText %> <%- icon('arrow-left', 'od-icon--sm') %></a><% } %>
             <a class="od-btn od-btn--lg od-btn--secondary" href="/contact-us">مشاوره رایگان</a>
           </div>
           <div class="od-hero__trust">
@@ -45,6 +59,8 @@
         <div class="od-hero__art" aria-hidden="true">
           <div class="od-hero__stage" data-hero-3d="/models/hero-bottle.glb?v=<%= assetVersion %>">
             <div class="od-arches"><span></span><span></span><span></span></div>
+            <div class="od-hero__halo"></div>
+            <div class="od-hero__motes"><span></span><span></span><span></span><span></span><span></span></div>
             <div class="od-hero__floor"></div>
             <%# Static composition: shown until (or instead of) the 3D model. %>
             <div class="od-hero__fallback">
@@ -54,6 +70,7 @@
               <img class="od-hero__note od-hero__note--vanilla" src="/images/editorial/note-vanilla.webp" alt="" width="260" height="260" />
               <img class="od-hero__note od-hero__note--bergamot" src="/images/editorial/note-bergamot.webp" alt="" width="260" height="342" />
             </div>
+            <div class="od-hero__sweep"></div>
           </div>
         </div>
       </div>
@@ -67,7 +84,7 @@
           <nav class="od-cats">
             <% shortcuts.forEach(function (cat) { %>
               <a class="od-cat" href="/category/<%= cat.slug %>">
-                <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+                <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
                 <span class="od-cat__label"><%= cat.name %></span>
               </a>
             <% }) %>
@@ -76,93 +93,57 @@
       </section>
     <% } %>
 
-    <%# ---------------- Special offers ---------------- %>
-    <% if (isFeaturedProducts && isFeaturedProducts.length) { %>
-      <section class="od-section--tight" aria-labelledby="offers-title">
+    <%# Product rail helper %>
+    <% const renderRail = function (r) { if (!r.items.length) return ''; %>
+      <section class="od-section--tight<%= r.band ? ' od-band' : '' %>" aria-labelledby="<%= r.id %>">
         <div class="od-container">
           <div class="od-section-head">
             <div class="od-section-head__title">
-              <span class="od-eyebrow">پیشنهاد ویژه</span>
-              <h2 class="od-h2" id="offers-title">تخفیف‌های منتخب</h2>
+              <% if (r.eyebrow) { %><span class="od-eyebrow"><%= r.eyebrow %></span><% } %>
+              <h2 class="od-h2" id="<%= r.id %>"><%= r.title %></h2>
             </div>
-            <a class="od-section-head__link" href="/shop?discount=1">مشاهده همه <%- icon('chevron-left') %></a>
+            <a class="od-section-head__link" href="<%= r.href %>"><%= r.linkText %> <%- icon('chevron-left') %></a>
           </div>
           <div class="od-rail">
-            <% isFeaturedProducts.slice(0, 8).forEach(function (p, i) { %>
-              <%- include('./partials/product-card', { p, eager: false }) %>
-            <% }) %>
+            <% r.items.slice(0, 8).forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+          </div>
+        </div>
+      </section>
+    <% return ''; } %>
+
+    <%= renderRail(rail('تخفیف‌های منتخب', 'پیشنهاد ویژه', '/shop?discount=1', 'مشاهده همه', isFeaturedProducts, 'offers-title')) %>
+
+    <% list('home_strip').slice(0, 1).forEach(function (b) { %>
+      <div class="od-container od-section--tight" style="padding-block:4px"><%- include('./partials/banner', { b }) %></div>
+    <% }) %>
+
+    <%= renderRail(rail('جدیدترین محصولات', 'تازه‌ها', '/shop?sort=newest', 'مشاهده همه', isNewProduct, 'new-title')) %>
+
+    <% list('home_promo').slice(0, 1).forEach(function (b) { %>
+      <div class="od-container od-section--tight"><%- include('./partials/banner', { b }) %></div>
+    <% }) %>
+
+    <% if (list('home_category').length) { %>
+      <section class="od-section--tight" aria-labelledby="collections-title">
+        <div class="od-container">
+          <div class="od-section-head">
+            <div class="od-section-head__title">
+              <span class="od-eyebrow">کالکشن‌های اودر</span>
+              <h2 class="od-h2" id="collections-title">برای هر لحظه، انتخابی دقیق</h2>
+            </div>
+          </div>
+          <div class="od-bn-tiles">
+            <% list('home_category').slice(0, 4).forEach(function (b) { %><%- include('./partials/banner', { b }) %><% }) %>
           </div>
         </div>
       </section>
     <% } %>
 
-    <%# ---------------- Collections ---------------- %>
-    <section class="od-section--tight" aria-labelledby="collections-title">
-      <div class="od-container">
-        <div class="od-section-head">
-          <div class="od-section-head__title">
-            <span class="od-eyebrow">کالکشن‌های اودر</span>
-            <h2 class="od-h2" id="collections-title">برای هر لحظه، انتخابی دقیق</h2>
-          </div>
-        </div>
-        <div class="od-collections">
-          <% [
-            { href: '/category/ادکلن', img: 'perfume', title: 'عطر و ادکلن' },
-            { href: '/category/مراقبت-پوستی', img: 'skin', title: 'مراقبت پوست' },
-            { href: '/category/مراقبت-مو', img: 'hair', title: 'مراقبت مو' },
-            { href: '/category/محصولات-آرایشی', img: 'beauty', title: 'محصولات آرایشی' }
-          ].forEach(function (c) { %>
-            <a class="od-collection" href="<%= c.href %>">
-              <span class="od-collection__media">
-                <img src="/images/editorial/<%= c.img %>-640.webp" srcset="/images/editorial/<%= c.img %>-640.webp 640w, /images/editorial/<%= c.img %>-1100.webp 1100w"
-                     sizes="(min-width: 900px) 25vw, 50vw" alt="<%= c.title %>" loading="lazy" decoding="async" width="640" height="480" />
-              </span>
-              <span class="od-collection__title"><%= c.title %> <%- icon('arrow-left') %></span>
-            </a>
-          <% }) %>
-        </div>
-      </div>
-    </section>
+    <%= renderRail(rail('عطر و ادکلن', 'Odour Perfume', '/category/ادکلن', 'همه عطرها', perfumeProducts, 'perfume-title', true)) %>
 
-    <%# ---------------- New arrivals ---------------- %>
-    <% if (isNewProduct && isNewProduct.length) { %>
-      <section class="od-section--tight" aria-labelledby="new-title">
-        <div class="od-container">
-          <div class="od-section-head">
-            <div class="od-section-head__title">
-              <span class="od-eyebrow">تازه‌ها</span>
-              <h2 class="od-h2" id="new-title">جدیدترین محصولات</h2>
-            </div>
-            <a class="od-section-head__link" href="/shop?sort=newest">مشاهده همه <%- icon('chevron-left') %></a>
-          </div>
-          <div class="od-rail">
-            <% isNewProduct.slice(0, 8).forEach(function (p) { %>
-              <%- include('./partials/product-card', { p }) %>
-            <% }) %>
-          </div>
-        </div>
-      </section>
-    <% } %>
-
-    <%# ---------------- Perfume ---------------- %>
-    <% if (perfumeProducts && perfumeProducts.length) { %>
-      <section class="od-section od-band" aria-labelledby="perfume-title">
-        <div class="od-container">
-          <div class="od-section-head">
-            <div class="od-section-head__title">
-              <span class="od-eyebrow">Odour Perfume</span>
-              <h2 class="od-h2" id="perfume-title">عطر و ادکلن</h2>
-            </div>
-            <a class="od-section-head__link" href="/category/ادکلن">همه عطرها <%- icon('chevron-left') %></a>
-          </div>
-          <div class="od-rail">
-            <% perfumeProducts.slice(0, 8).forEach(function (p) { %>
-              <%- include('./partials/product-card', { p }) %>
-            <% }) %>
-          </div>
-        </div>
-      </section>
-    <% } %>
+    <% list('home_collection').slice(0, 1).forEach(function (b) { %>
+      <div class="od-container od-section--tight"><%- include('./partials/banner', { b }) %></div>
+    <% }) %>
 
     <%# ---------------- Care & beauty (tabs) ---------------- %>
     <%
@@ -178,7 +159,7 @@
           <div class="od-section-head">
             <div class="od-section-head__title">
               <span class="od-eyebrow">مراقبت و زیبایی</span>
-              <h2 class="od-h2" id="care-title">محبوب‌ترین‌ها</h2>
+              <h2 class="od-h2" id="care-title">انتخاب‌های روزانه</h2>
             </div>
           </div>
           <div class="od-tabs" role="tablist" aria-label="دسته‌های مراقبت و زیبایی" data-tabs>
@@ -189,11 +170,9 @@
           <% careTabs.forEach(function (t, i) { %>
             <div role="tabpanel" id="panel-<%= t.id %>" aria-labelledby="tab-<%= t.id %>" <%- i === 0 ? '' : 'hidden' %>>
               <div class="od-grid od-grid--4">
-                <% t.items.slice(0, 4).forEach(function (p) { %>
-                  <%- include('./partials/product-card', { p }) %>
-                <% }) %>
+                <% t.items.slice(0, 4).forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
               </div>
-              <div style="text-align:center;margin-top:24px">
+              <div style="text-align:center;margin-top:28px">
                 <a class="od-btn od-btn--secondary" href="<%= t.href %>">مشاهده همه <%= t.label %></a>
               </div>
             </div>
@@ -202,12 +181,12 @@
       </section>
     <% } %>
 
+    <% list('home_editorial').slice(0, 1).forEach(function (b) { %><%- include('./partials/banner', { b }) %><% }) %>
+
     <%# ---------------- Recently viewed (client-side, real product data) ---------------- %>
     <section class="od-section--tight" aria-labelledby="rv-title" data-recently-viewed hidden>
       <div class="od-container">
-        <div class="od-section-head">
-          <div class="od-section-head__title"><h2 class="od-h2" id="rv-title">بازدیدهای اخیر شما</h2></div>
-        </div>
+        <div class="od-section-head"><div class="od-section-head__title"><h2 class="od-h2" id="rv-title">بازدیدهای اخیر شما</h2></div></div>
         <div class="od-rail" data-rv-list></div>
       </div>
     </section>
@@ -215,10 +194,10 @@
     <%# ---------------- Promise ---------------- %>
     <section class="od-section--tight" aria-label="مزایای خرید از اودر">
       <div class="od-container od-promise">
-        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('shield') %></span><div><strong>ضمانت اصالت</strong><span>تمام محصولات اورجینال</span></div></div>
-        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('truck') %></span><div><strong>ارسال سریع</strong><span>به سراسر ایران</span></div></div>
-        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('card') %></span><div><strong>پرداخت امن</strong><span>درگاه بانکی و اقساطی</span></div></div>
-        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('phone') %></span><div><strong>مشاوره خرید</strong><span>پیش از خرید از ما بپرسید</span></div></div>
+        <div class="od-promise__item"><%- icon('shield', 'od-icon--lg') %><div><strong>ضمانت اصالت</strong><span>تمام محصولات اورجینال</span></div></div>
+        <div class="od-promise__item"><%- icon('truck', 'od-icon--lg') %><div><strong>ارسال سریع</strong><span>به سراسر ایران</span></div></div>
+        <div class="od-promise__item"><%- icon('card', 'od-icon--lg') %><div><strong>پرداخت امن</strong><span>درگاه بانکی و اقساطی</span></div></div>
+        <div class="od-promise__item"><%- icon('phone', 'od-icon--lg') %><div><strong>مشاوره خرید</strong><span>پیش از خرید از ما بپرسید</span></div></div>
       </div>
     </section>
 

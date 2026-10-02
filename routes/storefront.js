@@ -48,10 +48,19 @@ router.get("/products/cards", async (req, res) => {
       .split(",")
       .filter((id) => mongoose.Types.ObjectId.isValid(id))
       .slice(0, 12);
-    if (!ids.length) return res.json({ success: true, products: [] });
+    if (!ids.length) return res.json({ success: true, products: [], html: "" });
     const products = await Product.find({ _id: { $in: ids }, isPublished: true }).select(CARD_FIELDS).lean();
     const byId = new Map(products.map((p) => [String(p._id), p]));
-    return res.json({ success: true, products: ids.map((id) => byId.get(id)).filter(Boolean).map(toCard) });
+    const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+    if (req.query.format === "html") {
+      const html = ordered.length
+        ? await new Promise((resolve, reject) =>
+            req.app.render("partials/product-cards", { products: ordered }, (err, out) => (err ? reject(err) : resolve(out)))
+          )
+        : "";
+      return res.json({ success: true, html });
+    }
+    return res.json({ success: true, products: ordered.map(toCard) });
   } catch (error) {
     console.error("Product cards error:", error);
     return fail(res, 500, "خطا در دریافت محصولات");

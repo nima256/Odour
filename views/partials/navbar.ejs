@@ -1,6 +1,6 @@
 <%#
   Storefront header. Expects (all optional): user, cartCount, menuCategories, currentPath.
-  Includes: icon sprite, skip link, desktop mega menu, mobile drawer + bottom nav,
+  Includes: icon sprite, skip link, desktop mega menu, mobile two-row header + drawer,
   search overlay, auth sheet and toast region — so every page that includes the
   navbar gets the same shell.
 %>
@@ -36,7 +36,7 @@
                 <div class="od-mega__col">
                   <h3>
                     <a href="/category/<%= cat.slug %>">
-                      <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+                      <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
                       <%= cat.name %>
                     </a>
                   </h3>
@@ -74,17 +74,27 @@
     </div>
 
     <div class="od-header__actions">
-      <button class="od-icon-btn od-hide-desktop" type="button" data-open="search" aria-controls="od-search" aria-label="جستجو"><%- icon('search') %></button>
       <% if (_user) { %>
         <a class="od-icon-btn od-hide-mobile" href="/userProfile#wishlist" aria-label="علاقه‌مندی‌ها"><%- icon('heart') %></a>
-        <a class="od-icon-btn od-hide-mobile" href="/userProfile" aria-label="حساب کاربری"><%- icon('user') %></a>
+        <a class="od-icon-btn" href="/userProfile" aria-label="حساب کاربری" <%- _isCurrent('/userProfile') ? 'aria-current="page"' : '' %>><%- icon('user') %></a>
       <% } else { %>
-        <button class="od-icon-btn od-hide-mobile" type="button" data-auth-open aria-label="ورود یا ثبت‌نام"><%- icon('user') %></button>
+        <button class="od-icon-btn" type="button" data-auth-open aria-label="ورود یا ثبت‌نام"><%- icon('user') %></button>
       <% } %>
-      <a class="od-icon-btn" href="/cart" aria-label="سبد خرید">
+      <a class="od-icon-btn" href="/cart" aria-label="سبد خرید" <%- _isCurrent('/cart') ? 'aria-current="page"' : '' %>>
         <%- icon('bag') %>
         <span class="od-count" data-cart-count data-count="<%= _cartCount %>"><%= _cartCount ? faDigits(_cartCount) : '' %></span>
       </a>
+    </div>
+  </div>
+
+  <%# Mobile second row: search is always one tap away; it folds away while scrolling down. %>
+  <div class="od-header__sub">
+    <div class="od-container od-header__sub-inner">
+      <button class="od-search-trigger od-search-trigger--mobile" type="button" data-open="search" aria-controls="od-search">
+        <%- icon('search', 'od-icon--sm') %>
+        <span>جستجوی عطر، برند یا محصول…</span>
+      </button>
+      <a class="od-header__quick" href="/shop" <%- (_isCurrent('/shop') || _isCurrent('/category')) ? 'aria-current="page"' : '' %>><%- icon('grid', 'od-icon--sm') %> فروشگاه</a>
     </div>
   </div>
 </header>
@@ -102,12 +112,19 @@
     <% } else { %>
       <a class="od-btn od-btn--soft od-btn--block" href="/userProfile"><%- icon('user') %> حساب کاربری من</a>
     <% } %>
-    <nav aria-label="دسته‌بندی‌ها" style="margin-top:16px">
+    <nav class="od-mnav__quick" aria-label="دسترسی سریع">
+      <a href="/" <%- _path === '/' ? 'aria-current="page"' : '' %>><%- icon('home') %><span>خانه</span></a>
+      <a href="/shop"><%- icon('grid') %><span>فروشگاه</span></a>
+      <a href="/shop?discount=1"><%- icon('tag') %><span>تخفیف‌ها</span></a>
+      <% if (_user) { %><a href="/userProfile#wishlist"><%- icon('heart') %><span>علاقه‌مندی</span></a><% } else { %><a href="/cart"><%- icon('bag') %><span>سبد خرید</span></a><% } %>
+    </nav>
+    <p class="od-mnav__label">دسته‌بندی‌ها</p>
+    <nav aria-label="دسته‌بندی‌ها">
       <% _cats.forEach(function (cat) { %>
         <% if (cat.children && cat.children.length) { %>
           <details class="od-mnav__group">
             <summary>
-              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
               <%= cat.name %>
               <%- icon('chevron-down', 'od-icon--sm') %>
             </summary>
@@ -121,7 +138,7 @@
         <% } else { %>
           <div class="od-mnav__group">
             <a class="od-mnav__link" href="/category/<%= cat.slug %>">
-              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name)) %></span>
+              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
               <%= cat.name %>
             </a>
           </div>
@@ -163,7 +180,7 @@
           <div class="od-search__label"><span>دسته‌بندی‌ها</span></div>
           <div class="od-search__chips">
             <% _cats.forEach(function (cat) { %>
-              <a class="od-chip" href="/category/<%= cat.slug %>"><%- icon(categoryIcon(cat.name)) %> <%= cat.name %></a>
+              <a class="od-chip" href="/category/<%= cat.slug %>"><%- icon(categoryIcon(cat.name, cat.icon)) %> <%= cat.name %></a>
             <% }) %>
           </div>
         </div>
@@ -172,22 +189,6 @@
     </div>
   </div>
 </div>
-
-<%# ---------- Mobile bottom navigation ---------- %>
-<nav class="od-bottom-nav" aria-label="ناوبری سریع">
-  <a href="/" <%- _path === '/' ? 'aria-current="page"' : '' %>><%- icon('home') %><span>خانه</span></a>
-  <a href="/shop" <%- (_isCurrent('/shop') || _isCurrent('/category')) ? 'aria-current="page"' : '' %>><%- icon('grid') %><span>فروشگاه</span></a>
-  <button type="button" data-open="search" aria-controls="od-search"><%- icon('search') %><span>جستجو</span></button>
-  <a href="/cart" <%- _isCurrent('/cart') ? 'aria-current="page"' : '' %>>
-    <%- icon('bag') %><span>سبد خرید</span>
-    <span class="od-count" data-cart-count data-count="<%= _cartCount %>"><%= _cartCount ? faDigits(_cartCount) : '' %></span>
-  </a>
-  <% if (_user) { %>
-    <a href="/userProfile" <%- _isCurrent('/userProfile') ? 'aria-current="page"' : '' %>><%- icon('user') %><span>حساب من</span></a>
-  <% } else { %>
-    <button type="button" data-auth-open><%- icon('user') %><span>ورود</span></button>
-  <% } %>
-</nav>
 
 <%- include('./auth-sheet', { _user }) %>
 <div class="od-toasts" role="status" aria-live="polite" data-toasts></div>

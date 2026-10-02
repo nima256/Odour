@@ -5,12 +5,12 @@ const Product = require("../models/Product");
 
 // Fields needed to render a product card anywhere on the storefront.
 const CARD_FIELDS =
-  "name englishName slug images price offerPrice brandName catName rating reviewsNum countInStock isOutOfStock isNewProduct colors sizes createdAt";
+  "name englishName slug images price offerPrice discount brandName catName countInStock lowStockThreshold isOutOfStock isNewProduct badge colors sizes createdAt";
 
 // Builds the nested product-category tree used by the navbar / mobile menu.
 async function buildMenuCategories() {
   const allCategories = await Category.find({ categoryType: "product", isActive: true })
-    .sort({ name: 1 })
+    .sort({ displayOrder: 1, name: 1 })
     .lean();
 
   const byId = {};

@@ -152,7 +152,15 @@
   // ---------------------------------------------------------------- header
   var header = $("[data-header]");
   if (header) {
-    var onScroll = function () { header.classList.toggle("is-scrolled", window.scrollY > 4); };
+    // Mobile: fold the search row while scrolling down, bring it back on any upward scroll.
+    var lastY = window.scrollY, root = document.documentElement;
+    var onScroll = function () {
+      var y = window.scrollY;
+      header.classList.toggle("is-scrolled", y > 4);
+      if (Math.abs(y - lastY) < 6) return;
+      root.classList.toggle("od-hdr-folded", y > lastY && y > 120);
+      lastY = y;
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
   }
@@ -441,30 +449,16 @@
     list.unshift(id);
     store.set(RV_KEY, list.slice(0, 12));
   };
-  ODOUR.renderProductCard = function (p) {
-    var pricing = p.pricing || {};
-    var badges = "";
-    if (pricing.hasDiscount) badges += '<span class="od-badge od-badge--sale">' + faDigits(pricing.percent) + "٪</span>";
-    return '<article class="od-pcard' + (p.inStock ? "" : " is-out") + '">' +
-      '<div class="od-pcard__media"><img class="od-pcard__img" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" loading="lazy" decoding="async">' +
-      '<div class="od-pcard__badges">' + badges + "</div></div>" +
-      '<div class="od-pcard__body">' + (p.brand ? '<span class="od-pcard__brand">' + escapeHtml(p.brand) + "</span>" : "") +
-      '<h3 class="od-pcard__title"><a href="' + escapeHtml(p.url) + '">' + escapeHtml(p.name) + "</a></h3>" +
-      '<div class="od-pcard__meta"><div class="od-price">' +
-      (p.inStock ? '<span class="od-price__now od-num">' + faPrice(pricing.now) + "<small>تومان</small></span>" +
-        (pricing.hasDiscount ? '<span class="od-price__was od-num">' + faPrice(pricing.was) + "</span>" : "")
-        : '<span class="od-pcard__stock">ناموجود</span>') +
-      "</div></div></div></article>";
-  };
   $$("[data-recently-viewed]").forEach(function (host) {
     var exclude = host.getAttribute("data-exclude");
     var ids = store.get(RV_KEY, []).filter(function (x) { return x !== exclude; }).slice(0, 8);
     if (!ids.length) return;
-    api("/api/products/cards?ids=" + encodeURIComponent(ids.join(","))).then(function (d) {
-      if (!d.products || !d.products.length) return;
-      var list = host.querySelector("[data-rv-list]");
-      list.innerHTML = d.products.map(ODOUR.renderProductCard).join("");
+    // Server-rendered cards: identical markup to every other product list.
+    api("/api/products/cards?format=html&ids=" + encodeURIComponent(ids.join(","))).then(function (d) {
+      if (!d.html) return;
+      host.querySelector("[data-rv-list]").innerHTML = d.html;
       host.hidden = false;
+      paintWish();
     }).catch(function () {});
   });
 

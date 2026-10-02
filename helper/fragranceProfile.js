@@ -66,7 +66,7 @@ function parseAccords(value) {
   });
 }
 
-function parseFragranceProfile(specifications = []) {
+function parseFragranceProfile(specifications = [], structured = null) {
   const profile = {
     family: null,
     scentType: null,
@@ -80,6 +80,11 @@ function parseFragranceProfile(specifications = []) {
     concentration: null,
     personality: null,
     volume: null,
+    occasions: [],
+    story: null,
+    usage: null,
+    ingredients: null,
+    identityImage: null,
     others: [], // non-fragrance specification rows, shown as "key attributes"
     hasFragranceData: false,
   };
@@ -119,25 +124,60 @@ function parseFragranceProfile(specifications = []) {
     }
   }
 
+  if (structured) applyStructured(profile, structured);
+
   const n = profile.notes;
   profile.hasNotes = Boolean(n.top.length || n.heart.length || n.base.length || n.general.length);
   profile.hasFragranceData = Boolean(
     profile.accords.length || profile.hasNotes || profile.longevity || profile.sillage ||
-      profile.time || profile.seasons.length || profile.family
+      profile.time || profile.seasons.length || profile.family || profile.concentration
   );
   return profile;
 }
 
-// Filters offered on the shop page. Each one reads the matching spec rows.
+// Structured fields (product.fragrance, edited in the admin) win over values
+// derived from free specification rows; empty structured fields keep the fallback.
+function applyStructured(profile, f) {
+  const text = (v) => (v ? normalize(v) : null);
+  const list = (v) => (Array.isArray(v) ? v.map(normalize).filter(Boolean) : []);
+  ["family", "concentration", "gender", "volume", "longevity", "sillage"].forEach((key) => {
+    if (text(f[key])) profile[key] = text(f[key]);
+  });
+  ["top", "heart", "base"].forEach((key) => {
+    if (list(f[key]).length) profile.notes[key] = list(f[key]);
+  });
+  const accords = (f.accords || []).filter((a) => a && a.name);
+  if (accords.length) {
+    profile.accords = accords.slice(0, 8).map((a, i) => ({
+      name: normalize(a.name),
+      strength: Number.isFinite(Number(a.strength)) && Number(a.strength) > 0 ? Math.min(100, Number(a.strength)) : Math.max(40, 100 - i * 12),
+    }));
+  }
+  const seasons = list(f.seasons);
+  if (seasons.length) profile.seasons = SEASONS.map((x) => ({ ...x, active: seasons.includes(x.label) }));
+  const dayNight = list(f.dayNight);
+  if (dayNight.length) {
+    profile.time = { day: dayNight.includes("روز"), night: dayNight.includes("شب"), label: dayNight.join(" و ") };
+  }
+  if (list(f.occasions).length) profile.occasions = list(f.occasions);
+  ["story", "usage", "ingredients"].forEach((key) => {
+    if (f[key] && String(f[key]).trim()) profile[key] = String(f[key]).trim();
+  });
+  if (f.identityImage && f.identityImage.url) profile.identityImage = f.identityImage.url;
+}
+
+// Shop filters. `fields` read specification rows; `paths` read the structured
+// product.fragrance fields. A product matches if either source matches.
 const FILTER_FACETS = [
-  { param: "gender", label: "جنسیت", fields: ["gender"] },
-  { param: "family", label: "گروه بویایی", fields: ["family"] },
-  { param: "scent", label: "نوع رایحه", fields: ["scentType"] },
-  { param: "concentration", label: "غلظت", fields: ["concentration"] },
-  { param: "note", label: "نت اصلی", fields: ["top", "heart", "base", "notes"] },
-  { param: "time", label: "مناسب زمان", fields: ["time"] },
-  { param: "season", label: "فصل", fields: ["season"] },
-  { param: "personality", label: "مناسب شخصیت", fields: ["personality"] },
+  { param: "gender", label: "جنسیت", fields: ["gender"], paths: ["fragrance.gender"] },
+  { param: "family", label: "گروه بویایی", fields: ["family"], paths: ["fragrance.family"] },
+  { param: "scent", label: "نوع رایحه", fields: ["scentType"], paths: [] },
+  { param: "concentration", label: "غلظت", fields: ["concentration"], paths: ["fragrance.concentration"] },
+  { param: "note", label: "نت اصلی", fields: ["top", "heart", "base", "notes"], paths: ["fragrance.top", "fragrance.heart", "fragrance.base"] },
+  { param: "time", label: "مناسب زمان", fields: ["time"], paths: ["fragrance.dayNight"] },
+  { param: "season", label: "فصل", fields: ["season"], paths: ["fragrance.seasons"] },
+  { param: "occasion", label: "مناسبت", fields: [], paths: ["fragrance.occasions"] },
+  { param: "personality", label: "مناسب شخصیت", fields: ["personality"], paths: [] },
 ];
 
 module.exports = {

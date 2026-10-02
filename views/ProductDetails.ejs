@@ -165,13 +165,15 @@
 %>
 
 <%
-  // ---------- View model for the redesigned page ----------
+  // ---------- View model ----------
   const pr = productPricing(product);
   const inStock = isInStock(product);
   const stockCount = Number(product.countInStock || 0);
+  const lowStock = isLowStock(product);
   const images = (product.images || []).filter(img => img && img.url);
   const unavailable = (opt) => Boolean(opt.isOutOfStock) || (opt.countInStock !== undefined && opt.countInStock !== null && Number(opt.countInStock) <= 0);
-  const productCode = (product.product_group_id || String(product._id).slice(-6)).toUpperCase();
+  const productCode = (product.sku || product.product_group_id || String(product._id).slice(-6)).toUpperCase();
+  const badge = inStock ? productBadge(product) : null;
 
   // SnappPay keeps 50% of an existing special-price discount (same rule as checkout).
   const snappRegular = Number(product.price || 0);
@@ -183,16 +185,32 @@
   if (fragrance.volume) keyAttrs.push(['حجم', fragrance.volume]);
   if (fragrance.concentration) keyAttrs.push(['غلظت', fragrance.concentration]);
   if (fragrance.gender) keyAttrs.push(['مناسب برای', fragrance.gender]);
-  if (fragrance.family) keyAttrs.push(['گروه بویایی', fragrance.family]);
+  if (fragrance.family) keyAttrs.push(['خانواده بویایی', fragrance.family]);
   fragrance.others.slice(0, 4).forEach(o => keyAttrs.push([o.key, o.value]));
   if (product.weight) keyAttrs.push(['وزن', faDigits(product.weight) + ' گرم']);
 
-  const accordTones = [
-    ['#4f4f2c', '#fff'], ['#636337', '#fff'], ['#7b7b4c', '#fff'], ['#9c9b70', '#24241a'],
-    ['#c6c4a4', '#24241a'], ['#e4e1cc', '#24241a'], ['#f2efe1', '#24241a'], ['#f8e7c9', '#24241a']
-  ];
-  const noteRows = [['نت آغازین', fragrance.notes.top], ['نت میانی', fragrance.notes.heart], ['نت پایه', fragrance.notes.base]].filter(r => r[1].length);
-  const hasDescription = product.description && product.description.replace(/<[^>]*>/g, '').trim();
+  const accordTones = ['#3b3b22', '#4f4f2c', '#636337', '#7b7b4c', '#9c9b70', '#b5b38e', '#cfccae', '#e4e1cc'];
+  const noteRows = [
+    ['top', 'نت آغازین', 'اولین برداشت؛ چند دقیقه‌ی نخست', fragrance.notes.top],
+    ['heart', 'نت میانی', 'قلب رایحه؛ چند ساعت بعد', fragrance.notes.heart],
+    ['base', 'نت پایه', 'ردّ ماندگار روی پوست', fragrance.notes.base],
+  ].filter(r => r[3].length);
+  const descriptionText = product.description ? product.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '';
+  const hasDescription = Boolean(descriptionText) && descriptionText !== String(fragrance.story || '').replace(/\s+/g, ' ').trim();
+  const identityImage = fragrance.identityImage || (images[0] && images[0].url) || null;
+  const idFacts = [];
+  if (fragrance.longevity) idFacts.push(['hourglass', 'ماندگاری', fragrance.longevity]);
+  if (fragrance.sillage) idFacts.push(['wind', 'پخش بو', fragrance.sillage]);
+  if (fragrance.time) idFacts.push([fragrance.time.night && !fragrance.time.day ? 'moon' : 'sun', 'زمان استفاده', fragrance.time.label]);
+  const activeSeasons = fragrance.seasons.filter(x => x.active);
+  if (activeSeasons.length) idFacts.push(['leaf', 'فصل مناسب', activeSeasons.map(x => x.label).join('، ')]);
+  const tags = [fragrance.family, fragrance.concentration, fragrance.gender, fragrance.volume].filter(Boolean);
+  const hasSpecs = product.specifications && product.specifications.length;
+  const sectionNav = [];
+  if (fragrance.hasFragranceData) sectionNav.push(['identity', 'شناسنامه رایحه']);
+  if (noteRows.length || fragrance.notes.general.length) sectionNav.push(['notes', 'نت‌ها']);
+  if (fragrance.story || hasDescription) sectionNav.push(['story', 'معرفی']);
+  if (fragrance.usage || fragrance.ingredients || hasSpecs || keyAttrs.length) sectionNav.push(['details', 'مشخصات']);
 %>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -245,15 +263,16 @@
       </nav>
 
       <div class="od-pdp" data-product="<%= product._id %>">
-        <%# ---------- Gallery (right / start side) ---------- %>
+        <%# ---------- Media: left on desktop, first on mobile ---------- %>
         <section class="od-gallery" aria-label="تصاویر محصول">
           <div class="od-gallery__frame">
+            <% if (badge) { %><span class="od-gallery__badge od-tag od-tag--<%= badge.kind %>"><%= badge.kind === 'sale' ? badge.label + ' تخفیف' : badge.label %></span><% } %>
             <div class="od-gallery__track" data-gallery-track tabindex="0" aria-label="تصاویر؛ برای مشاهده بکشید">
               <% if (images.length) { %>
                 <% images.forEach(function (img, i) { %>
                   <button class="od-gallery__slide" type="button" data-gallery-open="<%= i %>" aria-label="بزرگ‌نمایی تصویر <%= faDigits(i + 1) %>">
                     <img src="<%= img.url %>" alt="<%= img.alt || (product.name + (i ? ' - تصویر ' + faDigits(i + 1) : '')) %>"
-                         width="600" height="650" <%- i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' %> decoding="async" />
+                         width="640" height="640" <%- i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' %> decoding="async" />
                   </button>
                 <% }) %>
               <% } else { %>
@@ -263,230 +282,240 @@
             <% if (images.length) { %>
               <div class="od-gallery__zoom"><button class="od-icon-btn" type="button" data-gallery-open="current" aria-label="نمایش تمام‌صفحه"><%- icon('zoom') %></button></div>
             <% } %>
+            <% if (images.length > 1) { %>
+              <div class="od-gallery__dots" aria-hidden="true">
+                <% images.forEach(function (img, i) { %><span class="<%= i === 0 ? 'is-active' : '' %>"></span><% }) %>
+              </div>
+            <% } %>
           </div>
           <% if (images.length > 1) { %>
-            <div class="od-gallery__dots" aria-hidden="true">
-              <% images.forEach(function (img, i) { %><span class="<%= i === 0 ? 'is-active' : '' %>"></span><% }) %>
-            </div>
             <div class="od-gallery__thumbs" role="list">
               <% images.forEach(function (img, i) { %>
                 <button class="od-gallery__thumb" type="button" role="listitem" data-gallery-thumb="<%= i %>" aria-current="<%= i === 0 %>" aria-label="تصویر <%= faDigits(i + 1) %>">
-                  <img src="<%= img.url %>" alt="" loading="lazy" width="64" height="72" />
+                  <img src="<%= img.url %>" alt="" loading="lazy" width="72" height="72" />
                 </button>
               <% }) %>
             </div>
           <% } %>
         </section>
 
-        <%# ---------- Buy column ---------- %>
+        <%# ---------- Purchase: right on desktop ---------- %>
         <section class="od-buy" aria-labelledby="product-page-title">
-          <div class="od-stack" style="--od-stack:6px">
+          <header class="od-buy__head">
             <% if (product.brandName) { %>
-              <a class="od-buy__brand" href="/shop?brand=<%= encodeURIComponent(product.brandName) %>"><%= product.brandName %> <%- icon('chevron-left', 'od-icon--sm') %></a>
+              <a class="od-buy__brand" href="/shop?brand=<%= encodeURIComponent(product.brandName) %>"><%= product.brandName %></a>
             <% } %>
             <h1 class="od-buy__title" id="product-page-title"><%= torobVisibleTitle %></h1>
             <% if (product.englishName) { %><p class="od-buy__en od-latin" dir="ltr"><%= product.englishName %></p><% } %>
-          </div>
+          </header>
 
+          <div class="od-buy__price">
+            <% if (inStock) { %>
+              <span class="od-buy__now od-num"><%= faPrice(pr.now) %><small>تومان</small></span>
+              <% if (pr.hasDiscount) { %>
+                <span class="od-buy__was od-num"><span class="od-sr-only">قیمت قبل:</span><%= faPrice(pr.was) %></span>
+              <% } %>
+            <% } %>
+          </div>
           <div class="od-buy__facts">
-            <% if (Number(product.rating) > 0) { %>
-              <span class="od-rating"><%- icon('star') %><strong class="od-num"><%= faDigits(Number(product.rating).toFixed(1)) %></strong>
-                <% if (product.reviewsNum) { %><span>(<%= faDigits(product.reviewsNum) %> نظر)</span><% } %></span>
-              <span class="od-sep" aria-hidden="true"></span>
+            <% if (!inStock) { %>
+              <span class="od-stock od-stock--out">ناموجود</span>
+            <% } else if (lowStock) { %>
+              <span class="od-stock od-stock--low">تنها <%= faDigits(stockCount) %> عدد در انبار</span>
+            <% } else { %>
+              <span class="od-stock">موجود، آماده ارسال</span>
             <% } %>
+            <span class="od-sep" aria-hidden="true"></span>
             <span>کد کالا: <span class="od-latin"><%= productCode %></span></span>
-            <% if (product.lilDescription) { %><span class="od-sep" aria-hidden="true"></span><span><%= product.lilDescription %></span><% } %>
           </div>
 
-          <div class="od-buy__panel">
-            <div class="od-buy__price">
-              <% if (inStock) { %>
-                <span class="od-buy__now od-num"><%= faPrice(pr.now) %><small>تومان</small></span>
-                <% if (pr.hasDiscount) { %>
-                  <span class="od-buy__was od-num"><span class="od-sr-only">قیمت قبل:</span><%= faPrice(pr.was) %></span>
-                  <span class="od-badge od-badge--sale"><%= faDigits(pr.percent) %>٪ تخفیف</span>
-                <% } %>
-              <% } %>
-              <span class="od-spacer"></span>
-              <% if (!inStock) { %>
-                <span class="od-stock od-stock--out">ناموجود</span>
-              <% } else if (stockCount <= 3) { %>
-                <span class="od-stock od-stock--low">تنها <%= faDigits(stockCount) %> عدد در انبار</span>
-              <% } else { %>
-                <span class="od-stock">موجود در انبار</span>
-              <% } %>
-            </div>
-
-            <% if (inStock && snappPayable >= 5000) { %>
-              <div class="od-installment" id="product-snapp-pay">
-                <img src="/images/snapp-pay.svg" alt="" width="34" height="34" />
-                <div><strong>هر قسط با اسنپ‌پی: <span class="od-num"><%= faPrice(snappInstallment) %></span> تومان</strong>
-                  <span>۴ قسط ماهانه، بدون سود، چک و ضامن</span></div>
-              </div>
-            <% } %>
-
-            <% if (product.colors && product.colors.length) { %>
-              <div class="od-option">
-                <span class="od-option__label" id="color-label">رنگ: <b data-selected-color><%= torobSelectedColor?.name || '' %></b></span>
-                <div class="od-options" role="radiogroup" aria-labelledby="color-label">
-                  <% product.colors.forEach(function (color, index) { const off = unavailable(color); const on = !off && index === torobSelectedColorIndex; %>
-                    <button type="button" class="od-swatch" role="radio" aria-checked="<%= on %>" aria-disabled="<%= off %>"
-                            aria-label="<%= color.name %><%= off ? ' (ناموجود)' : '' %>" title="<%= color.name %><%= off ? ' - ناموجود' : '' %>"
-                            data-color="<%= color.name %>" data-variant-id="<%= color._id %>" data-image="<%= color.image?.url || '' %>">
-                      <span style="background:<%= color.rgb %>"></span>
-                    </button>
-                  <% }) %>
-                </div>
-              </div>
-            <% } %>
-
-            <% if (product.sizes && product.sizes.length) { %>
-              <div class="od-option">
-                <span class="od-option__label" id="size-label">حجم / سایز: <b data-selected-size><%= torobSelectedSize ? toPersianDigitsForSizes(torobSelectedSize.size) : '' %></b></span>
-                <div class="od-options" role="radiogroup" aria-labelledby="size-label">
-                  <% product.sizes.forEach(function (size, index) { const off = unavailable(size); const on = !off && index === torobSelectedSizeIndex; %>
-                    <button type="button" class="od-size" role="radio" aria-checked="<%= on %>" aria-disabled="<%= off %>"
-                            data-size="<%= size.size %>" data-size-label="<%= toPersianDigitsForSizes(size.size) %>" data-size-id="<%= size._id %>">
-                      <%= toPersianDigitsForSizes(size.size) %>
-                      <% if (off) { %><small>ناموجود</small><% } else if (size.usage) { %><small><%= size.usage %></small><% } %>
-                    </button>
-                  <% }) %>
-                </div>
-              </div>
-            <% } %>
-
-            <div class="od-buy__cta">
-              <% if (inStock) { %>
-                <div class="od-qty" data-qty>
-                  <button type="button" data-qty-step="1" aria-label="افزایش تعداد"><%- icon('plus') %></button>
-                  <output aria-live="polite" data-qty-value>۱</output>
-                  <button type="button" data-qty-step="-1" aria-label="کاهش تعداد" disabled><%- icon('minus') %></button>
-                </div>
-                <button class="od-btn od-btn--lg od-btn--primary-cta" type="button" id="add-to-cart" data-buy><%- icon('bag') %><span data-buy-label>افزودن به سبد خرید</span></button>
-              <% } else { %>
-                <button class="od-btn od-btn--lg od-btn--primary-cta" type="button" disabled>ناموجود</button>
-              <% } %>
-              <button class="od-icon-btn" type="button" data-wishlist="<%= product._id %>" aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها"><%- icon('heart') %></button>
-            </div>
-
-            <div class="od-services">
-              <div class="od-service"><%- icon('shield') %><span><strong><%= product.guarantee || 'گارانتی اصالت و سلامت فیزیکی کالا' %></strong></span></div>
-              <div class="od-service"><%- icon('truck') %><span><strong>ارسال سریع</strong> با تیپاکس، چاپار و پست به سراسر ایران</span></div>
-              <div class="od-service"><%- icon('card') %><span><strong>پرداخت امن</strong> درگاه بانکی یا اقساطی</span></div>
-              <div class="od-service"><%- icon('return') %><span><strong>امکان بازگشت</strong> تا ۷ روز کاری در صورت ایراد کالا · <a class="od-link" href="/terms-and-conditions">شرایط</a></span></div>
-            </div>
-          </div>
-
-          <% if (keyAttrs.length) { %>
-            <div>
-              <h2 class="od-option__label" style="margin-bottom:10px">ویژگی‌های کلیدی</h2>
-              <dl class="od-attrs">
-                <% keyAttrs.slice(0, 6).forEach(function (a) { %>
-                  <div class="od-attr"><dt><%= a[0] %></dt><dd title="<%= a[1] %>"><%= a[1] %></dd></div>
+          <% if (product.colors && product.colors.length) { %>
+            <div class="od-option">
+              <span class="od-option__label" id="color-label">رنگ: <b data-selected-color><%= torobSelectedColor?.name || '' %></b></span>
+              <div class="od-options" role="radiogroup" aria-labelledby="color-label">
+                <% product.colors.forEach(function (color, index) { const off = unavailable(color); const on = !off && index === torobSelectedColorIndex; %>
+                  <button type="button" class="od-swatch" role="radio" aria-checked="<%= on %>" aria-disabled="<%= off %>"
+                          aria-label="<%= color.name %><%= off ? ' (ناموجود)' : '' %>" title="<%= color.name %><%= off ? ' - ناموجود' : '' %>"
+                          data-color="<%= color.name %>" data-variant-id="<%= color._id %>" data-image="<%= color.image?.url || '' %>">
+                    <span style="background:<%= color.rgb %>"></span>
+                  </button>
                 <% }) %>
-              </dl>
+              </div>
             </div>
           <% } %>
+
+          <% if (product.sizes && product.sizes.length) { %>
+            <div class="od-option">
+              <span class="od-option__label" id="size-label">حجم: <b data-selected-size><%= torobSelectedSize ? toPersianDigitsForSizes(torobSelectedSize.size) : '' %></b></span>
+              <div class="od-options" role="radiogroup" aria-labelledby="size-label">
+                <% product.sizes.forEach(function (size, index) { const off = unavailable(size); const on = !off && index === torobSelectedSizeIndex; %>
+                  <button type="button" class="od-size" role="radio" aria-checked="<%= on %>" aria-disabled="<%= off %>"
+                          data-size="<%= size.size %>" data-size-label="<%= toPersianDigitsForSizes(size.size) %>" data-size-id="<%= size._id %>">
+                    <%= toPersianDigitsForSizes(size.size) %>
+                    <% if (off) { %><small>ناموجود</small><% } else if (size.usage) { %><small><%= size.usage %></small><% } %>
+                  </button>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <div class="od-buy__cta" data-buy-anchor>
+            <% if (inStock) { %>
+              <div class="od-qty" data-qty>
+                <button type="button" data-qty-step="1" aria-label="افزایش تعداد"><%- icon('plus') %></button>
+                <output aria-live="polite" data-qty-value>۱</output>
+                <button type="button" data-qty-step="-1" aria-label="کاهش تعداد" disabled><%- icon('minus') %></button>
+              </div>
+              <button class="od-btn od-btn--lg od-btn--primary-cta" type="button" id="add-to-cart" data-buy><%- icon('bag') %><span data-buy-label>افزودن به سبد خرید</span></button>
+            <% } else { %>
+              <button class="od-btn od-btn--lg od-btn--primary-cta" type="button" disabled>ناموجود</button>
+            <% } %>
+            <button class="od-icon-btn" type="button" data-wishlist="<%= product._id %>" aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها"><%- icon('heart') %></button>
+          </div>
+
+          <% if (inStock && snappPayable >= 5000) { %>
+            <div class="od-installment" id="product-snapp-pay">
+              <img src="/images/snapp-pay.svg" alt="" width="30" height="30" />
+              <div><strong>۴ قسط <span class="od-num"><%= faPrice(snappInstallment) %></span> تومانی با اسنپ‌پی</strong>
+                <span>بدون سود، چک و ضامن</span></div>
+            </div>
+          <% } %>
+
+          <% if (product.lilDescription) { %><p class="od-buy__lede"><%= product.lilDescription %></p><% } %>
+
+          <ul class="od-services">
+            <li class="od-service"><%- icon('shield') %><span><strong>ضمانت اصالت</strong><%= product.guarantee && product.guarantee !== 'گارانتی اصالت و سلامت فیزیکی کالا' ? product.guarantee : 'و سلامت فیزیکی کالا' %></span></li>
+            <li class="od-service"><%- icon('truck') %><span><strong>ارسال سریع</strong>تیپاکس، چاپار و پست</span></li>
+            <li class="od-service"><%- icon('card') %><span><strong>پرداخت امن</strong>درگاه بانکی یا اقساطی</span></li>
+            <li class="od-service"><%- icon('return') %><span><strong>۷ روز بازگشت</strong><a class="od-link" href="/terms-and-conditions">در صورت ایراد کالا</a></span></li>
+          </ul>
         </section>
       </div>
 
-      <%# ---------- Fragrance profile (admin specifications) ---------- %>
+      <% if (sectionNav.length > 1) { %>
+        <nav class="od-pdp-nav" aria-label="بخش‌های صفحه محصول">
+          <% sectionNav.forEach(function (n) { %><a class="od-chip" href="#<%= n[0] %>"><%= n[1] %></a><% }) %>
+        </nav>
+      <% } %>
+
+      <%# ---------- Fragrance identity card (structured admin data + product image) ---------- %>
       <% if (fragrance.hasFragranceData) { %>
-        <section class="od-scent" aria-labelledby="scent-title">
-          <div class="od-scent__head">
-            <div class="od-section-head__title">
-              <span class="od-eyebrow">شناسنامه رایحه</span>
-              <h2 class="od-h2" id="scent-title">رایحه <%= product.englishName || product.name %></h2>
-            </div>
-            <div class="od-scent__tags">
-              <% [fragrance.family, fragrance.scentType, fragrance.concentration, fragrance.gender, fragrance.personality].filter(Boolean).forEach(function (t) { %>
-                <span class="od-badge"><%= t %></span>
-              <% }) %>
-            </div>
-          </div>
-          <div class="od-scent__grid">
+        <section class="od-idcard od-block" id="identity" aria-labelledby="identity-title">
+          <% if (identityImage) { %>
+            <figure class="od-idcard__media">
+              <div class="od-idcard__arch"><img src="<%= identityImage %>" alt="<%= product.name %>" loading="lazy" decoding="async" width="480" height="560" /></div>
+            </figure>
+          <% } %>
+          <div class="od-idcard__body">
+            <span class="od-eyebrow">شناسنامه رایحه</span>
+            <h2 class="od-idcard__title" id="identity-title"><%= product.englishName || product.name %></h2>
+            <% if (product.brandName) { %><p class="od-idcard__brand"><%= product.brandName %></p><% } %>
+            <% if (tags.length) { %>
+              <div class="od-idcard__tags"><% tags.forEach(function (t) { %><span><%= t %></span><% }) %></div>
+            <% } %>
+
             <% if (fragrance.accords.length) { %>
-              <div>
-                <h3><%- icon('sparkle', 'od-icon--sm') %>آکوردهای اصلی</h3>
+              <div class="od-idcard__group">
+                <h3>آکوردهای اصلی</h3>
                 <div class="od-accords">
-                  <% fragrance.accords.forEach(function (a, i) { const tone = accordTones[Math.min(i, accordTones.length - 1)]; %>
-                    <div class="od-accord" style="--od-accord:<%= tone[0] %>;--od-accord-ink:<%= tone[1] %>" role="img" aria-label="<%= a.name %>: <%= faDigits(a.strength) %>٪">
-                      <span class="od-accord__bar" style="width:<%= a.strength %>%"></span>
+                  <% fragrance.accords.forEach(function (a, i) { %>
+                    <div class="od-accord" role="img" aria-label="<%= a.name %>: <%= faDigits(a.strength) %>٪">
                       <span class="od-accord__name"><%= a.name %></span>
+                      <span class="od-accord__track"><span class="od-accord__bar" style="width:<%= a.strength %>%;--od-accord:<%= accordTones[Math.min(i, accordTones.length - 1)] %>"></span></span>
                     </div>
                   <% }) %>
                 </div>
               </div>
             <% } %>
 
-            <% if (fragrance.hasNotes) { %>
-              <div>
-                <h3><%- icon('drop', 'od-icon--sm') %>نت‌ها</h3>
-                <div class="od-pyramid">
-                  <% noteRows.forEach(function (row) { %>
-                    <div class="od-pyramid__row">
-                      <span><%= row[0] %></span>
-                      <div class="od-notes"><% row[1].forEach(function (n) { %><span class="od-note"><%- icon('leaf') %><%= n %></span><% }) %></div>
-                    </div>
-                  <% }) %>
-                  <% if (fragrance.notes.general.length) { %>
-                    <div class="od-pyramid__row">
-                      <% if (noteRows.length) { %><span>سایر نت‌ها</span><% } %>
-                      <div class="od-notes"><% fragrance.notes.general.forEach(function (n) { %><span class="od-note"><%- icon('leaf') %><%= n %></span><% }) %></div>
-                    </div>
-                  <% } %>
-                </div>
-              </div>
+            <% if (idFacts.length) { %>
+              <dl class="od-idcard__facts">
+                <% idFacts.forEach(function (f) { %>
+                  <div><dt><%- icon(f[0], 'od-icon--sm') %><%= f[1] %></dt><dd><%= f[2] %></dd></div>
+                <% }) %>
+              </dl>
             <% } %>
 
-            <% if (fragrance.longevity || fragrance.sillage || fragrance.time || fragrance.seasons.length) { %>
-              <div class="od-profile">
-                <h3 style="margin-bottom:0"><%- icon('clock', 'od-icon--sm') %>پروفایل رایحه</h3>
-                <% if (fragrance.longevity || fragrance.sillage) { %>
-                  <div class="od-metrics">
-                    <% if (fragrance.longevity) { %><div class="od-metric"><%- icon('hourglass') %><strong><%= fragrance.longevity %></strong><span>ماندگاری</span></div><% } %>
-                    <% if (fragrance.sillage) { %><div class="od-metric"><%- icon('wind') %><strong><%= fragrance.sillage %></strong><span>پخش بو</span></div><% } %>
-                  </div>
-                <% } %>
-                <% if (fragrance.time) { %>
-                  <div class="od-daynight" role="img" aria-label="زمان مصرف: <%= fragrance.time.label %>">
-                    <div class="<%= fragrance.time.day ? 'is-on' : '' %>"><%- icon('sun') %>روز</div>
-                    <div class="is-night <%= fragrance.time.night ? 'is-on' : '' %>"><%- icon('moon') %>شب</div>
-                  </div>
-                <% } %>
-                <% if (fragrance.seasons.length) { %>
-                  <div class="od-seasons" role="list" aria-label="فصل‌های مناسب">
-                    <% fragrance.seasons.forEach(function (s) { %>
-                      <div class="od-season <%= s.active ? 'is-on' : '' %>" role="listitem"><%- icon(s.icon) %><%= s.label %><span class="od-sr-only"><%= s.active ? '(مناسب)' : '(کمتر مناسب)' %></span></div>
-                    <% }) %>
-                  </div>
-                <% } %>
+            <% if (fragrance.occasions.length || fragrance.personality) { %>
+              <p class="od-idcard__occasions">
+                <% if (fragrance.occasions.length) { %>مناسب برای: <strong><%= fragrance.occasions.join('، ') %></strong><% } %>
+                <% if (fragrance.personality) { %><% if (fragrance.occasions.length) { %> · <% } %>شخصیت: <strong><%= fragrance.personality %></strong><% } %>
+              </p>
+            <% } %>
+          </div>
+        </section>
+      <% } %>
+
+      <%# ---------- Notes ---------- %>
+      <% if (noteRows.length || fragrance.notes.general.length) { %>
+        <section class="od-section--tight od-block" id="notes" aria-labelledby="notes-title">
+          <div class="od-section-head"><div class="od-section-head__title"><span class="od-eyebrow">هرم بویایی</span><h2 class="od-h2" id="notes-title">نت‌های رایحه</h2></div></div>
+          <div class="od-notes-grid">
+            <% noteRows.forEach(function (row, i) { %>
+              <div class="od-notecol od-notecol--<%= row[0] %>">
+                <span class="od-notecol__step od-num"><%= faDigits(i + 1) %></span>
+                <h3><%= row[1] %></h3>
+                <p class="od-meta"><%= row[2] %></p>
+                <ul class="od-notes"><% row[3].forEach(function (n) { %><li class="od-note"><%= n %></li><% }) %></ul>
+              </div>
+            <% }) %>
+            <% if (fragrance.notes.general.length) { %>
+              <div class="od-notecol">
+                <h3><%= noteRows.length ? 'سایر نت‌ها' : 'نت‌ها' %></h3>
+                <ul class="od-notes"><% fragrance.notes.general.forEach(function (n) { %><li class="od-note"><%= n %></li><% }) %></ul>
               </div>
             <% } %>
           </div>
         </section>
       <% } %>
 
-      <%# ---------- Description & full specifications ---------- %>
-      <% if (hasDescription || (product.specifications && product.specifications.length)) { %>
+      <%# ---------- Story & details ---------- %>
+      <% if (fragrance.story || hasDescription || fragrance.usage || fragrance.ingredients || hasSpecs || keyAttrs.length) { %>
         <section class="od-section--tight od-details">
-          <% if (hasDescription) { %>
-            <div>
-              <h2 class="od-h3" style="margin-bottom:12px">معرفی محصول</h2>
-              <div class="od-prose od-readmore" data-readmore id="productDescriptionContent"><%- product.description %></div>
-              <button class="od-link" type="button" data-readmore-toggle style="margin-top:8px">بیشتر بخوانید</button>
+          <% if (fragrance.story || hasDescription) { %>
+            <div class="od-block" id="story">
+              <h2 class="od-h3 od-details__title">معرفی و داستان</h2>
+              <% if (fragrance.story) { %><p class="od-story"><%= fragrance.story %></p><% } %>
+              <% if (hasDescription) { %>
+                <div class="od-prose od-readmore" data-readmore id="productDescriptionContent"><%- product.description %></div>
+                <button class="od-link" type="button" data-readmore-toggle style="margin-top:8px">بیشتر بخوانید</button>
+              <% } %>
             </div>
           <% } %>
-          <% if (product.specifications && product.specifications.length) { %>
-            <div>
-              <h2 class="od-h3" style="margin-bottom:6px">مشخصات</h2>
-              <table class="od-specs">
-                <tbody>
-                  <% product.specifications.forEach(function (s) { %>
-                    <tr><th scope="row"><%= s.key %></th><td><%= s.value %></td></tr>
+          <% if (fragrance.usage || fragrance.ingredients || hasSpecs || keyAttrs.length) { %>
+            <div class="od-block od-details__side" id="details">
+              <h2 class="od-h3 od-details__title">مشخصات</h2>
+              <% if (keyAttrs.length) { %>
+                <dl class="od-attrs">
+                  <% keyAttrs.slice(0, 6).forEach(function (a) { %>
+                    <div class="od-attr"><dt><%= a[0] %></dt><dd title="<%= a[1] %>"><%= a[1] %></dd></div>
                   <% }) %>
-                </tbody>
-              </table>
+                </dl>
+              <% } %>
+              <% if (fragrance.usage) { %>
+                <details class="od-acc" open>
+                  <summary>نحوه استفاده <%- icon('chevron-down') %></summary>
+                  <p><%= fragrance.usage %></p>
+                </details>
+              <% } %>
+              <% if (fragrance.ingredients) { %>
+                <details class="od-acc">
+                  <summary>ترکیبات <%- icon('chevron-down') %></summary>
+                  <p class="od-latin-mixed"><%= fragrance.ingredients %></p>
+                </details>
+              <% } %>
+              <% if (hasSpecs) { %>
+                <details class="od-acc" <%= !fragrance.usage ? 'open' : '' %>>
+                  <summary>مشخصات کامل <%- icon('chevron-down') %></summary>
+                  <table class="od-specs">
+                    <tbody>
+                      <% product.specifications.forEach(function (s) { %>
+                        <tr><th scope="row"><%= s.key %></th><td><%= s.value %></td></tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </details>
+              <% } %>
             </div>
           <% } %>
         </section>
@@ -500,7 +529,7 @@
             <% if (breadcrumb.length) { %><a class="od-section-head__link" href="/category/<%= breadcrumb[breadcrumb.length - 1].slug %>">مشاهده همه <%- icon('chevron-left') %></a><% } %>
           </div>
           <div class="od-rail">
-            <% relatedProducts.forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+            <% relatedProducts.slice(0, 4).forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
           </div>
         </section>
       <% } %>
@@ -512,8 +541,8 @@
     </div>
   </main>
 
-  <%# Sticky purchase bar (mobile) %>
-  <div class="od-buybar" aria-label="خرید سریع">
+  <%# Sticky purchase bar (mobile) — appears once the main button scrolls away %>
+  <div class="od-buybar" aria-label="خرید سریع" data-buybar>
     <div class="od-buybar__price">
       <% if (inStock) { %>
         <strong class="od-num"><%= faPrice(pr.now) %> <small style="font-weight:500">تومان</small></strong>

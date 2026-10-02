@@ -41,6 +41,24 @@ function isInStock(product) {
   return Boolean(product) && Number(product.countInStock || 0) > 0;
 }
 
+// The single badge a product card shows (or null). Priority: the admin's
+// editorial badge, then a real discount, then the "new" flag.
+const BADGE_LABELS = { new: "جدید", bestseller: "پرفروش", limited: "محدود", exclusive: "انحصاری" };
+function productBadge(product) {
+  if (!product) return null;
+  if (product.badge && BADGE_LABELS[product.badge]) return { kind: product.badge, label: BADGE_LABELS[product.badge] };
+  const pricing = productPricing(product);
+  if (pricing.hasDiscount) return { kind: "sale", label: `${faDigits(pricing.percent)}٪` };
+  if (product.isNewProduct) return { kind: "new", label: BADGE_LABELS.new };
+  return null;
+}
+
+function isLowStock(product) {
+  const count = Number(product?.countInStock || 0);
+  const threshold = Number.isFinite(Number(product?.lowStockThreshold)) ? Number(product.lowStockThreshold) : 3;
+  return count > 0 && count <= threshold;
+}
+
 // Maps an admin-defined category name to one of the custom category icons.
 const CATEGORY_ICON_RULES = [
   [/مردانه/, "cat-perfume-men"],
@@ -54,7 +72,8 @@ const CATEGORY_ICON_RULES = [
   [/آرایش|لب|رژ|صورت|چشم|makeup/i, "cat-lipstick"],
 ];
 
-function categoryIcon(name) {
+function categoryIcon(name, explicit) {
+  if (explicit && /^cat-[a-z-]+$/.test(explicit)) return explicit;
   const value = String(name || "");
   const match = CATEGORY_ICON_RULES.find(([re]) => re.test(value));
   return match ? match[1] : "cat-default";
@@ -85,6 +104,9 @@ module.exports = {
   icon,
   productPricing,
   isInStock,
+  isLowStock,
+  productBadge,
+  BADGE_LABELS,
   categoryIcon,
   categoryShortcuts,
   productUrl,

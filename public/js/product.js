@@ -47,6 +47,20 @@
     });
   }
 
+  // Desktop hover zoom: the image follows the pointer inside its frame.
+  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    slides.forEach(function (slide) {
+      var img = $("img", slide);
+      if (!img) return;
+      slide.addEventListener("pointermove", function (e) {
+        var r = slide.getBoundingClientRect();
+        img.style.transformOrigin = ((e.clientX - r.left) / r.width * 100) + "% " + ((e.clientY - r.top) / r.height * 100) + "%";
+        slide.classList.add("is-zooming");
+      });
+      slide.addEventListener("pointerleave", function () { slide.classList.remove("is-zooming"); });
+    });
+  }
+
   // Lightbox (native <dialog>, pinch-zoom on touch, click-to-zoom on desktop).
   var lightbox = $("[data-lightbox]");
   if (lightbox && lightbox.showModal) {
@@ -238,6 +252,19 @@
       ODOUR.addToCart(payload, btn);
     });
   });
+
+  // ------------------------------------------------------------ sticky mobile buy bar
+  // Shown only while the main purchase button is off-screen, so it never hides it.
+  var buybar = $("[data-buybar]");
+  var buyAnchor = $("[data-buy-anchor]");
+  if (buybar && buyAnchor && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      var e = entries[0];
+      buybar.classList.toggle("is-visible", !e.isIntersecting && e.boundingClientRect.top < 0);
+    }).observe(buyAnchor);
+  } else if (buybar) {
+    buybar.classList.add("is-visible");
+  }
 
   // ------------------------------------------------------------ description read-more
   var readmore = $("[data-readmore]");

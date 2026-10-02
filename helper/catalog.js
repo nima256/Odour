@@ -5,14 +5,15 @@ const Product = require("../models/Product");
 const Category = require("../models/Category");
 const { CARD_FIELDS, getCategoryTreeIds } = require("./storefront");
 const { FIELDS, FILTER_FACETS, splitList, fieldForKey, normalize } = require("./fragranceProfile");
-const { productPricing, productUrl, productImage, isInStock } = require("./viewHelpers");
+const { productPricing, productUrl, productImage, isInStock, productBadge } = require("./viewHelpers");
 
 const SORTS = {
-  popular: { label: "محبوب‌ترین", sort: { rating: -1, reviewsNum: -1, createdAt: -1 } },
+  // "Recommended": admin-controlled sortPriority first, then curated/popular flags.
+  popular: { label: "پیشنهاد اودر", sort: { sortPriority: -1, isPopular: -1, createdAt: -1 } },
   newest: { label: "جدیدترین", sort: { createdAt: -1 } },
   "price-low": { label: "ارزان‌ترین", sort: { finalPrice: 1, createdAt: -1 } },
   "price-high": { label: "گران‌ترین", sort: { finalPrice: -1, createdAt: -1 } },
-  rating: { label: "بیشترین امتیاز", sort: { rating: -1, createdAt: -1 } },
+  discount: { label: "بیشترین تخفیف", sort: { discount: -1, createdAt: -1 } },
 };
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -111,16 +112,15 @@ function applyRefinements(contextQuery, filters) {
     const values = filters.facets[facet.param];
     if (!values) continue;
     const keyPatterns = facet.fields.map((f) => FIELDS[f].pattern);
-    query.$and.push({
-      $or: values.map((value) => ({
-        specifications: {
-          $elemMatch: {
-            key: { $in: keyPatterns },
-            value: { $regex: escapeRegex(normalize(value)), $options: "i" },
-          },
-        },
-      })),
-    });
+    const conditions = [];
+    for (const value of values) {
+      const re = { $regex: escapeRegex(normalize(value)), $options: "i" };
+      if (keyPatterns.length) {
+        conditions.push({ specifications: { $elemMatch: { key: { $in: keyPatterns }, value: re } } });
+      }
+      facet.paths.forEach((path) => conditions.push({ [path]: re }));
+    }
+    if (conditions.length) query.$and.push({ $or: conditions });
   }
   if (!query.$and.length) delete query.$and;
   return query;
@@ -137,7 +137,7 @@ function toCard(product) {
     image2: product.images && product.images[1] ? product.images[1].url : null,
     pricing: productPricing(product),
     inStock: isInStock(product),
-    rating: Number(product.rating) || 0,
+    badge: productBadge(product),
     isNew: Boolean(product.isNewProduct),
     needsOptions: Boolean((product.colors && product.colors.length) || (product.sizes && product.sizes.length)),
   };
@@ -162,7 +162,7 @@ async function listProducts(filters, options = {}) {
 // from the matching products so only values that actually exist are offered.
 async function buildFacets(contextQuery) {
   const products = await Product.find(contextQuery)
-    .select("brandName specifications finalPrice price offerPrice countInStock")
+    .select("brandName specifications fragrance finalPrice price offerPrice countInStock")
     .lean();
 
   const brands = new Map();
@@ -180,6 +180,21 @@ async function buildFacets(contextQuery) {
     if (Number(p.countInStock) > 0) inStock++;
 
     const seen = new Set();
+    const add = (param, value) => {
+      const id = `${param}:${value}`;
+      if (!value || value.length > 30 || seen.has(id)) return;
+      seen.add(id);
+      const map = facetValues[param];
+      map.set(value, (map.get(value) || 0) + 1);
+    };
+    // Structured fragrance fields (admin form).
+    for (const facet of FILTER_FACETS) {
+      for (const path of facet.paths) {
+        const raw = path.split(".").reduce((o, k) => (o ? o[k] : undefined), p);
+        (Array.isArray(raw) ? raw : raw ? [raw] : []).forEach((v) => add(facet.param, normalize(v)));
+      }
+    }
+    // Free specification rows (older products).
     for (const spec of p.specifications || []) {
       const field = fieldForKey(spec.key);
       if (!field) continue;
@@ -187,13 +202,7 @@ async function buildFacets(contextQuery) {
         if (!facet.fields.includes(field)) continue;
         let values = splitList(spec.value);
         if (field === "accords") values = values.map((v) => v.split(/[:：]/)[0]);
-        for (const value of values) {
-          const id = `${facet.param}:${value}`;
-          if (!value || value.length > 30 || seen.has(id)) continue;
-          seen.add(id);
-          const map = facetValues[facet.param];
-          map.set(value, (map.get(value) || 0) + 1);
-        }
+        for (const value of values) add(facet.param, value);
       }
     }
   }

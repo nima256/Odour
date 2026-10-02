@@ -63,6 +63,7 @@ const Product = require("./models/Product");
 const Category = require("./models/Category");
 const Brand = require("./models/Brand");
 const Weblog = require("./models/Weblog");
+const Banner = require("./models/Banner");
 const User = require("./models/User");
 
 // For production
@@ -341,8 +342,8 @@ app.use(async (req, res, next) => {
     parentId: null,  // فقط دسته‌بندی‌های اصلی
     isActive: true 
   })
-  .limit(5)  // فقط 5 تا
-  .sort({ name: 1 });  // مرتب بر اساس نام
+  .sort({ displayOrder: 1, name: 1 })
+  .limit(5);
   
   res.locals.footerCategories = footerCategories;
   next();
@@ -373,7 +374,7 @@ app.get("/", async (req, res) => {
         .lean();
     }
 
-    const [menuCategories, isNewProduct, perfumeProducts, skincareProducts, haircareProducts, beautycareProducts, weblogs, user] =
+    const [menuCategories, isNewProduct, perfumeProducts, skincareProducts, haircareProducts, beautycareProducts, weblogs, user, banners] =
       await Promise.all([
         buildMenuCategories(),
         Product.find({ ...published, isNewProduct: true }).select(CARD_FIELDS).sort({ createdAt: -1 }).limit(8).lean(),
@@ -383,9 +384,11 @@ app.get("/", async (req, res) => {
         findProductsInCategoryNamed("آرایشی", 4),
         Weblog.find({ isPublished: true }).select("title slug description images readingTime createdAt").sort({ createdAt: -1 }).limit(3).lean(),
         req.session.userId ? User.findById(req.session.userId).select("cart fullName mobile") : null,
+        Banner.activeByPlacement(["home_hero", "home_promo", "home_collection", "home_category", "home_editorial", "home_strip"]),
       ]);
 
     res.render("Home", {
+      banners,
       menuCategories,
       user,
       cartCount: user?.cart?.length || 0,
@@ -422,14 +425,21 @@ async function renderCatalog(req, res, { category = null } = {}) {
     isActive: true,
     parentId: category ? category._id : null,
   })
-    .select("name slug")
-    .sort({ name: 1 })
+    .select("name slug icon")
+    .sort({ displayOrder: 1, name: 1 })
     .lean();
 
   const breadcrumb = [];
   for (let node = category; node; node = node.parentId && node.parentId.name ? node.parentId : null) {
     breadcrumb.unshift({ name: node.name, slug: node.slug });
   }
+
+  // Header banner: one made for this category wins over a general shop banner.
+  const shopBanners = (await Banner.activeByPlacement(["shop_top"])).shop_top;
+  const banner =
+    (category && shopBanners.find((b) => b.categorySlug === category.slug)) ||
+    shopBanners.find((b) => !b.categorySlug) ||
+    null;
 
   const categoryNames = Object.fromEntries(subcategories.map((c) => [c.slug, c.name]));
   res.render("Shop", {
@@ -448,6 +458,7 @@ async function renderCatalog(req, res, { category = null } = {}) {
     page: result.page,
     pages: result.pages,
     basePath: category ? `/category/${category.slug}` : "/shop",
+    banner,
   });
 }
 
@@ -478,7 +489,7 @@ app.get("/productDetails/:slug", async (req, res, next) => {
       req.session.userId ? User.findById(req.session.userId).select("cart fullName mobile") : null,
       Product.find({ _id: { $ne: product._id }, isPublished: true, category: { $in: categoryIds } })
         .select(CARD_FIELDS)
-        .sort({ countInStock: -1, rating: -1, createdAt: -1 })
+        .sort({ sortPriority: -1, createdAt: -1 })
         .limit(8)
         .lean(),
       Category.find({ _id: { $in: categoryIds }, isActive: true }).select("name slug parentId").lean(),
@@ -497,7 +508,7 @@ app.get("/productDetails/:slug", async (req, res, next) => {
       torobMetaHelper: require("./helper/torobProductMeta"),
       requestedTorobVariantId: String(req.query.variant || ""),
       requestedTorobSizeId: String(req.query.size || ""),
-      fragrance: parseFragranceProfile(product.specifications),
+      fragrance: parseFragranceProfile(product.specifications, product.fragrance),
       relatedProducts,
       breadcrumb: [parent, leaf].filter(Boolean),
     });
