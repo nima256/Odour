@@ -1,0 +1,53 @@
+<%
+  const cover = (p) => p && p.images && p.images[0] ? (p.images[0].url || p.images[0]) : null;
+  const canonical = 'https://www.odour.ir/weblog/' + encodeURIComponent(post.slug);
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: (post.metaTitle || post.title) + ' | مجله اودر', description: post.metaDescription || post.description, canonical, ogImage: cover(post) }) %>
+  <script type="application/ld+json"><%- JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'Article', headline: post.title, description: post.description || '',
+    image: cover(post) ? [cover(post)] : undefined, datePublished: post.publishedAt || post.createdAt, dateModified: post.updatedAt,
+    author: { '@type': 'Organization', name: 'اودر' }, publisher: { '@type': 'Organization', name: 'اودر', logo: { '@type': 'ImageObject', url: 'https://www.odour.ir/logo.png' } },
+    mainEntityOfPage: canonical
+  }).replace(/</g, '\\u003c') %></script>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <article class="od-container od-narrow" style="padding-bottom:var(--od-section)">
+      <nav class="od-crumbs" aria-label="مسیر">
+        <a href="/">خانه</a> <%- icon('chevron-left') %> <a href="/weblog">مجله</a> <%- icon('chevron-left') %> <span aria-current="page"><%= post.title %></span>
+      </nav>
+      <header class="od-stack" style="--od-stack:10px;margin-bottom:22px">
+        <span class="od-eyebrow"><%= (post.categories || []).map(c => c && c.name).filter(Boolean).join('، ') || 'مجله اودر' %></span>
+        <h1 class="od-h2" style="line-height:1.6"><%= post.title %></h1>
+        <p class="od-meta">
+          <%= post.createTarikh || '' %><% if (post.readingTime) { %> · <%= faDigits(post.readingTime) %> دقیقه مطالعه<% } %>
+        </p>
+        <% if (post.description) { %><p class="od-lead"><%= post.description %></p><% } %>
+      </header>
+      <% if (cover(post)) { %>
+        <div class="od-post__media" style="margin-bottom:24px"><img src="<%= cover(post) %>" alt="<%= post.title %>" width="1200" height="750" fetchpriority="high" /></div>
+      <% } %>
+      <div class="od-prose"><%- post.content %></div>
+
+      <% if (relatedPosts && relatedPosts.length) { %>
+        <section class="od-section--tight" aria-labelledby="related-posts" style="border-top:1px solid var(--od-line);margin-top:36px">
+          <h2 class="od-h3" id="related-posts" style="margin-bottom:16px">مطالب مرتبط</h2>
+          <div class="od-posts">
+            <% relatedPosts.slice(0, 3).forEach(function (r) { %>
+              <a class="od-post" href="/weblog/<%= encodeURIComponent(r.slug) %>">
+                <span class="od-post__media"><% if (cover(r)) { %><img src="<%= cover(r) %>" alt="" loading="lazy" width="640" height="400" /><% } %></span>
+                <h3><%= r.title %></h3>
+              </a>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+    </article>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

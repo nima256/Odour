@@ -1,0 +1,645 @@
+<%
+  const torobColors = Array.isArray(product?.colors) ? product.colors : [];
+  const torobSizes = Array.isArray(product?.sizes) ? product.sizes : [];
+  const variantMatrixConfigured = product?.variantInventoryConfigured === true;
+  const variantMatrixRows = Array.isArray(product?.variantStocks) ? product.variantStocks : [];
+  const matrixKey = (colorId, sizeId) => `${String(colorId || '') || '-'}|${String(sizeId || '') || '-'}`;
+  const matrixRowsByKey = new Map(variantMatrixRows.map((row) => [matrixKey(row?.colorId, row?.sizeId), row]));
+
+  const requestedVariantKey = typeof requestedTorobVariantKey !== "undefined"
+    ? String(requestedTorobVariantKey || "")
+    : "";
+  const requestedVariantId = typeof requestedTorobColorId !== "undefined"
+    ? String(requestedTorobColorId || "")
+    : typeof requestedTorobVariantId !== "undefined"
+      ? String(requestedTorobVariantId || "")
+      : "";
+  const requestedSizeId = typeof requestedTorobSizeId !== "undefined"
+    ? String(requestedTorobSizeId || "")
+    : "";
+
+  const colorIdAt = (index) => index >= 0 && torobColors[index] ? String(torobColors[index]?._id || torobColors[index]?.variantId || '') : '';
+  const sizeIdAt = (index) => index >= 0 && torobSizes[index] ? String(torobSizes[index]?._id || torobSizes[index]?.variantId || '') : '';
+  const pairExists = (colorIndex, sizeIndex) => matrixRowsByKey.has(matrixKey(colorIdAt(colorIndex), sizeIdAt(sizeIndex)));
+  const matrixRowSellableStock = (row) => row && row.isOutOfStock !== true ? Number(row.countInStock || 0) : 0;
+  const pairStock = (colorIndex, sizeIndex) => matrixRowSellableStock(matrixRowsByKey.get(matrixKey(colorIdAt(colorIndex), sizeIdAt(sizeIndex))));
+  const configuredColorUnavailable = (color) => {
+    const id = String(color?._id || color?.variantId || '');
+    const rows = variantMatrixRows.filter((row) => String(row?.colorId || '') === id);
+    return !rows.length || rows.every((row) => matrixRowSellableStock(row) <= 0);
+  };
+  const configuredSizeUnavailable = (size) => {
+    const id = String(size?._id || size?.variantId || '');
+    const rows = variantMatrixRows.filter((row) => String(row?.sizeId || '') === id);
+    return !rows.length || rows.every((row) => matrixRowSellableStock(row) <= 0);
+  };
+
+  let torobSelectedColorIndex = torobColors.findIndex((color) => String(color?._id || color?.variantId || "") === requestedVariantId);
+  let torobSelectedSizeIndex = torobSizes.findIndex((size) => String(size?._id || size?.variantId || "") === requestedSizeId);
+
+  if (variantMatrixConfigured) {
+    const requestedColorIndex = torobColors.length ? torobSelectedColorIndex : -1;
+    const requestedSizeIndex = torobSizes.length ? torobSelectedSizeIndex : -1;
+    if (!pairExists(requestedColorIndex, requestedSizeIndex)) {
+      let chosen = null;
+      for (let ci = 0; ci < (torobColors.length || 1) && !chosen; ci++) {
+        for (let si = 0; si < (torobSizes.length || 1); si++) {
+          const realCi = torobColors.length ? ci : -1;
+          const realSi = torobSizes.length ? si : -1;
+          if (pairExists(realCi, realSi) && pairStock(realCi, realSi) > 0) { chosen = [realCi, realSi]; break; }
+        }
+      }
+      if (!chosen) {
+        for (let ci = 0; ci < (torobColors.length || 1) && !chosen; ci++) {
+          for (let si = 0; si < (torobSizes.length || 1); si++) {
+            const realCi = torobColors.length ? ci : -1;
+            const realSi = torobSizes.length ? si : -1;
+            if (pairExists(realCi, realSi)) { chosen = [realCi, realSi]; break; }
+          }
+        }
+      }
+      torobSelectedColorIndex = chosen ? chosen[0] : (torobColors.length ? 0 : -1);
+      torobSelectedSizeIndex = chosen ? chosen[1] : (torobSizes.length ? 0 : -1);
+    }
+  } else {
+    if (torobSelectedColorIndex < 0 && torobColors.length > 0) torobSelectedColorIndex = 0;
+    if (torobSelectedSizeIndex < 0 && torobSizes.length > 0) torobSelectedSizeIndex = 0;
+  }
+
+  const torobSelectedColor = torobSelectedColorIndex >= 0 ? torobColors[torobSelectedColorIndex] : null;
+  const torobSelectedSize = torobSelectedSizeIndex >= 0 ? torobSizes[torobSelectedSizeIndex] : null;
+
+  const torobSelectedVariantId = torobSelectedColor ? String(torobSelectedColor._id || torobSelectedColor.variantId || "") : "";
+  const torobSelectedSizeId = torobSelectedSize ? String(torobSelectedSize._id || torobSelectedSize.variantId || "") : "";
+
+  const metaHelper = typeof torobMetaHelper !== "undefined"
+    ? torobMetaHelper
+    : null;
+  const torobVariantKey = metaHelper?.getVariantKey
+    ? metaHelper.getVariantKey({ colorId: torobSelectedVariantId, sizeId: torobSelectedSizeId })
+    : torobSelectedVariantId && torobSelectedSizeId
+      ? `${torobSelectedVariantId}--size-${torobSelectedSizeId}`
+      : torobSelectedVariantId
+        ? torobSelectedVariantId
+        : torobSelectedSizeId
+          ? `size-${torobSelectedSizeId}`
+          : "base";
+
+  const torobGender = metaHelper?.getProductGender
+    ? metaHelper.getProductGender(product)
+    : "زنانه";
+
+  const torobColorName = String(torobSelectedColor?.name || "").trim();
+  const torobSizeName = String(torobSelectedSize?.size || torobSelectedSize?.name || "").trim();
+  const torobVisibleTitle = metaHelper?.buildPersianVariantTitle
+    ? metaHelper.buildPersianVariantTitle(product, torobSelectedColor, torobSelectedSize)
+    : [
+        product?.name,
+        torobColorName ? `رنگ ${torobColorName}` : null,
+        torobSizeName ? `سایز ${torobSizeName}` : null,
+        torobGender,
+      ].filter(Boolean).join(" - ");
+  const torobPageTitle = metaHelper?.buildVariantTitle
+    ? metaHelper.buildVariantTitle(product, torobSelectedColor, torobSelectedSize)
+    : torobVisibleTitle;
+  const torobEnglishName = String(product?.englishName || "").trim();
+
+  const torobBaseUrl = String(
+    typeof siteBaseUrl !== "undefined" ? siteBaseUrl : "https://www.odour.ir"
+  ).replace(/\/+$/, "");
+  const torobSlugOrId = String(product?.slug || product?._id || "");
+  const torobCanonical = new URL(
+    `/productDetails/${encodeURIComponent(torobSlugOrId)}`,
+    torobBaseUrl
+  );
+  if (torobVariantKey && torobVariantKey !== "base") {
+    torobCanonical.searchParams.set("variant", torobVariantKey);
+  }
+  if (torobSelectedVariantId) {
+    torobCanonical.searchParams.set("color", torobSelectedVariantId);
+  }
+  if (torobSelectedSizeId) {
+    torobCanonical.searchParams.set("size", torobSelectedSizeId);
+  }
+  const torobCanonicalUrl = torobCanonical.toString();
+
+  const makeAbsoluteProductUrl = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return `${torobBaseUrl}/images/default.jpg`;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `${torobBaseUrl}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  };
+
+  const torobSelectedImage = makeAbsoluteProductUrl(
+    torobSelectedColor?.image?.url || product?.images?.[0]?.url
+  );
+  const torobDescription = [
+    product?.lilDescription || "",
+    torobColorName ? `رنگ ${torobColorName}` : "",
+    torobSizeName ? `سایز ${torobSizeName}` : "",
+    torobGender ? `مناسب ${torobGender}` : "",
+  ].filter(Boolean).join(" - ");
+  const torobCurrentPrice = Number(product?.offerPrice) > 0
+    ? Number(product.offerPrice)
+    : Number(product?.price || 0);
+  const torobOldPrice = Number(product?.offerPrice) > 0 && Number(product?.price) > Number(product?.offerPrice)
+    ? Number(product.price)
+    : null;
+  const torobPriceInIrr = typeof priceInIRR !== "undefined"
+    ? priceInIRR
+    : torobCurrentPrice;
+
+  const torobHasStockValue = (value) =>
+    value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  const torobSelectedOptions = [torobSelectedColor, torobSelectedSize].filter(Boolean);
+  const torobOptionStockValues = torobSelectedOptions
+    .map((option) => option?.countInStock)
+    .filter(torobHasStockValue)
+    .map(Number);
+  const torobMatrixRow = matrixRowsByKey.get(matrixKey(torobSelectedVariantId, torobSelectedSizeId));
+  const torobVariantAvailable = variantMatrixConfigured
+    ? matrixRowSellableStock(torobMatrixRow) > 0
+    : torobSelectedOptions.some((option) => option?.isOutOfStock === true)
+      ? false
+      : torobOptionStockValues.length > 0
+        ? torobOptionStockValues.every((stock) => stock > 0)
+        : product?.isOutOfStock !== true && Number(product?.countInStock || 0) > 0;
+
+  const torobVariantUnique = `${product?._id}_${torobVariantKey}`;
+  const torobBrandName = String(
+    product?.brandName || product?.brand?.name || product?.brandDetails?.name || "اودور"
+  ).trim();
+
+  const torobJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: torobPageTitle,
+    image: [torobSelectedImage],
+    description: torobDescription,
+    sku: torobVariantUnique,
+    mpn: torobVariantUnique,
+    brand: {
+      "@type": "Brand",
+      name: torobBrandName,
+    },
+    color: torobColorName || undefined,
+    size: torobSizeName || undefined,
+    audience: torobGender ? {
+      "@type": "PeopleAudience",
+      suggestedGender: torobGender,
+    } : undefined,
+    offers: {
+      "@type": "Offer",
+      price: String(torobPriceInIrr),
+      priceCurrency: "IRR",
+      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString().split("T")[0],
+      availability: torobVariantAvailable
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: torobCanonicalUrl,
+      seller: {
+        "@type": "Organization",
+        name: "اودور",
+      },
+    },
+  };
+%>
+
+<%
+  // ---------- View model ----------
+  const pr = productPricing(product);
+  const inStock = isInStock(product);
+  const stockCount = Number(product.countInStock || 0);
+  const lowStock = isLowStock(product);
+  const images = (product.images || []).filter(img => img && img.url);
+  const legacyUnavailable = (opt) => Boolean(opt?.isOutOfStock) || (opt?.countInStock !== undefined && opt?.countInStock !== null && Number(opt.countInStock) <= 0);
+  const colorUnavailable = (color) => variantMatrixConfigured ? configuredColorUnavailable(color) : legacyUnavailable(color);
+  const sizeUnavailable = (size) => variantMatrixConfigured ? configuredSizeUnavailable(size) : legacyUnavailable(size);
+  const productCode = (product.sku || product.product_group_id || String(product._id).slice(-6)).toUpperCase();
+  const badge = inStock ? productBadge(product) : null;
+
+  // SnappPay keeps 50% of an existing special-price discount (same rule as checkout).
+  const snappRegular = Number(product.price || 0);
+  const snappOffer = Number(product.offerPrice || 0);
+  const snappPayable = snappOffer > 0 && snappOffer < snappRegular ? snappRegular - Math.floor((snappRegular - snappOffer) / 2) : snappRegular;
+  const snappInstallment = Math.ceil(snappPayable / 4);
+
+  // TorobPay uses the same installment base price, then adds the 12% merchant surcharge.
+  const torobPayable = snappPayable + Math.round(snappPayable * 0.12);
+  const torobInstallment = Math.round(torobPayable / 4);
+
+  const keyAttrs = [];
+  if (fragrance.volume) keyAttrs.push(['حجم', fragrance.volume]);
+  if (fragrance.concentration) keyAttrs.push(['غلظت', fragrance.concentration]);
+  if (fragrance.gender) keyAttrs.push(['مناسب برای', fragrance.gender]);
+  if (fragrance.family) keyAttrs.push(['خانواده بویایی', fragrance.family]);
+  fragrance.others.slice(0, 4).forEach(o => keyAttrs.push([o.key, o.value]));
+  if (product.weight) keyAttrs.push(['وزن', faDigits(product.weight) + ' گرم']);
+
+  const accordTones = ['#3b3b22', '#4f4f2c', '#636337', '#7b7b4c', '#9c9b70', '#b5b38e', '#cfccae', '#e4e1cc'];
+  const noteRows = [
+    ['top', 'نت آغازین', 'اولین برداشت؛ چند دقیقه‌ی نخست', fragrance.notes.top],
+    ['heart', 'نت میانی', 'قلب رایحه؛ چند ساعت بعد', fragrance.notes.heart],
+    ['base', 'نت پایه', 'ردّ ماندگار روی پوست', fragrance.notes.base],
+  ].filter(r => r[3].length);
+  const descriptionText = product.description ? product.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '';
+  const hasDescription = Boolean(descriptionText) && descriptionText !== String(fragrance.story || '').replace(/\s+/g, ' ').trim();
+  const identityImage = fragrance.identityImage || (images[0] && images[0].url) || null;
+  const idFacts = [];
+  if (fragrance.longevity) idFacts.push(['hourglass', 'ماندگاری', fragrance.longevity]);
+  if (fragrance.sillage) idFacts.push(['wind', 'پخش بو', fragrance.sillage]);
+  if (fragrance.time) idFacts.push([fragrance.time.night && !fragrance.time.day ? 'moon' : 'sun', 'زمان استفاده', fragrance.time.label]);
+  const activeSeasons = fragrance.seasons.filter(x => x.active);
+  if (activeSeasons.length) idFacts.push(['leaf', 'فصل مناسب', activeSeasons.map(x => x.label).join('، ')]);
+  const tags = [fragrance.family, fragrance.concentration, fragrance.gender, fragrance.volume].filter(Boolean);
+  const hasSpecs = product.specifications && product.specifications.length;
+  const sectionNav = [];
+  if (fragrance.hasFragranceData) sectionNav.push(['identity', 'شناسنامه رایحه']);
+  if (noteRows.length || fragrance.notes.general.length) sectionNav.push(['notes', 'نت‌ها']);
+  if (fragrance.story || hasDescription) sectionNav.push(['story', 'معرفی']);
+  if (fragrance.usage || fragrance.ingredients || hasSpecs || keyAttrs.length) sectionNav.push(['details', 'مشخصات']);
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title><%= torobPageTitle %></title>
+  <meta name="description" content="<%= torobDescription %>" />
+  <% if (!product.isPublished) { %><meta name="robots" content="noindex" /><% } %>
+
+  <%# Torob product feed metadata — kept in sync with the selected variant by /js/product.js %>
+  <meta id="torob-product-id" name="product_id" content="<%= torobVariantUnique %>">
+  <meta id="product-name-meta" name="product_name" content="<%= torobPageTitle %>">
+  <meta name="product_price" content="<%= torobCurrentPrice %>">
+  <% if (torobOldPrice) { %><meta name="product_old_price" content="<%= torobOldPrice %>"><% } %>
+  <meta name="availability" content="<%= torobVariantAvailable ? 'instock' : 'outofstock' %>">
+  <meta id="torob-variant-id" name="product_variant_id" content="<%= torobVariantKey %>">
+  <meta name="product_group_id" content="<%= product?.product_group_id || product?._id %>">
+  <% if (torobColorName) { %><meta id="torob-color-spec" name="spec" content="رنگ: <%= torobColorName %>"><% } %>
+  <% if (torobSizeName) { %><meta id="torob-size-spec" name="spec" content="سایز: <%= torobSizeName %>"><% } %>
+  <% if (torobGender) { %><meta id="torob-gender-spec" name="spec" content="جنسیت: <%= torobGender %>"><% } %>
+  <meta name="guarantee" content="<%= product?.guarantee || 'گارانتی اصالت و سلامت فیزیکی کالا' %>">
+
+  <meta id="og-title-meta" property="og:title" content="<%= torobPageTitle %>">
+  <meta property="og:description" content="<%= torobDescription %>">
+  <meta id="og-image-meta" property="og:image" content="<%= torobSelectedImage %>">
+  <meta id="og-url-meta" property="og:url" content="<%= torobCanonicalUrl %>">
+  <meta property="og:type" content="product">
+  <meta property="og:locale" content="fa_IR">
+  <link id="torob-canonical" rel="canonical" href="<%= torobCanonicalUrl %>" />
+  <script id="torob-product-jsonld" type="application/ld+json"><%- JSON.stringify(torobJsonLd).replace(/</g, "\\u003c") %></script>
+
+  <meta name="theme-color" content="#fffcf3" />
+  <link rel="icon" type="image/x-icon" href="/logo.ico" />
+  <link rel="preload" href="/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <% if (images[0]) { %><link rel="preload" as="image" href="<%= images[0].url %>" /><% } %>
+  <link rel="stylesheet" href="/css/odour.css?v=<%= assetVersion %>" />
+</head>
+<body class="od od-has-buybar">
+  <%- include('./partials/navbar') %>
+
+  <main class="od-main" id="main">
+    <div class="od-container">
+      <nav class="od-crumbs" aria-label="مسیر">
+        <a href="/">خانه</a> <%- icon('chevron-left') %>
+        <% breadcrumb.forEach(function (c) { %>
+          <a href="/category/<%= c.slug %>"><%= c.name %></a> <%- icon('chevron-left') %>
+        <% }) %>
+        <span aria-current="page"><%= product.name %></span>
+      </nav>
+
+      <div class="od-pdp" data-product="<%= product._id %>">
+        <%# ---------- Media: left on desktop, first on mobile ---------- %>
+        <section class="od-gallery" aria-label="تصاویر محصول">
+          <div class="od-gallery__frame">
+            <% if (badge) { %><span class="od-gallery__badge od-tag od-tag--<%= badge.kind %>"><%= badge.kind === 'sale' ? badge.label + ' تخفیف' : badge.label %></span><% } %>
+            <div class="od-gallery__track" data-gallery-track tabindex="0" aria-label="تصاویر؛ برای مشاهده بکشید">
+              <% if (images.length) { %>
+                <% images.forEach(function (img, i) { %>
+                  <button class="od-gallery__slide" type="button" data-gallery-open="<%= i %>" aria-label="بزرگ‌نمایی تصویر <%= faDigits(i + 1) %>">
+                    <img src="<%= img.url %>" alt="<%= img.alt || (product.name + (i ? ' - تصویر ' + faDigits(i + 1) : '')) %>"
+                         width="640" height="640" <%- i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' %> decoding="async" />
+                  </button>
+                <% }) %>
+              <% } else { %>
+                <div class="od-gallery__slide"><img src="/logo.webp" alt="<%= product.name %>" style="width:50%;opacity:.4" /></div>
+              <% } %>
+            </div>
+            <% if (images.length) { %>
+              <div class="od-gallery__zoom"><button class="od-icon-btn" type="button" data-gallery-open="current" aria-label="نمایش تمام‌صفحه"><%- icon('zoom') %></button></div>
+            <% } %>
+            <% if (images.length > 1) { %>
+              <div class="od-gallery__dots" aria-hidden="true">
+                <% images.forEach(function (img, i) { %><span class="<%= i === 0 ? 'is-active' : '' %>"></span><% }) %>
+              </div>
+            <% } %>
+          </div>
+          <% if (images.length > 1) { %>
+            <div class="od-gallery__thumbs" role="list">
+              <% images.forEach(function (img, i) { %>
+                <button class="od-gallery__thumb" type="button" role="listitem" data-gallery-thumb="<%= i %>" aria-current="<%= i === 0 %>" aria-label="تصویر <%= faDigits(i + 1) %>">
+                  <img src="<%= img.url %>" alt="" loading="lazy" width="72" height="72" />
+                </button>
+              <% }) %>
+            </div>
+          <% } %>
+        </section>
+
+        <%# ---------- Purchase: right on desktop ---------- %>
+        <section class="od-buy" aria-labelledby="product-page-title">
+          <header class="od-buy__head">
+            <% if (product.brandName) { %>
+              <a class="od-buy__brand" href="/shop?brand=<%= encodeURIComponent(product.brandName) %>"><%= product.brandName %></a>
+            <% } %>
+            <h1 class="od-buy__title" id="product-page-title"><%= torobVisibleTitle %></h1>
+            <% if (product.englishName) { %><p class="od-buy__en od-latin" dir="ltr"><%= product.englishName %></p><% } %>
+          </header>
+
+          <div class="od-buy__price">
+            <% if (inStock) { %>
+              <span class="od-buy__now od-num"><%= faPrice(pr.now) %><small>تومان</small></span>
+              <% if (pr.hasDiscount) { %>
+                <span class="od-buy__was od-num"><span class="od-sr-only">قیمت قبل:</span><%= faPrice(pr.was) %></span>
+              <% } %>
+            <% } %>
+          </div>
+          <div class="od-buy__facts">
+            <% if (!inStock) { %>
+              <span class="od-stock od-stock--out">ناموجود</span>
+            <% } else if (lowStock) { %>
+              <span class="od-stock od-stock--low">تنها <%= faDigits(stockCount) %> عدد در انبار</span>
+            <% } else { %>
+              <span class="od-stock">موجود، آماده ارسال</span>
+            <% } %>
+            <span class="od-sep" aria-hidden="true"></span>
+            <span>کد کالا: <span class="od-latin"><%= productCode %></span></span>
+          </div>
+
+          <% if (product.colors && product.colors.length) { %>
+            <div class="od-option">
+              <span class="od-option__label" id="color-label">رنگ: <b data-selected-color><%= torobSelectedColor?.name || '' %></b></span>
+              <div class="od-options" role="radiogroup" aria-labelledby="color-label">
+                <% product.colors.forEach(function (color, index) { const off = colorUnavailable(color); const on = index === torobSelectedColorIndex && (variantMatrixConfigured || !off); %>
+                  <button type="button" class="od-swatch" role="radio" aria-checked="<%= on %>" aria-disabled="<%= off %>"
+                          aria-label="<%= color.name %><%= off ? ' (ناموجود)' : '' %>" title="<%= color.name %><%= off ? ' - ناموجود' : '' %>"
+                          data-color="<%= color.name %>" data-variant-id="<%= color._id %>" data-image="<%= color.image?.url || '' %>">
+                    <span style="background:<%= color.rgb %>"></span>
+                  </button>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <% if (product.sizes && product.sizes.length) { %>
+            <div class="od-option">
+              <span class="od-option__label" id="size-label">حجم: <b data-selected-size><%= torobSelectedSize ? toPersianDigitsForSizes(torobSelectedSize.size) : '' %></b></span>
+              <div class="od-options" role="radiogroup" aria-labelledby="size-label">
+                <% product.sizes.forEach(function (size, index) { const off = sizeUnavailable(size); const on = index === torobSelectedSizeIndex && (variantMatrixConfigured || !off); %>
+                  <button type="button" class="od-size" role="radio" aria-checked="<%= on %>" aria-disabled="<%= off %>"
+                          data-size="<%= size.size %>" data-size-label="<%= toPersianDigitsForSizes(size.size) %>" data-size-id="<%= size._id %>">
+                    <%= toPersianDigitsForSizes(size.size) %>
+                    <% if (off) { %><small>ناموجود</small><% } else if (size.usage) { %><small><%= size.usage %></small><% } %>
+                  </button>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <div class="od-buy__cta" data-buy-anchor>
+            <% if (inStock) { %>
+              <div class="od-qty" data-qty>
+                <button type="button" data-qty-step="1" aria-label="افزایش تعداد"><%- icon('plus') %></button>
+                <output aria-live="polite" data-qty-value>۱</output>
+                <button type="button" data-qty-step="-1" aria-label="کاهش تعداد" disabled><%- icon('minus') %></button>
+              </div>
+              <button class="od-btn od-btn--lg od-btn--primary-cta" type="button" id="add-to-cart" data-buy><%- icon('bag') %><span data-buy-label>افزودن به سبد خرید</span></button>
+            <% } else { %>
+              <button class="od-btn od-btn--lg od-btn--primary-cta" type="button" disabled>ناموجود</button>
+            <% } %>
+            <button class="od-icon-btn" type="button" data-wishlist="<%= product._id %>" aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها"><%- icon('heart') %></button>
+          </div>
+
+          <% if (inStock && snappPayable >= 5000) { %>
+            <div class="od-installment" id="product-snapp-pay">
+              <img src="/images/snapp-pay.svg" alt="" width="30" height="30" />
+              <div><strong>۴ قسط <span class="od-num"><%= faPrice(snappInstallment) %></span> تومانی با اسنپ‌پی</strong>
+                <span>بدون سود، چک و ضامن</span></div>
+            </div>
+          <% } %>
+
+          <% if (inStock && torobPayable >= 20000) { %>
+            <div class="od-installment" id="product-torob-pay">
+              <img src="/images/torobpay-logo.webp" alt="ترب‌پی" width="52" height="30" />
+              <div><strong>۴ قسط <span class="od-num"><%= faPrice(torobInstallment) %></span> تومانی با ترب‌پی</strong>
+                <span>پرداخت اقساطی با درگاه ترب‌پی</span></div>
+            </div>
+          <% } %>
+
+          <% if (product.lilDescription) { %><p class="od-buy__lede"><%= product.lilDescription %></p><% } %>
+
+          <ul class="od-services">
+            <li class="od-service"><%- icon('shield') %><span><strong>ضمانت اصالت</strong><%= product.guarantee && product.guarantee !== 'گارانتی اصالت و سلامت فیزیکی کالا' ? product.guarantee : 'و سلامت فیزیکی کالا' %></span></li>
+            <li class="od-service"><%- icon('truck') %><span><strong>ارسال سریع</strong>تیپاکس، چاپار و پست</span></li>
+            <li class="od-service"><%- icon('card') %><span><strong>پرداخت امن</strong>درگاه بانکی یا اقساطی</span></li>
+            <li class="od-service"><%- icon('return') %><span><strong>۷ روز بازگشت</strong><a class="od-link" href="/terms-and-conditions">در صورت ایراد کالا</a></span></li>
+          </ul>
+        </section>
+      </div>
+
+      <% if (sectionNav.length > 1) { %>
+        <nav class="od-pdp-nav" aria-label="بخش‌های صفحه محصول">
+          <% sectionNav.forEach(function (n) { %><a class="od-chip" href="#<%= n[0] %>"><%= n[1] %></a><% }) %>
+        </nav>
+      <% } %>
+
+      <%# ---------- Fragrance identity card (structured admin data + product image) ---------- %>
+      <% if (fragrance.hasFragranceData) { %>
+        <section class="od-idcard od-block" id="identity" aria-labelledby="identity-title">
+          <% if (identityImage) { %>
+            <figure class="od-idcard__media">
+              <div class="od-idcard__arch"><img src="<%= identityImage %>" alt="<%= product.name %>" loading="lazy" decoding="async" width="480" height="560" /></div>
+            </figure>
+          <% } %>
+          <div class="od-idcard__body">
+            <span class="od-eyebrow">شناسنامه رایحه</span>
+            <h2 class="od-idcard__title" id="identity-title"><%= product.englishName || product.name %></h2>
+            <% if (product.brandName) { %><p class="od-idcard__brand"><%= product.brandName %></p><% } %>
+            <% if (tags.length) { %>
+              <div class="od-idcard__tags"><% tags.forEach(function (t) { %><span><%= t %></span><% }) %></div>
+            <% } %>
+
+            <% if (fragrance.accords.length) { %>
+              <div class="od-idcard__group">
+                <h3>آکوردهای اصلی</h3>
+                <div class="od-accords">
+                  <% fragrance.accords.forEach(function (a, i) { %>
+                    <div class="od-accord" role="img" aria-label="<%= a.name %>: <%= faDigits(a.strength) %>٪">
+                      <span class="od-accord__name"><%= a.name %></span>
+                      <span class="od-accord__track"><span class="od-accord__bar" style="width:<%= a.strength %>%;--od-accord:<%= accordTones[Math.min(i, accordTones.length - 1)] %>"></span></span>
+                    </div>
+                  <% }) %>
+                </div>
+              </div>
+            <% } %>
+
+            <% if (idFacts.length) { %>
+              <dl class="od-idcard__facts">
+                <% idFacts.forEach(function (f) { %>
+                  <div><dt><%- icon(f[0], 'od-icon--sm') %><%= f[1] %></dt><dd><%= f[2] %></dd></div>
+                <% }) %>
+              </dl>
+            <% } %>
+
+            <% if (fragrance.occasions.length || fragrance.personality) { %>
+              <p class="od-idcard__occasions">
+                <% if (fragrance.occasions.length) { %>مناسب برای: <strong><%= fragrance.occasions.join('، ') %></strong><% } %>
+                <% if (fragrance.personality) { %><% if (fragrance.occasions.length) { %> · <% } %>شخصیت: <strong><%= fragrance.personality %></strong><% } %>
+              </p>
+            <% } %>
+          </div>
+        </section>
+      <% } %>
+
+      <%# ---------- Notes ---------- %>
+      <% if (noteRows.length || fragrance.notes.general.length) { %>
+        <section class="od-section--tight od-block" id="notes" aria-labelledby="notes-title">
+          <div class="od-section-head"><div class="od-section-head__title"><span class="od-eyebrow">هرم بویایی</span><h2 class="od-h2" id="notes-title">نت‌های رایحه</h2></div></div>
+          <div class="od-notes-grid">
+            <% noteRows.forEach(function (row, i) { %>
+              <div class="od-notecol od-notecol--<%= row[0] %>">
+                <span class="od-notecol__step od-num"><%= faDigits(i + 1) %></span>
+                <h3><%= row[1] %></h3>
+                <p class="od-meta"><%= row[2] %></p>
+                <ul class="od-notes"><% row[3].forEach(function (n) { %><li class="od-note"><%= n %></li><% }) %></ul>
+              </div>
+            <% }) %>
+            <% if (fragrance.notes.general.length) { %>
+              <div class="od-notecol">
+                <h3><%= noteRows.length ? 'سایر نت‌ها' : 'نت‌ها' %></h3>
+                <ul class="od-notes"><% fragrance.notes.general.forEach(function (n) { %><li class="od-note"><%= n %></li><% }) %></ul>
+              </div>
+            <% } %>
+          </div>
+        </section>
+      <% } %>
+
+      <%# ---------- Story & details ---------- %>
+      <% if (fragrance.story || hasDescription || fragrance.usage || fragrance.ingredients || hasSpecs || keyAttrs.length) { %>
+        <section class="od-section--tight od-details">
+          <% if (fragrance.story || hasDescription) { %>
+            <div class="od-block" id="story">
+              <h2 class="od-h3 od-details__title">معرفی و داستان</h2>
+              <% if (fragrance.story) { %><p class="od-story"><%= fragrance.story %></p><% } %>
+              <% if (hasDescription) { %>
+                <div class="od-prose od-readmore" data-readmore id="productDescriptionContent"><%- product.description %></div>
+                <button class="od-link" type="button" data-readmore-toggle style="margin-top:8px">بیشتر بخوانید</button>
+              <% } %>
+            </div>
+          <% } %>
+          <% if (fragrance.usage || fragrance.ingredients || hasSpecs || keyAttrs.length) { %>
+            <div class="od-block od-details__side" id="details">
+              <h2 class="od-h3 od-details__title">مشخصات</h2>
+              <% if (keyAttrs.length) { %>
+                <dl class="od-attrs">
+                  <% keyAttrs.slice(0, 6).forEach(function (a) { %>
+                    <div class="od-attr"><dt><%= a[0] %></dt><dd title="<%= a[1] %>"><%= a[1] %></dd></div>
+                  <% }) %>
+                </dl>
+              <% } %>
+              <% if (fragrance.usage) { %>
+                <details class="od-acc" open>
+                  <summary>نحوه استفاده <%- icon('chevron-down') %></summary>
+                  <p><%= fragrance.usage %></p>
+                </details>
+              <% } %>
+              <% if (fragrance.ingredients) { %>
+                <details class="od-acc">
+                  <summary>ترکیبات <%- icon('chevron-down') %></summary>
+                  <p class="od-latin-mixed"><%= fragrance.ingredients %></p>
+                </details>
+              <% } %>
+              <% if (hasSpecs) { %>
+                <details class="od-acc" <%= !fragrance.usage ? 'open' : '' %>>
+                  <summary>مشخصات کامل <%- icon('chevron-down') %></summary>
+                  <table class="od-specs">
+                    <tbody>
+                      <% product.specifications.forEach(function (s) { %>
+                        <tr><th scope="row"><%= s.key %></th><td><%= s.value %></td></tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </details>
+              <% } %>
+            </div>
+          <% } %>
+        </section>
+      <% } %>
+
+      <%# ---------- Related ---------- %>
+      <% if (relatedProducts.length) { %>
+        <section class="od-section--tight" aria-labelledby="related-title">
+          <div class="od-section-head">
+            <div class="od-section-head__title"><span class="od-eyebrow">پیشنهاد اودر</span><h2 class="od-h2" id="related-title">محصولات مشابه</h2></div>
+            <% if (breadcrumb.length) { %><a class="od-section-head__link" href="/category/<%= breadcrumb[breadcrumb.length - 1].slug %>">مشاهده همه <%- icon('chevron-left') %></a><% } %>
+          </div>
+          <div class="od-rail">
+            <% relatedProducts.slice(0, 4).forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+          </div>
+        </section>
+      <% } %>
+
+      <section class="od-section--tight" aria-labelledby="rv-title" data-recently-viewed data-exclude="<%= product._id %>" hidden>
+        <div class="od-section-head"><div class="od-section-head__title"><h2 class="od-h2" id="rv-title">بازدیدهای اخیر شما</h2></div></div>
+        <div class="od-rail" data-rv-list></div>
+      </section>
+    </div>
+  </main>
+
+  <%# Sticky purchase bar (mobile) — appears once the main button scrolls away %>
+  <div class="od-buybar" aria-label="خرید سریع" data-buybar>
+    <div class="od-buybar__price">
+      <% if (inStock) { %>
+        <strong class="od-num"><%= faPrice(pr.now) %> <small style="font-weight:500">تومان</small></strong>
+        <% if (pr.hasDiscount) { %><span><s class="od-num"><%= faPrice(pr.was) %></s> · <%= faDigits(pr.percent) %>٪ تخفیف</span><% } %>
+      <% } else { %>
+        <strong>ناموجود</strong>
+      <% } %>
+    </div>
+    <% if (inStock) { %>
+      <button class="od-btn" type="button" data-buy><%- icon('bag') %><span data-buy-label>افزودن به سبد</span></button>
+    <% } else { %>
+      <button class="od-btn od-btn--secondary" type="button" data-wishlist="<%= product._id %>" aria-pressed="false">افزودن به علاقه‌مندی‌ها</button>
+    <% } %>
+  </div>
+
+  <%# Fullscreen gallery %>
+  <% if (images.length) { %>
+    <dialog class="od-lightbox" data-lightbox aria-label="گالری تصاویر">
+      <button class="od-icon-btn od-lightbox__close" type="button" data-lightbox-close aria-label="بستن گالری"><%- icon('x') %></button>
+      <span class="od-lightbox__count od-num" data-lightbox-count></span>
+      <div class="od-lightbox__track" data-lightbox-track>
+        <% images.forEach(function (img) { %><figure><img src="<%= img.url %>" alt="<%= img.alt || product.name %>" loading="lazy" /></figure><% }) %>
+      </div>
+    </dialog>
+  <% } %>
+
+  <%- include('./partials/footer') %>
+
+  <script>
+    window.ODOUR = Object.assign(window.ODOUR || {}, {
+      product: {
+        id: <%- JSON.stringify(String(product._id)).replace(/</g, '\\u003c') %>,
+        name: <%- JSON.stringify(product.name || '').replace(/</g, '\\u003c') %>,
+        englishName: <%- JSON.stringify(product.englishName || '').replace(/</g, '\\u003c') %>,
+        gender: <%- JSON.stringify(torobGender || '').replace(/</g, '\\u003c') %>,
+        stock: <%= stockCount %>,
+        variantInventoryConfigured: <%= variantMatrixConfigured ? 'true' : 'false' %>,
+        variantStocks: <%- JSON.stringify(variantMatrixRows.map(function (row) { return { colorId: String(row.colorId || ''), sizeId: String(row.sizeId || ''), countInStock: Number(row.countInStock || 0), isOutOfStock: row.isOutOfStock === true }; })).replace(/</g, '\\u003c') %>
+      }
+    });
+  </script>
+  <script src="/js/product.js?v=<%= assetVersion %>" defer></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<%
+  const _footerCats = (typeof footerCategories !== 'undefined' && footerCategories) ? footerCategories : [];
+%>
+<footer class="od-footer">
+  <div class="od-container">
+    <div class="od-footer__inner">
+      <div class="od-footer__brand">
+        <img src="/logo.webp" alt="اودر" width="160" height="30" loading="lazy" />
+        <p>فروشگاه تخصصی عطر، لوازم آرایشی و مراقبتی؛ محصولات اصل با ضمانت اصالت کالا و ارسال سریع به سراسر ایران.</p>
+        <div class="od-footer__contact" style="margin-top:16px">
+          <a href="tel:09965851584"><%- icon('phone', 'od-icon--sm') %><span class="od-latin">۰۹۹۶۵۸۵۱۵۸۴</span></a>
+          <a href="mailto:info@odour.ir"><%- icon('mail', 'od-icon--sm') %><span class="od-latin">info@odour.ir</span></a>
+          <span><%- icon('pin', 'od-icon--sm') %>کرج، رزکان نو، اکومال اودر</span>
+        </div>
+      </div>
+
+      <nav aria-labelledby="od-f-cats">
+        <h2 id="od-f-cats">دسته‌بندی‌ها</h2>
+        <ul>
+          <% _footerCats.forEach(function (category) { %>
+            <li><a href="/category/<%= category.slug %>"><%= category.name %></a></li>
+          <% }) %>
+          <li><a href="/shop?discount=1">تخفیف‌ها</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-labelledby="od-f-help">
+        <h2 id="od-f-help">راهنمای خرید</h2>
+        <ul>
+          <li><a href="/shop">همه محصولات</a></li>
+          <li><a href="/userProfile#orders">پیگیری سفارش</a></li>
+          <li><a href="/terms-and-conditions">قوانین و مقررات</a></li>
+          <li><a href="/privacy-policy">حریم خصوصی</a></li>
+          <li><a href="/contact-us">تماس با ما</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h2>اودر</h2>
+        <ul>
+          <li><a href="/about-us">درباره ما</a></li>
+          <li><a href="/weblog">مجله اودر</a></li>
+        </ul>
+        <div class="od-footer__trust">
+          <a referrerpolicy="origin" target="_blank" rel="noopener" href="https://trustseal.enamad.ir/?id=731837&amp;Code=jSMW53UKTzbJlysi5bIKHLWgBO1HddCW" aria-label="نماد اعتماد الکترونیکی">
+            <img referrerpolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=731837&amp;Code=jSMW53UKTzbJlysi5bIKHLWgBO1HddCW" alt="نماد اعتماد الکترونیکی" width="72" height="72" loading="lazy" code="jSMW53UKTzbJlysi5bIKHLWgBO1HddCW" />
+          </a>
+          <a referrerpolicy="origin" target="_blank" rel="noopener" href="https://trustseal.enamad.ir/?id=627783&amp;Code=1H6BumhPywhr39ba46DY72v0cwqUX8oO" aria-label="نماد اعتماد الکترونیکی">
+            <img referrerpolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=627783&amp;Code=1H6BumhPywhr39ba46DY72v0cwqUX8oO" alt="نماد اعتماد الکترونیکی" width="72" height="72" loading="lazy" code="1H6BumhPywhr39ba46DY72v0cwqUX8oO" />
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="od-footer__legal">
+      <span>© فروشگاه اودر. تمامی حقوق محفوظ است.</span>
+      <span>ضمانت اصالت کالا · ارسال سریع · پشتیبانی</span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,199 @@
+<%
+  const STATUS = {
+    'در انتظار پرداخت': { cls: 'pending', step: 0 },
+    'در حال پردازش': { cls: 'processing', step: 1 },
+    'بسته بندی شده': { cls: 'packed', step: 2 },
+    'در حال ارسال': { cls: 'shipping', step: 3 },
+    'تحویل داده شد': { cls: 'delivered', step: 4 },
+    'لغو شده': { cls: 'canceled', step: -1 }
+  };
+  const displayName = user.fullName || 'کاربر اودر';
+  const initial = (user.fullName || 'ا').trim().charAt(0);
+  const activeOrders = orders.filter(o => ['در حال پردازش', 'بسته بندی شده', 'در حال ارسال'].includes(o.status)).length;
+  const addresses = user.addresses || [];
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'حساب کاربری | اودر', robots: 'noindex, nofollow' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+
+  <main class="od-main" id="main">
+    <div class="od-container od-account">
+      <aside class="od-account__side">
+        <div class="od-card od-me">
+          <span class="od-me__avatar" aria-hidden="true"><%= initial %></span>
+          <div><strong><%= displayName %></strong><span class="od-latin"><%= faDigits(user.mobile) %></span></div>
+        </div>
+        <nav class="od-card od-acc-nav" aria-label="بخش‌های حساب" data-acc-nav>
+          <a href="#orders" data-tab="orders"><%- icon('package') %>سفارش‌ها<% if (activeOrders) { %><span class="od-badge"><%= faDigits(activeOrders) %> فعال</span><% } %></a>
+          <a href="#wishlist" data-tab="wishlist"><%- icon('heart') %>علاقه‌مندی‌ها<% if (wishlist.length) { %><span class="od-badge"><%= faDigits(wishlist.length) %></span><% } %></a>
+          <a href="#addresses" data-tab="addresses"><%- icon('pin') %>آدرس‌ها</a>
+          <a href="#account" data-tab="account"><%- icon('user') %>اطلاعات حساب</a>
+          <a href="#recent" data-tab="recent"><%- icon('history') %>بازدیدهای اخیر</a>
+          <button class="od-acc-nav__logout" type="button" data-logout><%- icon('logout') %>خروج</button>
+        </nav>
+      </aside>
+
+      <div>
+        <%# ---------- Orders ---------- %>
+        <section class="od-acc-panel" id="orders" data-panel-id="orders" aria-labelledby="orders-title">
+          <div class="od-panel-title"><h1 class="od-h2" id="orders-title">سفارش‌های من</h1></div>
+          <% if (!orders.length) { %>
+            <div class="od-card od-state">
+              <div class="od-state__art"><%- icon('package') %></div>
+              <h2>هنوز سفارشی ثبت نکرده‌اید</h2>
+              <p>اولین سفارش‌تان را با ارسال سریع و ضمانت اصالت ثبت کنید.</p>
+              <a class="od-btn" href="/shop">شروع خرید</a>
+            </div>
+          <% } else { %>
+            <div class="od-tabs" role="toolbar" aria-label="فیلتر سفارش‌ها" data-order-filter>
+              <button class="od-tab" type="button" aria-pressed="true" aria-selected="true" data-filter="all">همه (<%= faDigits(orders.length) %>)</button>
+              <button class="od-tab" type="button" aria-selected="false" data-filter="active">جاری</button>
+              <button class="od-tab" type="button" aria-selected="false" data-filter="done">تحویل شده</button>
+              <button class="od-tab" type="button" aria-selected="false" data-filter="other">لغو / در انتظار پرداخت</button>
+            </div>
+            <div class="od-orders">
+              <% orders.forEach(function (order, idx) {
+                   const st = STATUS[order.status] || { cls: 'processing', step: 1 };
+                   const group = st.step >= 1 && st.step <= 3 ? 'active' : st.step === 4 ? 'done' : 'other';
+                   const items = order.products || [];
+              %>
+                <details class="od-card od-order" data-group="<%= group %>" <%= idx === 0 ? 'open' : '' %>>
+                  <summary>
+                    <div class="od-order__top">
+                      <span class="od-order__num od-latin"><%= order.OrderNum %></span>
+                      <span class="od-status od-status--<%= st.cls %>"><%= order.status %></span>
+                      <span class="od-spacer"></span>
+                      <strong class="od-num"><%= faPrice(order.totalPrice) %> تومان</strong>
+                      <%- icon('chevron-down', 'od-order__chev') %>
+                    </div>
+                    <div class="od-order__meta">
+                      <span><%= order.createTarikh %></span>
+                      <span><%= faDigits(items.reduce((n, i) => n + Number(i.quantity || 0), 0)) %> کالا</span>
+                      <% if (order.trackingNumber) { %><span>کد رهگیری: <b class="od-latin"><%= order.trackingNumber %></b></span><% } %>
+                    </div>
+                    <div class="od-order__thumbs" aria-hidden="true">
+                      <% items.slice(0, 4).forEach(function (i) { const img = i.product && i.product.images && i.product.images[0]; %>
+                        <span><% if (img) { %><img src="<%= img.url %>" alt="" loading="lazy" /><% } %></span>
+                      <% }) %>
+                      <% if (items.length > 4) { %><span><em>+<%= faDigits(items.length - 4) %></em></span><% } %>
+                    </div>
+                  </summary>
+                  <div class="od-order__body">
+                    <% if (st.step >= 1) { %>
+                      <div class="od-track" aria-label="مراحل سفارش">
+                        <% ['در حال پردازش', 'بسته‌بندی', 'ارسال', 'تحویل'].forEach(function (label, k) { %>
+                          <span class="<%= st.step >= k + 1 ? 'is-done' : '' %>"><%= label %></span>
+                        <% }) %>
+                      </div>
+                    <% } %>
+                    <div class="od-order__items">
+                      <% items.forEach(function (i) { %>
+                        <div class="od-order__item">
+                          <span>
+                            <% if (i.product && i.product.slug) { %><a class="od-link" style="font-weight:500" href="/productDetails/<%= encodeURIComponent(i.product.slug) %>"><%= i.nameAtPurchase %></a><% } else { %><%= i.nameAtPurchase %><% } %>
+                            <% if (i.selectedColor || i.selectedSize) { %><small class="od-meta"> · <%= [i.selectedColor, i.selectedSize && toPersianDigitsForSizes(i.selectedSize)].filter(Boolean).join(' / ') %></small><% } %>
+                            × <%= faDigits(i.quantity) %>
+                          </span>
+                          <span class="od-num"><%= faPrice(i.priceAtPurchase * i.quantity) %> تومان</span>
+                        </div>
+                      <% }) %>
+                    </div>
+                    <dl class="od-kv">
+                      <div><dt>تحویل‌گیرنده</dt><dd><%= order.recipientName || displayName %><% if (order.recipientMobile) { %> · <span class="od-latin"><%= faDigits(order.recipientMobile) %></span><% } %></dd></div>
+                      <div><dt>روش ارسال</dt><dd><%= String(order.delivery || '').replace(/-/g, ' ') %></dd></div>
+                      <div><dt>نشانی</dt><dd><%= [order.province, order.city, order.address].filter(Boolean).join('، ') %> — کد پستی <span class="od-latin"><%= faDigits(order.postcode) %></span></dd></div>
+                      <div><dt>پرداخت</dt><dd><%= order.paymentMethod || '' %> · <%= order.paymentStatus || '' %></dd></div>
+                      <% if (order.discountAmount) { %><div><dt>تخفیف</dt><dd class="od-num"><%= faPrice(order.discountAmount) %> تومان</dd></div><% } %>
+                    </dl>
+                  </div>
+                </details>
+              <% }) %>
+            </div>
+          <% } %>
+        </section>
+
+        <%# ---------- Wishlist ---------- %>
+        <section class="od-acc-panel" id="wishlist" data-panel-id="wishlist" aria-labelledby="wish-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="wish-title">علاقه‌مندی‌ها</h1></div>
+          <% if (!wishlist.length) { %>
+            <div class="od-card od-state">
+              <div class="od-state__art"><%- icon('heart') %></div>
+              <h2>فهرست علاقه‌مندی‌ها خالی است</h2>
+              <p>روی آیکون قلب محصولات بزنید تا اینجا ذخیره شوند.</p>
+              <a class="od-btn" href="/shop">مشاهده محصولات</a>
+            </div>
+          <% } else { %>
+            <div class="od-grid od-grid--4">
+              <% wishlist.forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+            </div>
+          <% } %>
+        </section>
+
+        <%# ---------- Addresses ---------- %>
+        <section class="od-acc-panel" id="addresses" data-panel-id="addresses" aria-labelledby="addr-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="addr-title">آدرس‌های من</h1></div>
+          <% if (!addresses.length) { %>
+            <div class="od-card od-state">
+              <div class="od-state__art"><%- icon('pin') %></div>
+              <h2>هنوز آدرسی ذخیره نشده است</h2>
+              <p>آدرس‌هایی که هنگام ثبت سفارش وارد می‌کنید اینجا ذخیره می‌شوند تا دفعه بعد سریع‌تر خرید کنید.</p>
+            </div>
+          <% } else { %>
+            <div class="od-orders">
+              <% addresses.forEach(function (a, i) { %>
+                <article class="od-card od-addr" data-address="<%= a._id %>">
+                  <strong><%= a.fullName %><% if (i === 0) { %> <span class="od-badge" style="margin-inline-start:6px">پیش‌فرض</span><% } %></strong>
+                  <p><%= [a.province, a.city, a.address].filter(Boolean).join('، ') %></p>
+                  <div class="od-addr__foot">
+                    <span>کد پستی <span class="od-latin"><%= faDigits(a.postcode) %></span> · <span class="od-latin"><%= faDigits(a.mobile) %></span></span>
+                    <button class="od-btn od-btn--danger od-btn--sm" type="button" data-address-delete="<%= a._id %>"><%- icon('trash') %>حذف</button>
+                  </div>
+                </article>
+              <% }) %>
+            </div>
+          <% } %>
+        </section>
+
+        <%# ---------- Account ---------- %>
+        <section class="od-acc-panel" id="account" data-panel-id="account" aria-labelledby="acc-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="acc-title">اطلاعات حساب</h1></div>
+          <form class="od-card od-card__body od-form-grid" data-profile-form novalidate>
+            <div class="od-field">
+              <label class="od-label" for="acc-name">نام و نام خانوادگی</label>
+              <input class="od-input" id="acc-name" name="fullName" autocomplete="name" maxlength="50" value="<%= user.fullName || '' %>" />
+            </div>
+            <div class="od-field">
+              <label class="od-label" for="acc-mobile">شماره موبایل</label>
+              <input class="od-input" id="acc-mobile" value="<%= faDigits(user.mobile) %>" dir="ltr" disabled aria-describedby="acc-mobile-hint" />
+              <p class="od-hint" id="acc-mobile-hint">ورود شما با همین شماره و کد یک‌بار مصرف انجام می‌شود.</p>
+            </div>
+            <div class="od-field od-span-2">
+              <label class="od-label" for="acc-email">ایمیل (اختیاری)</label>
+              <input class="od-input" id="acc-email" name="email" type="email" autocomplete="email" dir="ltr" value="<%= user.email || '' %>" />
+            </div>
+            <div class="od-span-2"><button class="od-btn" type="submit">ذخیره تغییرات</button></div>
+          </form>
+        </section>
+
+        <%# ---------- Recently viewed ---------- %>
+        <section class="od-acc-panel" id="recent" data-panel-id="recent" aria-labelledby="recent-title" hidden>
+          <div class="od-panel-title"><h1 class="od-h2" id="recent-title">بازدیدهای اخیر</h1></div>
+          <div data-recently-viewed hidden><div class="od-grid od-grid--4" data-rv-list></div></div>
+          <div class="od-card od-state" data-rv-empty>
+            <div class="od-state__art"><%- icon('history') %></div>
+            <h2>محصولی مشاهده نکرده‌اید</h2>
+            <p>محصولاتی که می‌بینید روی همین دستگاه اینجا نمایش داده می‌شوند.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <%- include('./partials/footer') %>
+  <script src="/js/account.js?v=<%= assetVersion %>" defer></script>
+</body>
+</html>

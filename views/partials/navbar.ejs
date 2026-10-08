@@ -1,0 +1,206 @@
+<%#
+  Storefront header. Expects (all optional): user, cartCount, menuCategories, currentPath.
+  Includes: icon sprite, skip link, desktop mega menu, mobile two-row header + drawer,
+  search overlay, auth sheet and toast region — so every page that includes the
+  navbar gets the same shell.
+%>
+<%
+  const _cats = (typeof menuCategories !== 'undefined' && menuCategories) ? menuCategories : [];
+  const _user = (typeof user !== 'undefined' && user) ? user : null;
+  const _cartCount = (typeof cartCount !== 'undefined' && cartCount) ? cartCount : 0;
+  const _path = (typeof currentPath !== 'undefined' && currentPath) ? currentPath : '';
+  const _isCurrent = (href) => href === '/' ? _path === '/' : _path.startsWith(href);
+%>
+<%- include('./icons') %>
+<a class="od-skip" href="#main">رفتن به محتوای اصلی</a>
+
+<header class="od-header" data-header>
+  <div class="od-container od-header__bar">
+    <button class="od-icon-btn od-header__menu-btn" type="button" data-open="menu" aria-controls="od-menu" aria-expanded="false" aria-label="منو">
+      <%- icon('menu') %>
+    </button>
+
+    <a href="/" class="od-header__logo" aria-label="اودر — صفحه اصلی">
+      <img src="/logo.webp" alt="اودر" width="140" height="26" />
+    </a>
+
+    <nav class="od-nav" aria-label="منوی اصلی">
+      <div class="od-nav__item" data-mega>
+        <button class="od-nav__link" type="button" aria-expanded="false" aria-controls="od-mega">
+          دسته‌بندی‌ها <%- icon('chevron-down') %>
+        </button>
+        <div class="od-mega" id="od-mega">
+          <div class="od-container od-mega__inner">
+            <div class="od-mega__cats">
+              <% _cats.forEach(function (cat) { %>
+                <div class="od-mega__col">
+                  <h3>
+                    <a href="/category/<%= cat.slug %>">
+                      <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
+                      <%= cat.name %>
+                    </a>
+                  </h3>
+                  <% if (cat.children && cat.children.length) { %>
+                    <ul>
+                      <% cat.children.forEach(function (child) { %>
+                        <li><a href="/category/<%= child.slug %>"><%= child.name %></a></li>
+                      <% }) %>
+                    </ul>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+            <a class="od-mega__promo" href="/shop?discount=1">
+              <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="od-eyebrow">پیشنهاد ویژه</span>
+              <strong class="od-h3">تخفیف‌های این هفته</strong>
+              <span class="od-meta">عطرها و محصولات منتخب با قیمت ویژه</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/shop" <%- _isCurrent('/shop') ? 'aria-current="page"' : '' %>>فروشگاه</a></div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/shop?discount=1">تخفیف‌ها</a></div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/weblog" <%- _isCurrent('/weblog') ? 'aria-current="page"' : '' %>>مجله</a></div>
+      <div class="od-nav__item"><a class="od-nav__link" href="/about-us" <%- _isCurrent('/about-us') ? 'aria-current="page"' : '' %>>درباره ما</a></div>
+    </nav>
+
+    <div class="od-header__search">
+      <button class="od-search-trigger" type="button" data-open="search" aria-controls="od-search">
+        <%- icon('search', 'od-icon--sm') %>
+        <span>جستجوی عطر، برند یا محصول…</span>
+        <kbd>/</kbd>
+      </button>
+    </div>
+
+    <div class="od-header__actions">
+      <% if (_user) { %>
+        <a class="od-icon-btn od-hide-mobile" href="/userProfile#wishlist" aria-label="علاقه‌مندی‌ها"><%- icon('heart') %></a>
+        <a class="od-icon-btn" href="/userProfile" aria-label="حساب کاربری" <%- _isCurrent('/userProfile') ? 'aria-current="page"' : '' %>><%- icon('user') %></a>
+      <% } else { %>
+        <button class="od-icon-btn" type="button" data-auth-open aria-label="ورود یا ثبت‌نام"><%- icon('user') %></button>
+      <% } %>
+      <a class="od-icon-btn" href="/cart" aria-label="سبد خرید" <%- _isCurrent('/cart') ? 'aria-current="page"' : '' %>>
+        <%- icon('bag') %>
+        <span class="od-count" data-cart-count data-count="<%= _cartCount %>"><%= _cartCount ? faDigits(_cartCount) : '' %></span>
+      </a>
+    </div>
+  </div>
+
+  <%# Mobile second row: search is always one tap away; it folds away while scrolling down. %>
+  <div class="od-header__sub">
+    <div class="od-container od-header__sub-inner">
+      <button class="od-search-trigger od-search-trigger--mobile" type="button" data-open="search" aria-controls="od-search">
+        <%- icon('search', 'od-icon--sm') %>
+        <span>جستجوی عطر، برند یا محصول…</span>
+      </button>
+      <a class="od-header__quick" href="/shop" <%- (_isCurrent('/shop') || _isCurrent('/category')) ? 'aria-current="page"' : '' %>><%- icon('grid', 'od-icon--sm') %> فروشگاه</a>
+    </div>
+  </div>
+</header>
+
+<%# ---------- Mobile drawer menu ---------- %>
+<div class="od-backdrop" data-backdrop hidden></div>
+<aside class="od-drawer" id="od-menu" role="dialog" aria-modal="true" aria-label="منو" data-panel="menu" hidden>
+  <div class="od-drawer__head">
+    <a href="/" aria-label="اودر — صفحه اصلی"><img src="/logo.webp" alt="اودر" width="120" height="22" style="height:22px;width:auto" /></a>
+    <button class="od-icon-btn" type="button" data-close aria-label="بستن منو"><%- icon('x') %></button>
+  </div>
+  <div class="od-drawer__body">
+    <% if (!_user) { %>
+      <button class="od-btn od-btn--block" type="button" data-auth-open>ورود یا ثبت‌نام با شماره موبایل</button>
+    <% } else { %>
+      <a class="od-btn od-btn--soft od-btn--block" href="/userProfile"><%- icon('user') %> حساب کاربری من</a>
+    <% } %>
+    <nav class="od-mnav__quick" aria-label="دسترسی سریع">
+      <a href="/" <%- _path === '/' ? 'aria-current="page"' : '' %>><%- icon('home') %><span>خانه</span></a>
+      <a href="/shop"><%- icon('grid') %><span>فروشگاه</span></a>
+      <a href="/shop?discount=1"><%- icon('tag') %><span>تخفیف‌ها</span></a>
+      <% if (_user) { %><a href="/userProfile#wishlist"><%- icon('heart') %><span>علاقه‌مندی</span></a><% } else { %><a href="/cart"><%- icon('bag') %><span>سبد خرید</span></a><% } %>
+    </nav>
+    <p class="od-mnav__label">دسته‌بندی‌ها</p>
+    <nav aria-label="دسته‌بندی‌ها">
+      <% _cats.forEach(function (cat) { %>
+        <% if (cat.children && cat.children.length) { %>
+          <details class="od-mnav__group">
+            <summary>
+              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
+              <%= cat.name %>
+              <%- icon('chevron-down', 'od-icon--sm') %>
+            </summary>
+            <div class="od-mnav__sub">
+              <a href="/category/<%= cat.slug %>">همه‌ی <%= cat.name %></a>
+              <% cat.children.forEach(function (child) { %>
+                <a href="/category/<%= child.slug %>"><%= child.name %></a>
+              <% }) %>
+            </div>
+          </details>
+        <% } else { %>
+          <div class="od-mnav__group">
+            <a class="od-mnav__link" href="/category/<%= cat.slug %>">
+              <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
+              <%= cat.name %>
+            </a>
+          </div>
+        <% } %>
+      <% }) %>
+    </nav>
+    <nav class="od-mnav__links" aria-label="صفحات">
+      <a href="/shop">همه محصولات</a>
+      <a href="/shop?discount=1">تخفیف‌ها</a>
+      <a href="/weblog">مجله اودر</a>
+      <a href="/about-us">درباره ما</a>
+      <a href="/contact-us">تماس با ما</a>
+      <a href="/terms-and-conditions">قوانین و مقررات</a>
+    </nav>
+  </div>
+</aside>
+
+<%# ---------- Search overlay ---------- %>
+<div class="od-search" id="od-search" role="dialog" aria-modal="true" aria-label="جستجو" data-panel="search" hidden>
+  <div class="od-container">
+    <form class="od-search__bar" action="/shop" method="get" role="search" data-search-form>
+      <div class="od-search__field">
+        <%- icon('search') %>
+        <label class="od-sr-only" for="od-search-input">جستجو در محصولات</label>
+        <input class="od-input" id="od-search-input" name="search" type="search" autocomplete="off" enterkeyhint="search"
+               placeholder="نام عطر، برند یا محصول…" role="combobox" aria-expanded="false" aria-controls="od-search-results" aria-autocomplete="list" />
+      </div>
+      <button class="od-btn od-btn--ghost" type="button" data-close>بستن</button>
+    </form>
+  </div>
+  <div class="od-search__body">
+    <div class="od-container" data-search-body>
+      <div data-search-idle>
+        <div class="od-search__section" data-recent-searches hidden>
+          <div class="od-search__label"><span>جستجوهای اخیر</span><button class="od-link" type="button" data-clear-recent style="font-size:12px">پاک کردن</button></div>
+          <div class="od-search__chips" data-recent-list></div>
+        </div>
+        <div class="od-search__section">
+          <div class="od-search__label"><span>دسته‌بندی‌ها</span></div>
+          <div class="od-search__chips">
+            <% _cats.forEach(function (cat) { %>
+              <a class="od-chip" href="/category/<%= cat.slug %>"><%- icon(categoryIcon(cat.name, cat.icon)) %> <%= cat.name %></a>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+      <div data-search-results id="od-search-results" role="listbox" aria-label="نتایج جستجو" hidden></div>
+    </div>
+  </div>
+</div>
+
+<%- include('./auth-sheet', { _user }) %>
+<div class="od-toasts" role="status" aria-live="polite" data-toasts></div>
+
+<script>
+  window.ODOUR = Object.assign(window.ODOUR || {}, {
+    loggedIn: <%- _user ? 'true' : 'false' %>,
+    // Server flash messages (connect-flash) shown as toasts.
+    flash: <%- JSON.stringify([].concat(
+      (typeof error !== 'undefined' && error ? error : []).map(function (t) { return { text: t, type: 'error' }; }),
+      (typeof success !== 'undefined' && success ? success : []).map(function (t) { return { text: t, type: 'success' }; })
+    )).replace(/</g, '\u003c') %>
+  });
+</script>
+<script src="/js/odour.js?v=<%= assetVersion %>" defer></script>

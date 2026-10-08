@@ -1,0 +1,50 @@
+<%
+  const posts = (typeof weblogs !== 'undefined' && weblogs) ? weblogs : [];
+  const cover = (p) => p.images && p.images[0] ? (p.images[0].url || p.images[0]) : null;
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'مجله اودر | راهنمای عطر، آرایش و مراقبت', description: 'مقاله‌های اودر درباره انتخاب عطر، آموزش آرایش، مراقبت از پوست و مو و معرفی محصولات.', canonical: 'https://www.odour.ir/weblog' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <header class="od-page-hero">
+      <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="od-container od-page-hero__inner">
+        <span class="od-eyebrow">مجله اودر</span>
+        <h1>راهنمای عطر، آرایش و مراقبت</h1>
+        <p>آموزش‌های آرایش، نکات مراقبت از پوست و مو، و راهنمای انتخاب رایحه‌ای که به شما می‌آید.</p>
+      </div>
+    </header>
+    <div class="od-container" style="padding-bottom:var(--od-section)">
+      <% if (!posts.length) { %>
+        <div class="od-card od-state">
+          <div class="od-state__art"><%- icon('sparkle') %></div>
+          <h2>به‌زودی</h2>
+          <p>در حال آماده‌سازی محتوای تازه برای شما هستیم: آموزش‌های آرایش، نکات مراقبت از پوست و معرفی محصولات جدید.</p>
+          <a class="od-btn od-btn--secondary" href="/shop">مشاهده محصولات</a>
+        </div>
+      <% } else { %>
+        <% if (typeof weblogCategories !== 'undefined' && weblogCategories.length) { %>
+          <nav class="od-subcats" aria-label="دسته‌های مجله" style="margin-bottom:22px">
+            <% weblogCategories.forEach(function (c) { %><span class="od-chip"><%= c.name %></span><% }) %>
+          </nav>
+        <% } %>
+        <div class="od-posts">
+          <% posts.forEach(function (post) { %>
+            <a class="od-post" href="/weblog/<%= encodeURIComponent(post.slug) %>">
+              <span class="od-post__media"><% if (cover(post)) { %><img src="<%= cover(post) %>" alt="" loading="lazy" decoding="async" width="640" height="400" /><% } %></span>
+              <span class="od-meta"><%= (post.categories || []).map(c => c && c.name).filter(Boolean).join('، ') %><% if (post.readingTime) { %> · <%= faDigits(post.readingTime) %> دقیقه مطالعه<% } %></span>
+              <h2 class="od-h3" style="line-height:1.8"><%= post.title %></h2>
+              <% if (post.description) { %><p><%= post.description %></p><% } %>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

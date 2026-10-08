@@ -1,0 +1,244 @@
+<%
+  const hasItems = !guest && cartItems && cartItems.length > 0;
+  const addr = (typeof savedAddress !== 'undefined' && savedAddress) ? savedAddress : {};
+  const deliveryOptions = [
+    { value: 'تیپاکس', title: 'تیپاکس', note: 'ارسال به سراسر ایران' },
+    { value: 'چاپار', title: 'چاپار', note: 'ارسال به سراسر ایران' },
+    { value: 'ارسال-سریع-به-کرج', title: 'ارسال سریع در کرج', note: 'تحویل سریع درون‌شهری' },
+    { value: 'ارسال-سریع-به-تهران', title: 'ارسال سریع از کرج به تهران', note: 'تحویل سریع به تهران' }
+  ];
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'سبد خرید | اودر', robots: 'noindex, nofollow' }) %>
+</head>
+<body class="od<%= hasItems ? ' od-has-paybar' : '' %>">
+  <%- include('./partials/navbar') %>
+
+  <main class="od-main" id="main">
+    <div class="od-container">
+      <% if (guest) { %>
+        <div class="od-state" style="min-height:56vh;align-content:center">
+          <div class="od-state__art"><%- icon('bag') %></div>
+          <h1 class="od-h2">سبد خرید شما</h1>
+          <p>برای مشاهده سبد خرید و ثبت سفارش، با شماره موبایل وارد شوید. فقط چند ثانیه طول می‌کشد.</p>
+          <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+            <button class="od-btn" type="button" data-auth-open>ورود با شماره موبایل</button>
+            <a class="od-btn od-btn--secondary" href="/shop">ادامه خرید</a>
+          </div>
+        </div>
+      <% } else if (!hasItems) { %>
+        <div class="od-state" style="min-height:56vh;align-content:center">
+          <div class="od-state__art"><%- icon('bag') %></div>
+          <h1 class="od-h2">سبد خرید شما خالی است</h1>
+          <p>محصولات محبوب و تخفیف‌های این هفته را ببینید.</p>
+          <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+            <a class="od-btn" href="/shop">رفتن به فروشگاه</a>
+            <a class="od-btn od-btn--secondary" href="/shop?discount=1">تخفیف‌ها</a>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="od-listing-head" style="padding-top:18px">
+          <h1>سبد خرید و تسویه</h1>
+          <div class="od-steps" aria-hidden="true">
+            <span class="is-done"><b>۱</b>سبد</span><i></i>
+            <span class="is-active"><b>۲</b>اطلاعات ارسال</span><i></i>
+            <span><b>۳</b>پرداخت</span>
+          </div>
+        </div>
+
+        <form class="od-checkout" id="order-form" action="/api/order" method="post" novalidate data-checkout>
+          <div>
+            <%# ---------- 1. Items ---------- %>
+            <section class="od-card od-block" aria-labelledby="items-title">
+              <div class="od-card__head">
+                <h2 class="od-block__title" id="items-title"><b>۱</b>محصولات (<span data-item-count class="od-num"><%= faDigits(cartItems.reduce((n, i) => n + Number(i.quantity || 0), 0)) %></span>)</h2>
+                <a class="od-link" href="/shop" style="font-size:13px">افزودن محصول</a>
+              </div>
+              <div class="od-card__body" style="padding-block:0">
+                <div class="od-lines" data-lines>
+                  <% cartItems.forEach(function (item) { const pr = productPricing(item); %>
+                    <article class="od-line" data-line="<%= item.lineId %>" data-product-id="<%= item._id %>"
+                             data-color="<%= item.selectedColor %>" data-variant-id="<%= item.selectedVariantId %>"
+                             data-size="<%= item.selectedSize %>" data-size-id="<%= item.selectedSizeId %>"
+                             data-price="<%= item.price %>" data-offer="<%= item.offerPrice || 0 %>" data-qty="<%= item.quantity %>" data-stock="<%= item.stock %>">
+                      <a class="od-line__img" href="/productDetails/<%= encodeURIComponent(item.slug) %>" tabindex="-1" aria-hidden="true">
+                        <img src="<%= item.image.url %>" alt="" loading="lazy" width="76" height="86" />
+                      </a>
+                      <div class="od-line__body">
+                        <% if (item.brandName) { %><span class="od-pcard__brand"><%= item.brandName %></span><% } %>
+                        <h3 class="od-line__name"><a href="/productDetails/<%= encodeURIComponent(item.slug) %>"><%= item.name %></a></h3>
+                        <% if (item.selectedColor || item.selectedSize) { %>
+                          <div class="od-line__variant">
+                            <% if (item.selectedColor) { %><span><i style="background:<%= item.colorRgb || '#ddd' %>"></i>رنگ: <%= item.selectedColor %></span><% } %>
+                            <% if (item.selectedSize) { %><span>سایز: <%= toPersianDigitsForSizes(item.selectedSize) %></span><% } %>
+                          </div>
+                        <% } %>
+                        <% if (!item.available) { %><span class="od-line__warn">این محصول ناموجود شده است؛ لطفاً آن را حذف کنید.</span><% } %>
+                        <div class="od-line__foot">
+                          <div class="od-row" style="gap:6px">
+                            <div class="od-qty">
+                              <button type="button" data-line-qty="1" aria-label="افزایش تعداد" <%= item.quantity >= item.stock ? 'disabled' : '' %>><%- icon('plus') %></button>
+                              <output class="od-num" data-line-qty-value><%= faDigits(item.quantity) %></output>
+                              <button type="button" data-line-qty="-1" aria-label="کاهش تعداد" <%= item.quantity <= 1 ? 'disabled' : '' %>><%- icon('minus') %></button>
+                            </div>
+                            <button class="od-icon-btn" type="button" data-line-remove aria-label="حذف <%= item.name %> از سبد"><%- icon('trash') %></button>
+                          </div>
+                          <div class="od-line__price">
+                            <strong class="od-num" data-line-total><%= faPrice(pr.now * item.quantity) %> <small style="font-weight:500;font-size:11px">تومان</small></strong>
+                            <s class="od-num" data-line-was <%- pr.hasDiscount ? '' : 'hidden' %>><%= faPrice((pr.was || 0) * item.quantity) %></s>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  <% }) %>
+                </div>
+              </div>
+            </section>
+
+            <%# ---------- 2. Delivery ---------- %>
+            <section class="od-card od-block" aria-labelledby="ship-title" id="ship">
+              <div class="od-card__head"><h2 class="od-block__title" id="ship-title"><b>۲</b>اطلاعات ارسال</h2></div>
+              <div class="od-card__body">
+                <div class="od-form-grid">
+                  <div class="od-field">
+                    <label class="od-label" for="fullName">نام و نام خانوادگی تحویل‌گیرنده<span class="od-req">*</span></label>
+                    <input class="od-input" id="fullName" name="fullName" autocomplete="name" required minlength="3" maxlength="50"
+                           value="<%= addr.fullName || user.fullName || '' %>" aria-describedby="fullName-err" />
+                    <p class="od-error" id="fullName-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="recipientMobile">شماره موبایل تحویل‌گیرنده<span class="od-req">*</span></label>
+                    <input class="od-input" id="recipientMobile" name="recipientMobile" type="tel" inputmode="numeric" autocomplete="tel-national" dir="ltr" maxlength="14"
+                           value="<%= faDigits(addr.mobile || user.mobile || '') %>" aria-describedby="recipientMobile-err" />
+                    <p class="od-error" id="recipientMobile-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="province">استان<span class="od-req">*</span></label>
+                    <select class="od-select" id="province" name="province" required autocomplete="address-level1" data-value="<%= addr.province || '' %>" aria-describedby="province-err">
+                      <option value="">انتخاب استان</option>
+                    </select>
+                    <p class="od-error" id="province-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="city">شهر<span class="od-req">*</span></label>
+                    <select class="od-select" id="city" name="city" required autocomplete="address-level2" data-value="<%= addr.city || '' %>" disabled aria-describedby="city-err">
+                      <option value="">ابتدا استان را انتخاب کنید</option>
+                    </select>
+                    <p class="od-error" id="city-err"></p>
+                  </div>
+                  <div class="od-field od-span-2">
+                    <label class="od-label" for="address">نشانی کامل<span class="od-req">*</span></label>
+                    <textarea class="od-textarea" id="address" name="address" rows="2" required minlength="10" maxlength="500" autocomplete="street-address"
+                              placeholder="خیابان، کوچه، پلاک، واحد" aria-describedby="address-err"><%= addr.address || '' %></textarea>
+                    <p class="od-error" id="address-err"></p>
+                  </div>
+                  <div class="od-field">
+                    <label class="od-label" for="postcode">کد پستی ۱۰ رقمی<span class="od-req">*</span></label>
+                    <input class="od-input" id="postcode" name="postcode" inputmode="numeric" autocomplete="postal-code" dir="ltr" maxlength="12"
+                           value="<%= faDigits(addr.postcode || '') %>" placeholder="۱۲۳۴۵۶۷۸۹۰" aria-describedby="postcode-err" />
+                    <p class="od-error" id="postcode-err"></p>
+                  </div>
+                </div>
+
+                <fieldset style="border:0;padding:0;margin:20px 0 0">
+                  <legend class="od-label" style="margin-bottom:10px">روش ارسال</legend>
+                  <div class="od-choices od-choices--2">
+                    <% deliveryOptions.forEach(function (d, i) { %>
+                      <label class="od-choice">
+                        <input type="radio" name="delivery" value="<%= d.value %>" <%= i === 0 ? 'checked' : '' %> />
+                        <span class="od-choice__text"><strong><%= d.title %></strong><span><%= d.note %> · هزینه ارسال هنگام تحویل</span></span>
+                        <span class="od-choice__mark"><%- icon('truck') %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </fieldset>
+              </div>
+            </section>
+
+            <%# ---------- 3. Payment ---------- %>
+            <section class="od-card od-block" aria-labelledby="pay-title" id="pay">
+              <div class="od-card__head"><h2 class="od-block__title" id="pay-title"><b>۳</b>روش پرداخت</h2></div>
+              <div class="od-card__body">
+                <div class="od-choices">
+                  <label class="od-choice">
+                    <input type="radio" name="paymentMethod" value="zarinpal" checked />
+                    <span class="od-choice__text"><strong>پرداخت آنلاین</strong><span>درگاه امن زرین‌پال با تمام کارت‌های بانکی</span></span>
+                    <span class="od-choice__mark"><%- icon('card') %></span>
+                  </label>
+                  <label class="od-choice" id="snapp-pay-option" hidden>
+                    <input type="radio" name="paymentMethod" value="snappay" />
+                    <span class="od-choice__text"><strong id="snapp-pay-title"></strong><span id="snapp-pay-description"></span></span>
+                    <img class="od-choice__logo" src="/images/snapp-pay-checkout.svg" alt="اسنپ‌پی" width="40" height="40" />
+                  </label>
+                  <label class="od-choice" id="torob-pay-option" hidden>
+                    <input type="radio" name="paymentMethod" value="torobpay" />
+                    <span class="od-choice__text"><strong id="torob-pay-title">پرداخت اعتباری با ترب‌پی</strong><span id="torob-pay-description"></span></span>
+                    <span class="od-choice__mark">ترب‌پی</span>
+                  </label>
+                  <p class="od-checking" data-checking>در حال بررسی روش‌های پرداخت اقساطی…</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <%# ---------- Summary ---------- %>
+          <aside class="od-summary" aria-labelledby="sum-title">
+            <div class="od-card od-card__body od-stack" style="--od-stack:14px">
+              <h2 class="od-h3" id="sum-title">خلاصه سفارش</h2>
+              <div class="od-summary__rows">
+                <div class="od-summary__row"><span>قیمت کالاها</span><strong class="od-num" data-sum-gross></strong></div>
+                <div class="od-summary__row od-summary__row--save" data-sum-save-row hidden><span>سود شما از تخفیف کالاها</span><strong class="od-num" data-sum-save></strong></div>
+                <div class="od-summary__row od-summary__row--save" data-sum-code-row hidden><span>کد تخفیف</span><strong class="od-num" data-sum-code></strong></div>
+                <div class="od-summary__row" data-sum-torob-fee-row hidden><span>ارزش افزوده ترب‌پی</span><strong class="od-num" data-sum-torob-fee></strong></div>
+                <div class="od-summary__row"><span>هزینه ارسال</span><strong>هنگام تحویل</strong></div>
+              </div>
+
+              <div data-coupon-form <%- discountCode ? 'hidden' : '' %>>
+                <label class="od-label" for="discount-code" style="display:block;margin-bottom:6px">کد تخفیف دارید؟</label>
+                <div class="od-coupon">
+                  <input class="od-input" id="discount-code" autocomplete="off" dir="ltr" placeholder="CODE" />
+                  <button class="od-btn od-btn--secondary" type="button" data-coupon-apply>اعمال</button>
+                </div>
+              </div>
+              <div class="od-coupon-applied" data-coupon-applied <%- discountCode ? '' : 'hidden' %>>
+                <span><%- icon('tag', 'od-icon--sm') %> کد <strong data-coupon-code dir="ltr"><%= discountCode || '' %></strong> اعمال شد</span>
+                <button class="od-link" type="button" data-coupon-remove>حذف</button>
+              </div>
+
+              <div class="od-summary__total"><span>مبلغ قابل پرداخت</span><strong class="od-num" data-sum-total></strong></div>
+              <p class="od-error" data-form-error role="alert"></p>
+              <button class="od-btn od-btn--lg od-btn--block od-pay-cta" type="submit" data-pay>ثبت سفارش و پرداخت</button>
+              <p class="od-secure"><%- icon('shield') %>پرداخت امن · ضمانت اصالت کالا</p>
+            </div>
+          </aside>
+
+          <div class="od-paybar">
+            <div class="od-paybar__total"><span>مبلغ قابل پرداخت</span><strong class="od-num" data-sum-total></strong></div>
+            <button class="od-btn" type="submit" data-pay>ثبت سفارش و پرداخت</button>
+          </div>
+        </form>
+      <% } %>
+    </div>
+  </main>
+
+  <%- include('./partials/footer') %>
+
+  <% if (hasItems) { %>
+    <script>
+      window.ODOUR = Object.assign(window.ODOUR || {}, {
+        checkout: {
+          discount: <%- JSON.stringify(activeDiscount ? {
+            code: activeDiscount.code, type: activeDiscount.type, amount: Number(activeDiscount.amount || 0),
+            minOrderAmount: Number(activeDiscount.minOrderAmount || 0),
+            maxDiscountAmount: activeDiscount.type === 'percent' ? Number(activeDiscount.maxDiscountAmount || activeDiscount.calculatedAmount || 0) : 0
+          } : null).replace(/</g, '\\u003c') %>
+        }
+      });
+    </script>
+    <script src="/js/iran-locations.js?v=<%= assetVersion %>" defer></script>
+    <script src="/js/checkout.js?v=<%= assetVersion %>" defer></script>
+  <% } %>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.vscode
+node_modules
+.env
+.env.*
+!.env.snappay.example
+__pycache__/
+.private-backups

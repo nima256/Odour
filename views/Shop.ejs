@@ -1,0 +1,264 @@
+<%
+  const isCategory = !!category;
+  const pageTitle = isCategory ? (category.metaTitle || ('خرید ' + category.name + ' اصل')) : (filters.search ? ('جستجوی «' + filters.search + '»') : 'فروشگاه');
+  const heading = isCategory ? category.name : (filters.search ? ('نتایج «' + filters.search + '»') : (filters.discount ? 'تخفیف‌ها' : 'همه محصولات'));
+  const metaDesc = isCategory
+    ? (category.metaDescription || ('خرید ' + category.name + ' اصل از فروشگاه اودر با ضمانت اصالت کالا، بهترین قیمت و ارسال سریع.'))
+    : 'خرید عطر، ادکلن، لوازم آرایشی و مراقبت پوست و مو از فروشگاه اودر با ضمانت اصالت و ارسال سریع.';
+  const canonical = 'https://www.odour.ir' + (isCategory ? '/category/' + category.slug : '/shop');
+  const selected = (param, value) => (param === 'brand' ? filters.brands : param === 'category' ? filters.categories : (filters.facets[param] || [])).includes(value);
+  const activeCount = activeChips.filter(c => c.param !== 'search').length;
+  const qsFor = (overrides) => {
+    const params = new URLSearchParams();
+    filters.categories.forEach(v => params.append('category', v));
+    filters.brands.forEach(v => params.append('brand', v));
+    Object.keys(filters.facets).forEach(k => filters.facets[k].forEach(v => params.append(k, v)));
+    if (filters.search) params.set('search', filters.search);
+    if (filters.discount) params.set('discount', '1');
+    if (filters.inStock) params.set('inStock', '1');
+    if (filters.minPrice) params.set('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
+    if (filters.sort !== 'popular') params.set('sort', filters.sort);
+    Object.keys(overrides || {}).forEach(k => overrides[k] === null ? params.delete(k) : params.set(k, overrides[k]));
+    const q = params.toString();
+    return basePath + (q ? '?' + q : '');
+  };
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', {
+    title: pageTitle + ' | اودر',
+    description: metaDesc,
+    canonical: canonical + (page > 1 ? '?page=' + page : ''),
+    robots: (activeCount > 0 || filters.search) ? 'noindex, follow' : null
+  }) %>
+  <% if (isCategory) { %>
+  <script type="application/ld+json"><%- JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: category.name,
+    description: metaDesc,
+    url: canonical,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: total,
+      itemListElement: products.slice(0, 10).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: 'https://www.odour.ir' + productUrl(p) }))
+    }
+  }).replace(/</g, '\\u003c') %></script>
+  <% } %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+
+  <main class="od-main" id="main">
+    <div class="od-container">
+      <nav class="od-crumbs" aria-label="مسیر">
+        <a href="/">خانه</a> <%- icon('chevron-left') %>
+        <% if (isCategory) { %>
+          <a href="/shop">فروشگاه</a>
+          <% breadcrumb.forEach(function (b, i) { %>
+            <%- icon('chevron-left') %>
+            <% if (i === breadcrumb.length - 1) { %><span aria-current="page"><%= b.name %></span><% } else { %><a href="/category/<%= b.slug %>"><%= b.name %></a><% } %>
+          <% }) %>
+        <% } else { %>
+          <span aria-current="page">فروشگاه</span>
+        <% } %>
+      </nav>
+
+      <header class="od-listing-head">
+        <h1><%= heading %></h1>
+        <% if (subcategories.length) { %>
+          <nav class="od-subcats" aria-label="زیردسته‌ها">
+            <% subcategories.forEach(function (c) { %>
+              <a class="od-chip" href="/category/<%= c.slug %>"><%- icon(categoryIcon(c.name, c.icon)) %><%= c.name %></a>
+            <% }) %>
+          </nav>
+        <% } %>
+      </header>
+
+      <% if (typeof banner !== 'undefined' && banner && !filters.search && (!filters.page || filters.page === 1)) { %>
+        <%- include('./partials/banner', { b: banner, eager: true }) %>
+      <% } %>
+
+      <div class="od-shop">
+        <%# ---------- Filters: sidebar on desktop, bottom sheet on mobile ---------- %>
+        <aside class="od-filters" id="od-filters" data-panel="filters" aria-label="فیلترها" role="region">
+          <div class="od-sheet__grab od-hide-desktop" aria-hidden="true"></div>
+          <div class="od-filters__head">
+            <strong class="od-drawer__title">فیلترها</strong>
+            <button class="od-icon-btn" type="button" data-close aria-label="بستن فیلترها"><%- icon('x') %></button>
+          </div>
+          <form class="od-filters__body" id="od-filter-form" action="<%= basePath %>" method="get" data-filter-form>
+            <input type="hidden" name="sort" value="<%= filters.sort === 'popular' ? '' : filters.sort %>" data-sort-input />
+            <% if (filters.search) { %><input type="hidden" name="search" value="<%= filters.search %>" /><% } %>
+
+            <details class="od-facet" open>
+              <summary>نوع محصول <%- icon('chevron-down') %></summary>
+              <div class="od-facet__body">
+                <label class="od-check"><input type="checkbox" name="discount" value="1" <%= filters.discount ? 'checked' : '' %> />فقط تخفیف‌دار<span class="od-check__count"><%= faDigits(facets.discounted) %></span></label>
+                <label class="od-check"><input type="checkbox" name="inStock" value="1" <%= filters.inStock ? 'checked' : '' %> />فقط کالاهای موجود<span class="od-check__count"><%= faDigits(facets.inStock) %></span></label>
+              </div>
+            </details>
+
+            <% if (subcategories.length) { const sel = filters.categories.length; %>
+              <details class="od-facet" <%= sel ? 'open' : '' %>>
+                <summary>دسته‌بندی‌ها<% if (sel) { %><span class="od-facet__sel"><%= faDigits(sel) %></span><% } %> <%- icon('chevron-down') %></summary>
+                <div class="od-facet__body od-facet__list">
+                  <% subcategories.forEach(function (c) { %>
+                    <label class="od-check"><input type="checkbox" name="category" value="<%= c.slug %>" <%= selected('category', c.slug) ? 'checked' : '' %> /><%= c.name %></label>
+                  <% }) %>
+                </div>
+              </details>
+            <% } %>
+
+            <% if (facets.brands.length) { const sel = filters.brands.length; %>
+              <details class="od-facet" open>
+                <summary>برندها<% if (sel) { %><span class="od-facet__sel"><%= faDigits(sel) %></span><% } %> <%- icon('chevron-down') %></summary>
+                <div class="od-facet__body">
+                  <% if (facets.brands.length > 6) { %>
+                    <div class="od-input-group od-facet__search">
+                      <%- icon('search', 'od-icon--sm') %>
+                      <input class="od-input" type="search" placeholder="جستجوی برند" aria-label="جستجوی برند" data-facet-search />
+                    </div>
+                  <% } %>
+                  <div class="od-facet__list" data-facet-list>
+                    <% facets.brands.forEach(function (b) { %>
+                      <label class="od-check" data-label="<%= b.value %>"><input type="checkbox" name="brand" value="<%= b.value %>" <%= selected('brand', b.value) ? 'checked' : '' %> /><%= b.value %><span class="od-check__count"><%= faDigits(b.count) %></span></label>
+                    <% }) %>
+                  </div>
+                </div>
+              </details>
+            <% } %>
+
+            <% facets.facets.forEach(function (f) { const sel = (filters.facets[f.param] || []).length; %>
+              <details class="od-facet" <%= sel ? 'open' : '' %>>
+                <summary><%= f.label %><% if (sel) { %><span class="od-facet__sel"><%= faDigits(sel) %></span><% } %> <%- icon('chevron-down') %></summary>
+                <div class="od-facet__body od-facet__list">
+                  <% f.options.forEach(function (o) { %>
+                    <label class="od-check"><input type="checkbox" name="<%= f.param %>" value="<%= o.value %>" <%= selected(f.param, o.value) ? 'checked' : '' %> /><%= o.value %><span class="od-check__count"><%= faDigits(o.count) %></span></label>
+                  <% }) %>
+                </div>
+              </details>
+            <% }) %>
+
+            <% if (facets.price && facets.price.max > 0) { %>
+              <details class="od-facet" <%= (filters.minPrice || filters.maxPrice) ? 'open' : '' %>>
+                <summary>بازه قیمتی <%- icon('chevron-down') %></summary>
+                <div class="od-facet__body">
+                  <div class="od-price-range">
+                    <div class="od-field">
+                      <label class="od-label" for="minPrice">از (تومان)</label>
+                      <input class="od-input od-num" id="minPrice" name="minPrice" inputmode="numeric" autocomplete="off" placeholder="<%= faPrice(facets.price.min) %>" value="<%= filters.minPrice ? faPrice(filters.minPrice) : '' %>" data-price-input />
+                    </div>
+                    <div class="od-field">
+                      <label class="od-label" for="maxPrice">تا (تومان)</label>
+                      <input class="od-input od-num" id="maxPrice" name="maxPrice" inputmode="numeric" autocomplete="off" placeholder="<%= faPrice(facets.price.max) %>" value="<%= filters.maxPrice ? faPrice(filters.maxPrice) : '' %>" data-price-input />
+                    </div>
+                  </div>
+                </div>
+              </details>
+            <% } %>
+            <noscript><button class="od-btn od-btn--block" type="submit" style="margin-top:16px">اعمال فیلترها</button></noscript>
+          </form>
+          <div class="od-filters__foot">
+            <a class="od-btn od-btn--secondary" href="<%= basePath %>" data-clear-filters>حذف همه</a>
+            <button class="od-btn" type="button" data-apply-filters>نمایش <span data-preview-count class="od-num"><%= faDigits(total) %></span> محصول</button>
+          </div>
+        </aside>
+
+        <%# ---------- Results ---------- %>
+        <section aria-labelledby="results-title">
+          <h2 class="od-sr-only" id="results-title">نتایج</h2>
+          <div class="od-toolbar">
+            <div class="od-toolbar__mobile">
+              <button class="od-btn od-btn--secondary od-btn--sm od-toolbar__btn" type="button" data-open="filters" aria-controls="od-filters">
+                <%- icon('filter') %> فیلترها
+                <span class="od-count" data-active-count data-count="<%= activeCount %>"><%= activeCount ? faDigits(activeCount) : '' %></span>
+              </button>
+              <button class="od-btn od-btn--secondary od-btn--sm" type="button" data-open="sort" aria-controls="od-sort"><%- icon('sort') %> <span data-sort-label><%= sorts[filters.sort].label %></span></button>
+            </div>
+            <p class="od-toolbar__count" aria-live="polite"><strong class="od-num" data-total><%= faDigits(total) %></strong> محصول</p>
+            <span class="od-spacer od-toolbar__desktop-sort"></span>
+            <label class="od-toolbar__desktop-sort od-row" style="gap:8px">
+              <span class="od-meta">مرتب‌سازی:</span>
+              <select class="od-select" data-sort-select aria-label="مرتب‌سازی">
+                <% Object.keys(sorts).forEach(function (k) { %>
+                  <option value="<%= k %>" <%= filters.sort === k ? 'selected' : '' %>><%= sorts[k].label %></option>
+                <% }) %>
+              </select>
+            </label>
+          </div>
+
+          <div class="od-active" data-active-chips>
+            <% activeChips.forEach(function (c) { %>
+              <button class="od-chip" type="button" data-remove-filter="<%= c.param %>" data-value="<%= c.value %>" aria-label="حذف فیلتر <%= c.label %>"><%= c.label %> <%- icon('x') %></button>
+            <% }) %>
+            <% if (activeChips.length > 1) { %><a class="od-chip od-chip--clear" href="<%= basePath %>">حذف همه</a><% } %>
+          </div>
+
+          <div class="od-results" data-results>
+            <% if (products.length) { %>
+              <div class="od-grid od-grid--4" data-grid>
+                <% products.forEach(function (p, i) { %>
+                  <%- include('./partials/product-card', { p, eager: i < 4, headingLevel: 3 }) %>
+                <% }) %>
+              </div>
+            <% } %>
+            <div class="od-state" data-empty <%- products.length ? 'hidden' : '' %>>
+              <div class="od-state__art"><%- icon('search') %></div>
+              <h3>محصولی با این فیلترها پیدا نشد</h3>
+              <p>چند فیلتر را بردارید یا بازه قیمت را بزرگ‌تر کنید.</p>
+              <a class="od-btn od-btn--secondary" href="<%= basePath %>">حذف همه فیلترها</a>
+            </div>
+          </div>
+
+          <div class="od-more" data-more <%- page < pages ? '' : 'hidden' %>>
+            <p class="od-meta" data-progress-text>نمایش <span class="od-num" data-shown><%= faDigits(Math.min(page * filters.limit, total)) %></span> از <span class="od-num" data-total-2><%= faDigits(total) %></span> محصول</p>
+            <div class="od-more__progress" aria-hidden="true"><span data-progress style="width:<%= total ? Math.round(Math.min(page * filters.limit, total) / total * 100) : 0 %>%"></span></div>
+            <a class="od-btn od-btn--secondary" href="<%= qsFor({ page: page + 1 }) %>" data-load-more data-next-page="<%= page + 1 %>" rel="next">نمایش محصولات بیشتر</a>
+          </div>
+        </section>
+      </div>
+
+      <% if (isCategory && category.description && category.description.replace(/<[^>]*>/g, '').trim()) { %>
+        <section class="od-section--tight" aria-labelledby="about-cat" style="border-top:1px solid var(--od-line)">
+          <h2 class="od-h3" id="about-cat" style="margin-bottom:12px">درباره <%= category.name %></h2>
+          <div class="od-prose od-readmore" data-readmore><%- category.description %></div>
+          <button class="od-link" type="button" data-readmore-toggle style="margin-top:8px">بیشتر بخوانید</button>
+        </section>
+      <% } %>
+    </div>
+  </main>
+
+  <%# Mobile sort sheet %>
+  <section class="od-sheet" id="od-sort" role="dialog" aria-modal="true" aria-labelledby="od-sort-title" data-panel="sort" hidden>
+    <div class="od-sheet__grab" aria-hidden="true"></div>
+    <div class="od-drawer__head">
+      <strong class="od-drawer__title" id="od-sort-title">مرتب‌سازی بر اساس</strong>
+      <button class="od-icon-btn" type="button" data-close aria-label="بستن"><%- icon('x') %></button>
+    </div>
+    <div class="od-drawer__body">
+      <div class="od-sort-list" role="radiogroup">
+        <% Object.keys(sorts).forEach(function (k) { %>
+          <label class="od-check"><input type="radio" name="sort-choice" value="<%= k %>" <%= filters.sort === k ? 'checked' : '' %> data-sort-radio /><%= sorts[k].label %></label>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+
+  <%- include('./partials/footer') %>
+
+  <script>
+    window.ODOUR = Object.assign(window.ODOUR || {}, {
+      catalog: {
+        basePath: <%- JSON.stringify(basePath).replace(/</g, '\\u003c') %>,
+        scope: <%- JSON.stringify(category ? String(category._id) : '').replace(/</g, '\\u003c') %>,
+        page: <%= page %>, pages: <%= pages %>, limit: <%= filters.limit %>, total: <%= total %>,
+        sortLabels: <%- JSON.stringify(Object.fromEntries(Object.keys(sorts).map(k => [k, sorts[k].label]))).replace(/</g, '\\u003c') %>
+      }
+    });
+  </script>
+  <script src="/js/shop.js?v=<%= assetVersion %>" defer></script>
+</body>
+</html>

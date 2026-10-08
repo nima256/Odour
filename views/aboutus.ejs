@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'درباره اودر | فروشگاه عطر و لوازم آرایشی', description: 'اودر؛ فروشگاه تخصصی عطر، لوازم آرایشی و مراقبتی با ضمانت اصالت کالا، مشاوره خرید و ارسال سریع.', canonical: 'https://www.odour.ir/about-us' }) %>
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "Organization", "name": "اودر", "url": "https://www.odour.ir", "logo": "https://www.odour.ir/logo.png",
+    "contactPoint": { "@type": "ContactPoint", "telephone": "+98-996-585-1584", "contactType": "customer service", "availableLanguage": "fa" } }
+  </script>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <header class="od-page-hero">
+      <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="od-container od-page-hero__inner">
+        <span class="od-eyebrow">درباره اودر</span>
+        <h1>هر رایحه، یک داستان</h1>
+        <p>اودر فروشگاه تخصصی عطر، لوازم آرایشی و مراقبتی است؛ با تمرکز بر اصالت کالا، انتخاب دقیق و تجربه‌ای آرام و مطمئن از خرید.</p>
+      </div>
+    </header>
+
+    <div class="od-container" style="padding-bottom:var(--od-section)">
+      <div class="od-promise" style="margin-bottom:28px">
+        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('shield') %></span><div><strong>ضمانت اصالت</strong><span>تمام محصولات اورجینال</span></div></div>
+        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('truck') %></span><div><strong>ارسال سریع</strong><span>به سراسر ایران</span></div></div>
+        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('card') %></span><div><strong>پرداخت امن</strong><span>درگاه بانکی و اقساطی</span></div></div>
+        <div class="od-promise__item"><span class="od-cat-ico"><%- icon('phone') %></span><div><strong>پشتیبانی</strong><span>شنبه تا پنجشنبه ۹ الی ۱۸</span></div></div>
+      </div>
+
+      <div class="od-contact-grid">
+        <a class="od-card od-contact" href="/contact-us">
+          <span class="od-cat-ico"><%- icon('phone') %></span><strong>تماس با ما</strong>
+          <span>برای دریافت راهنمایی، ثبت درخواست یا پرسیدن سوال، از طریق ایمیل، شماره تماس یا فرم‌های ارتباطی برند با ما در تماس باشید.</span>
+        </a>
+        <a class="od-card od-contact" href="/connect-us">
+          <span class="od-cat-ico"><%- icon('sparkle') %></span><strong>ارتباط با ما</strong>
+          <span>پیشنهادها، همکاری‌ها، بازخوردها و ایده‌های خود را با ما به اشتراک بگذارید تا تجربه بهتری برای شما بسازیم.</span>
+        </a>
+        <a class="od-card od-contact" href="/terms-and-conditions">
+          <span class="od-cat-ico"><%- icon('info') %></span><strong>قوانین و مقررات</strong>
+          <span>استفاده از خدمات به معنای پذیرش قوانین، احترام به حقوق کاربران و رعایت چارچوب‌های اخلاقی و قانونی است.</span>
+        </a>
+        <a class="od-card od-contact" href="/privacy-policy">
+          <span class="od-cat-ico"><%- icon('shield') %></span><strong>سیاست حریم خصوصی</strong>
+          <span>اطلاعاتی که با ما به اشتراک می‌گذارید فقط برای ارائه خدمات بهتر، پاسخ‌گویی و بهبود تجربه شما استفاده می‌شود.</span>
+        </a>
+      </div>
+
+      <div class="od-card od-card__body" style="margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+        <div>
+          <strong>پشتیبانی فنی</strong>
+          <p class="od-muted" style="font-size:14px">اگر مشکلی در فرایند سایت و سفارشات دارید با این شماره تماس بگیرید.</p>
+        </div>
+        <a class="od-btn" href="tel:09965851584"><%- icon('phone') %><span class="od-latin">۰۹۹۶۵۸۵۱۵۸۴</span></a>
+      </div>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

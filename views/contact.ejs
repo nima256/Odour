@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'تماس با ما | اودر', description: 'راه‌های تماس با فروشگاه اودر: تلفن، واتساپ، تلگرام، ایمیل و آدرس فروشگاه در کرج.', canonical: 'https://www.odour.ir/contact-us' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <header class="od-page-hero">
+      <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="od-container od-page-hero__inner">
+        <span class="od-eyebrow">پشتیبانی و مشاوره</span>
+        <h1>تماس با ما</h1>
+        <p>ما همیشه آماده پاسخگویی به شما هستیم؛ برای مشاوره خرید، پیگیری سفارش یا هر پرسشی.</p>
+      </div>
+    </header>
+    <div class="od-container" style="padding-bottom:var(--od-section)">
+      <div class="od-contact-grid od-contact-grid--4">
+        <a class="od-card od-contact" href="tel:09965851584">
+          <span class="od-cat-ico"><%- icon('phone') %></span>
+          <strong>تماس تلفنی</strong>
+          <span class="od-latin">۰۹۹۶۵۸۵۱۵۸۴</span>
+          <span>شنبه تا پنجشنبه، ۹ الی ۱۸</span>
+        </a>
+        <a class="od-card od-contact" href="https://wa.me/989017936769" target="_blank" rel="noopener">
+          <span class="od-cat-ico"><%- icon('chat') %></span>
+          <strong>واتساپ</strong>
+          <span class="od-latin">۰۹۰۱۷۹۳۶۷۶۹</span>
+          <span>پاسخ سریع پیام‌ها</span>
+        </a>
+        <a class="od-card od-contact" href="mailto:info@odour.ir">
+          <span class="od-cat-ico"><%- icon('mail') %></span>
+          <strong>ایمیل</strong>
+          <span class="od-latin">info@odour.ir</span>
+          <span>همکاری، پیشنهاد و بازخورد</span>
+        </a>
+        <div class="od-card od-contact">
+          <span class="od-cat-ico"><%- icon('pin') %></span>
+          <strong>فروشگاه حضوری</strong>
+          <span>کرج، رزکان نو، اکومال اودر</span>
+        </div>
+      </div>
+      <div class="od-card od-card__body" style="margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+        <div>
+          <strong>سفارش ثبت کرده‌اید؟</strong>
+          <p class="od-muted" style="font-size:14px">وضعیت و کد رهگیری سفارش را در حساب کاربری خود ببینید.</p>
+        </div>
+        <a class="od-btn od-btn--secondary" href="/userProfile#orders">پیگیری سفارش</a>
+      </div>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

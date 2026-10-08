@@ -1,0 +1,45 @@
+<%#
+  Product card. Params: p (product doc/lean object), eager (bool, first row images), headingLevel (default 3).
+  Hierarchy: image › brand › title › price › add-to-cart. At most one small badge.
+%>
+<%
+  const _pr = productPricing(p);
+  const _inStock = isInStock(p);
+  const _url = productUrl(p);
+  const _img2 = p.images && p.images[1] ? p.images[1].url : null;
+  const _needsOptions = (p.colors && p.colors.length) || (p.sizes && p.sizes.length);
+  const _h = typeof headingLevel !== 'undefined' ? headingLevel : 3;
+  const _eager = typeof eager !== 'undefined' && eager;
+  const _badge = _inStock ? productBadge(p) : null;
+%>
+<article class="od-pcard<%= _inStock ? '' : ' is-out' %><%= _img2 ? ' has-alt' : '' %>">
+  <div class="od-pcard__media">
+    <% if (_img2) { %>
+      <img class="od-pcard__img od-pcard__img--alt" src="<%= _img2 %>" alt="" loading="lazy" decoding="async" width="400" height="448" />
+    <% } %>
+    <img class="od-pcard__img" src="<%= productImage(p, 0) %>" alt="<%= (p.images && p.images[0] && p.images[0].alt) || p.name %>"
+         <%- _eager ? 'fetchpriority="high"' : 'loading="lazy"' %> decoding="async" width="400" height="448" />
+    <% if (_badge) { %>
+      <span class="od-pcard__badge"><span class="od-tag od-tag--<%= _badge.kind %>"><%= _badge.kind === 'sale' ? _badge.label + ' تخفیف' : _badge.label %></span></span>
+    <% } %>
+    <button class="od-pcard__wish" type="button" data-wishlist="<%= p._id %>" aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها"><%- icon('heart') %></button>
+  </div>
+  <div class="od-pcard__body">
+    <% if (p.brandName) { %><span class="od-pcard__brand"><%= p.brandName %></span><% } %>
+    <<%= 'h' + _h %> class="od-pcard__title"><a href="<%= _url %>"><%= p.name %></a></<%= 'h' + _h %>>
+    <div class="od-pcard__foot">
+      <% if (_inStock) { %>
+        <div class="od-pcard__price">
+          <span class="od-pcard__now od-num"><%= faPrice(_pr.now) %><small>تومان</small></span>
+          <% if (_pr.hasDiscount) { %><span class="od-pcard__was od-num"><span class="od-sr-only">قیمت قبل:</span><%= faPrice(_pr.was) %></span><% } %>
+        </div>
+        <button class="od-pcard__add" type="button" data-add-to-cart="<%= p._id %>"
+                <%- _needsOptions ? 'data-needs-options data-href="' + _url + '"' : '' %>
+                aria-label="<%= _needsOptions ? 'انتخاب حجم و خرید ' : 'افزودن به سبد: ' %><%= p.name %>"><%- icon(_needsOptions ? 'arrow-left' : 'plus') %></button>
+      <% } else { %>
+        <span class="od-pcard__stock">ناموجود</span>
+      <% } %>
+    </div>
+    <% if (isLowStock(p)) { %><span class="od-pcard__note">تنها <%= faDigits(p.countInStock) %> عدد باقی مانده</span><% } %>
+  </div>
+</article>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'صفحه پیدا نشد | اودر', robots: 'noindex' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <div class="od-container od-state" style="min-height:62vh;align-content:center">
+      <div class="od-state__art"><%- icon('search') %></div>
+      <h1 class="od-h2">این صفحه پیدا نشد</h1>
+      <p><%= typeof message !== 'undefined' && message ? message : 'ممکن است آدرس تغییر کرده باشد یا محصول دیگر در دسترس نباشد.' %></p>
+      <form action="/shop" method="get" role="search" style="width:min(420px,100%)">
+        <div class="od-input-group">
+          <%- icon('search') %>
+          <label class="od-sr-only" for="nf-search">جستجو در محصولات</label>
+          <input class="od-input" id="nf-search" name="search" type="search" placeholder="جستجوی محصول یا برند…" style="border-radius:999px" />
+        </div>
+      </form>
+      <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+        <a class="od-btn" href="/shop">رفتن به فروشگاه</a>
+        <a class="od-btn od-btn--secondary" href="/">صفحه اصلی</a>
+      </div>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

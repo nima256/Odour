@@ -1,0 +1,46 @@
+{
+  "name": "odour",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "nodemon index.js",
+    "check": "node --check index.js && node --check models/Order.js && node --check routes/cart.js && node --check routes/order.js && node --check routes/admin.js && node --check services/snappPayService.js && node --check services/torobPayService.js && node --check services/orderPricing.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
+    "connect-flash": "^0.1.1",
+    "connect-mongo": "^5.1.0",
+    "dotenv": "^17.2.0",
+    "ejs": "^3.1.10",
+    "email-validator": "^2.0.4",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "jalaali-js": "^1.2.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.3",
+    "multer": "^2.0.1",
+    "node-cache": "^5.1.2",
+    "nodemon": "^3.1.10",
+    "pm2": "^7.0.1",
+    "redis": "^5.6.0",
+    "sharp": "^0.34.3",
+    "sitemap": "^8.0.0",
+    "slugify": "^1.6.6",
+    "validator": "^13.15.15",
+    "vazirmatn": "^33.0.3",
+    "zarinpal-checkout": "^0.3.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.3.0"
+  }
+}

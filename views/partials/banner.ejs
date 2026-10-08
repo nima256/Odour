@@ -1,0 +1,70 @@
+<%#
+  Admin-managed banner. Params: b (Banner document), eager (bool).
+  Layout depends on b.placement; colours come from b.theme (brand palette only).
+%>
+<%
+  const _img = b.image && b.image.url;
+  const _mimg = (b.mobileImage && b.mobileImage.url) || _img;
+  const _eagerB = typeof eager !== 'undefined' && eager;
+  const _link = b.url || '';
+  const _tag = _link ? 'a' : 'div';
+  const _attrs = _link ? ('href="' + _link.replace(/"/g, '&quot;') + '"') : '';
+  const _picture = function (cls, sizes) {
+    if (!_img) return '';
+    return '<picture class="' + cls + '">' +
+      (_mimg !== _img ? '<source media="(max-width: 767px)" srcset="' + _mimg + '" />' : '') +
+      '<img src="' + _img + '" alt="' + (b.imageAlt || '').replace(/"/g, '&quot;') + '" ' + (_eagerB ? 'fetchpriority="high"' : 'loading="lazy"') + ' decoding="async" sizes="' + sizes + '" /></picture>';
+  };
+%>
+<% if (b.placement === 'home_promo') { %>
+  <<%= _tag %> class="od-bn od-bn--promo od-bn--<%= b.theme %>" <%- _attrs %>>
+    <%- _picture('od-bn__media', '100vw') %>
+    <div class="od-bn__copy">
+      <% if (b.eyebrow) { %><span class="od-bn__eyebrow"><%= b.eyebrow %></span><% } %>
+      <h2 class="od-bn__title"><%= b.title %></h2>
+      <% if (b.subtitle) { %><p class="od-bn__sub"><%= b.subtitle %></p><% } %>
+      <% if (b.ctaText && _link) { %><span class="od-bn__cta"><%= b.ctaText %> <%- icon('arrow-left', 'od-icon--sm') %></span><% } %>
+    </div>
+  </<%= _tag %>>
+<% } else if (b.placement === 'home_collection') { %>
+  <<%= _tag %> class="od-bn od-bn--collection od-bn--<%= b.theme %>" <%- _attrs %>>
+    <div class="od-bn__copy">
+      <% if (b.eyebrow) { %><span class="od-eyebrow od-bn__eyebrow"><%= b.eyebrow %></span><% } %>
+      <h2 class="od-bn__title"><%= b.title %></h2>
+      <% if (b.subtitle) { %><p class="od-bn__sub"><%= b.subtitle %></p><% } %>
+      <% if (b.ctaText && _link) { %><span class="od-btn od-bn__btn"><%= b.ctaText %></span><% } %>
+    </div>
+    <div class="od-bn__arch"><%- _picture('od-bn__media', '(min-width: 900px) 40vw, 90vw') %></div>
+  </<%= _tag %>>
+<% } else if (b.placement === 'home_category') { %>
+  <<%= _tag %> class="od-bn-tile" <%- _attrs %>>
+    <%- _picture('od-bn-tile__media', '(min-width: 900px) 25vw, 50vw') %>
+    <span class="od-bn-tile__title"><%= b.title %> <%- icon('arrow-left') %></span>
+    <% if (b.subtitle) { %><span class="od-meta"><%= b.subtitle %></span><% } %>
+  </<%= _tag %>>
+<% } else if (b.placement === 'home_editorial') { %>
+  <section class="od-bn od-bn--editorial od-bn--<%= b.theme %>" aria-label="<%= b.title %>">
+    <%- _picture('od-bn__media', '(min-width: 900px) 55vw, 100vw') %>
+    <div class="od-bn__copy">
+      <% if (b.eyebrow) { %><span class="od-eyebrow od-bn__eyebrow"><%= b.eyebrow %></span><% } %>
+      <h2 class="od-bn__title"><%= b.title %></h2>
+      <% if (b.subtitle) { %><p class="od-bn__sub"><%= b.subtitle %></p><% } %>
+      <% if (b.ctaText && _link) { %><a class="od-btn od-btn--secondary od-bn__btn" href="<%= _link %>"><%= b.ctaText %></a><% } %>
+    </div>
+  </section>
+<% } else if (b.placement === 'home_strip') { %>
+  <<%= _tag %> class="od-bn od-bn--strip od-bn--<%= b.theme %>" <%- _attrs %>>
+    <span class="od-bn__mark" aria-hidden="true"><%- icon('tag') %></span>
+    <span class="od-bn__copy"><strong class="od-bn__title"><%= b.title %></strong><% if (b.subtitle) { %><span class="od-bn__sub"><%= b.subtitle %></span><% } %></span>
+    <% if (b.ctaText && _link) { %><span class="od-bn__cta"><%= b.ctaText %> <%- icon('arrow-left', 'od-icon--sm') %></span><% } %>
+  </<%= _tag %>>
+<% } else if (b.placement === 'shop_top') { %>
+  <<%= _tag %> class="od-bn od-bn--shop od-bn--<%= b.theme %>" <%- _attrs %>>
+    <%- _picture('od-bn__media', '(min-width: 1024px) 70vw, 100vw') %>
+    <div class="od-bn__copy">
+      <% if (b.eyebrow) { %><span class="od-bn__eyebrow"><%= b.eyebrow %></span><% } %>
+      <strong class="od-bn__title"><%= b.title %></strong>
+      <% if (b.subtitle) { %><span class="od-bn__sub"><%= b.subtitle %></span><% } %>
+    </div>
+  </<%= _tag %>>
+<% } %>

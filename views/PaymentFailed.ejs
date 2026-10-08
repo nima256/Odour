@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'پرداخت ناموفق | اودر', robots: 'noindex, nofollow' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <div class="od-container">
+      <section class="od-card od-result od-result--fail" aria-labelledby="fail-title">
+        <div class="od-state__art"><%- icon('alert') %></div>
+        <h1 class="od-h2" id="fail-title">پرداخت انجام نشد</h1>
+        <p class="od-muted">سفارش شما تکمیل نشد. اگر مبلغی از حساب‌تان کسر شده باشد، طبق روال شبکه بانکی بازگردانده می‌شود. برای راهنمایی با پشتیبانی در تماس باشید.</p>
+        <% if (OrderNum) { %>
+          <dl class="od-kv"><div style="grid-column:1/-1"><dt>شماره سفارش</dt><dd class="od-latin"><%= OrderNum %></dd></div></dl>
+        <% } %>
+        <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+          <a class="od-btn" href="/userProfile#orders">مشاهده سفارش‌ها</a>
+          <a class="od-btn od-btn--secondary" href="/shop">بازگشت به فروشگاه</a>
+          <a class="od-btn od-btn--secondary" href="/contact-us">تماس با پشتیبانی</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

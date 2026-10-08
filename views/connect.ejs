@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'ارتباط با ما | اودر', description: 'پیشنهادها، همکاری‌ها و بازخوردهای خود را از طریق ایمیل، تلگرام، اینستاگرام یا واتساپ با اودر در میان بگذارید.', canonical: 'https://www.odour.ir/connect-us' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <header class="od-page-hero">
+      <div class="od-arches" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="od-container od-page-hero__inner">
+        <span class="od-eyebrow">همکاری و بازخورد</span>
+        <h1>ارتباط با ما</h1>
+        <p>ما به گفتگوهای واقعی و سازنده اهمیت می‌دهیم. پیشنهادها، همکاری‌ها، بازخوردها و ایده‌های خود را با ما به اشتراک بگذارید تا تجربه بهتری برای شما بسازیم.</p>
+      </div>
+    </header>
+    <div class="od-container" style="padding-bottom:var(--od-section)">
+      <div class="od-contact-grid od-contact-grid--4">
+        <a class="od-card od-contact" href="mailto:info@odour.ir">
+          <span class="od-cat-ico"><%- icon('mail') %></span><strong>ارسال ایمیل</strong><span class="od-latin">info@odour.ir</span>
+        </a>
+        <a class="od-card od-contact" href="https://t.me/odour" target="_blank" rel="noopener">
+          <span class="od-cat-ico"><%- icon('send') %></span><strong>تلگرام</strong><span class="od-latin">@odour</span>
+        </a>
+        <a class="od-card od-contact" href="https://instagram.com/odour" target="_blank" rel="noopener">
+          <span class="od-cat-ico"><%- icon('image') %></span><strong>اینستاگرام</strong><span class="od-latin">@odour</span>
+        </a>
+        <a class="od-card od-contact" href="https://wa.me/989017936769" target="_blank" rel="noopener">
+          <span class="od-cat-ico"><%- icon('chat') %></span><strong>واتساپ</strong><span class="od-latin">۰۹۰۱۷۹۳۶۷۶۹</span>
+        </a>
+      </div>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', { title: 'پرداخت موفق | اودر', robots: 'noindex, nofollow' }) %>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+  <main class="od-main" id="main">
+    <div class="od-container">
+      <section class="od-card od-result od-result--ok" aria-labelledby="ok-title">
+        <div class="od-state__art"><%- icon('check') %></div>
+        <h1 class="od-h2" id="ok-title">سفارش شما ثبت شد</h1>
+        <p class="od-muted">از خرید شما متشکریم. سفارش پس از بررسی آماده و ارسال می‌شود و وضعیت آن را در حساب کاربری می‌بینید.</p>
+        <dl class="od-kv">
+          <% if (OrderNum) { %><div><dt>شماره سفارش</dt><dd class="od-latin" id="order-number"><%= OrderNum %></dd></div><% } %>
+          <% if (paymentMethod) { %><div><dt>روش پرداخت</dt><dd><%= paymentMethod %></dd></div><% } %>
+          <% if (transactionId) { %><div style="grid-column:1/-1"><dt>کد پیگیری پرداخت</dt><dd class="od-latin" id="payment-transaction-id" style="user-select:all"><%= transactionId %></dd></div><% } %>
+        </dl>
+        <div class="od-row" style="justify-content:center;flex-wrap:wrap">
+          <a class="od-btn" href="/userProfile#orders">پیگیری سفارش</a>
+          <a class="od-btn od-btn--secondary" href="/shop">ادامه خرید</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <%- include('./partials/footer') %>
+</body>
+</html>

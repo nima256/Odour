@@ -1,0 +1,259 @@
+<%
+  const B = (typeof banners !== 'undefined' && banners) ? banners : {};
+  const list = (k) => B[k] || [];
+  const hero = list('home_hero')[0] || {
+    eyebrow: 'عطر، آرایش و مراقبت', title: 'هر رایحه، یک داستان',
+    subtitle: 'مجموعه‌ای از بهترین عطرها، محصولات آرایشی و مراقبتی؛ اصل، با ارسال سریع و تضمین اصالت.',
+    ctaText: 'شروع خرید', url: '/shop'
+  };
+  // Split the hero title on «،» so the second half takes the accent colour.
+  const heroParts = String(hero.title || '').split('،');
+  const rail = (title, eyebrow, href, linkText, items, id, band) => ({ title, eyebrow, href, linkText, items: items || [], id, band });
+%>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <%- include('./partials/head', {
+    title: 'فروشگاه عطر و لوازم آرایشی اودر | خرید اصل با ضمانت اصالت',
+    description: 'فروشگاه اودر، مرجع خرید عطر، ادکلن، لوازم آرایشی و مراقبت پوست و مو؛ اصل و باکیفیت، با ضمانت اصالت کالا، ارسال سریع و بهترین قیمت.',
+    canonical: 'https://www.odour.ir/'
+  }) %>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "فروشگاه لوازم آرایشی و بهداشتی اودر",
+    "url": "https://www.odour.ir/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": { "@type": "EntryPoint", "urlTemplate": "https://www.odour.ir/shop?search={search_term_string}" },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+</head>
+<body class="od">
+  <%- include('./partials/navbar') %>
+
+  <main class="od-main" id="main">
+    <%# ---------------- Hero (copy managed as the home_hero banner) ---------------- %>
+    <section class="od-hero" aria-labelledby="hero-title">
+      <div class="od-container od-hero__grid">
+        <div class="od-hero__copy">
+          <% if (hero.eyebrow) { %><span class="od-eyebrow"><%= hero.eyebrow %></span><% } %>
+          <h1 class="od-display" id="hero-title">
+            <%= heroParts[0] %><% if (heroParts.length > 1) { %>،<br><em><%= heroParts.slice(1).join('،').trim() %></em><% } %>
+          </h1>
+          <% if (hero.subtitle) { %><p class="od-lead"><%= hero.subtitle %></p><% } %>
+          <div class="od-hero__ctas">
+            <% if (hero.ctaText && hero.url) { %><a class="od-btn od-btn--lg" href="<%= hero.url %>"><%= hero.ctaText %> <%- icon('arrow-left', 'od-icon--sm') %></a><% } %>
+            <a class="od-btn od-btn--lg od-btn--secondary" href="/contact-us">مشاوره رایگان</a>
+          </div>
+          <div class="od-hero__trust">
+            <span><%- icon('shield') %>ضمانت اصالت کالا</span>
+            <span><%- icon('truck') %>ارسال سریع</span>
+            <span><%- icon('card') %>پرداخت اقساطی</span>
+          </div>
+        </div>
+
+        <div class="od-hero__art" aria-hidden="true">
+          <div class="od-hero__stage" data-hero-3d="/models/hero-bottle.glb?v=<%= assetVersion %>">
+            <div class="od-arches"><span></span><span></span><span></span></div>
+            <div class="od-hero__halo"></div>
+            <div class="od-hero__motes"><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="od-hero__floor"></div>
+            <%# Static composition: shown until (or instead of) the 3D model. %>
+            <div class="od-hero__fallback">
+              <img class="od-hero__note od-hero__note--peach" src="/images/editorial/note-peach.webp" alt="" width="260" height="260" />
+              <img class="od-hero__note od-hero__note--lemon" src="/images/editorial/note-lemon.webp" alt="" width="260" height="260" />
+              <img class="od-hero__bottle" src="/images/editorial/hero-bottle.webp" alt="" width="467" height="640" fetchpriority="high" />
+              <img class="od-hero__note od-hero__note--vanilla" src="/images/editorial/note-vanilla.webp" alt="" width="260" height="260" />
+              <img class="od-hero__note od-hero__note--bergamot" src="/images/editorial/note-bergamot.webp" alt="" width="260" height="342" />
+            </div>
+            <div class="od-hero__sweep"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <%# ---------------- Category shortcuts ---------------- %>
+    <% const shortcuts = categoryShortcuts(menuCategories, 8); %>
+    <% if (shortcuts.length) { %>
+      <section class="od-section--tight" aria-label="دسته‌بندی‌ها">
+        <div class="od-container">
+          <nav class="od-cats">
+            <% shortcuts.forEach(function (cat) { %>
+              <a class="od-cat" href="/category/<%= cat.slug %>">
+                <span class="od-cat-ico"><%- icon(categoryIcon(cat.name, cat.icon)) %></span>
+                <span class="od-cat__label"><%= cat.name %></span>
+              </a>
+            <% }) %>
+          </nav>
+        </div>
+      </section>
+    <% } %>
+
+    <%# Product rail helper %>
+    <% const renderRail = function (r) { if (!r.items.length) return ''; %>
+      <section class="od-section--tight<%= r.band ? ' od-band' : '' %>" aria-labelledby="<%= r.id %>">
+        <div class="od-container">
+          <div class="od-section-head">
+            <div class="od-section-head__title">
+              <% if (r.eyebrow) { %><span class="od-eyebrow"><%= r.eyebrow %></span><% } %>
+              <h2 class="od-h2" id="<%= r.id %>"><%= r.title %></h2>
+            </div>
+            <a class="od-section-head__link" href="<%= r.href %>"><%= r.linkText %> <%- icon('chevron-left') %></a>
+          </div>
+          <div class="od-rail">
+            <% r.items.slice(0, 8).forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+          </div>
+        </div>
+      </section>
+    <% return ''; } %>
+
+    <%= renderRail(rail('تخفیف‌های منتخب', 'پیشنهاد ویژه', '/shop?discount=1', 'مشاهده همه', isFeaturedProducts, 'offers-title')) %>
+
+    <% list('home_strip').slice(0, 1).forEach(function (b) { %>
+      <div class="od-container od-section--tight" style="padding-block:4px"><%- include('./partials/banner', { b }) %></div>
+    <% }) %>
+
+    <%= renderRail(rail('جدیدترین محصولات', 'تازه‌ها', '/shop?sort=newest', 'مشاهده همه', isNewProduct, 'new-title')) %>
+
+    <% list('home_promo').slice(0, 1).forEach(function (b) { %>
+      <div class="od-container od-section--tight"><%- include('./partials/banner', { b }) %></div>
+    <% }) %>
+
+    <% if (list('home_category').length) { %>
+      <section class="od-section--tight" aria-labelledby="collections-title">
+        <div class="od-container">
+          <div class="od-section-head">
+            <div class="od-section-head__title">
+              <span class="od-eyebrow">کالکشن‌های اودر</span>
+              <h2 class="od-h2" id="collections-title">برای هر لحظه، انتخابی دقیق</h2>
+            </div>
+          </div>
+          <div class="od-bn-tiles">
+            <% list('home_category').slice(0, 4).forEach(function (b) { %><%- include('./partials/banner', { b }) %><% }) %>
+          </div>
+        </div>
+      </section>
+    <% } %>
+
+    <%= renderRail(rail('عطر و ادکلن', 'Odour Perfume', '/category/ادکلن', 'همه عطرها', perfumeProducts, 'perfume-title', true)) %>
+
+    <% list('home_collection').slice(0, 1).forEach(function (b) { %>
+      <div class="od-container od-section--tight"><%- include('./partials/banner', { b }) %></div>
+    <% }) %>
+
+    <%# ---------------- Care & beauty (tabs) ---------------- %>
+    <%
+      const careTabs = [
+        { id: 'skin', label: 'مراقبت پوست', href: '/category/مراقبت-پوستی', items: skincareProducts || [] },
+        { id: 'hair', label: 'مراقبت مو', href: '/category/مراقبت-مو', items: haircareProducts || [] },
+        { id: 'beauty', label: 'آرایشی', href: '/category/محصولات-آرایشی', items: beautycareProducts || [] }
+      ].filter(function (t) { return t.items.length; });
+    %>
+    <% if (careTabs.length) { %>
+      <section class="od-section" aria-labelledby="care-title">
+        <div class="od-container">
+          <div class="od-section-head">
+            <div class="od-section-head__title">
+              <span class="od-eyebrow">مراقبت و زیبایی</span>
+              <h2 class="od-h2" id="care-title">انتخاب‌های روزانه</h2>
+            </div>
+          </div>
+          <div class="od-tabs" role="tablist" aria-label="دسته‌های مراقبت و زیبایی" data-tabs>
+            <% careTabs.forEach(function (t, i) { %>
+              <button class="od-tab" role="tab" type="button" id="tab-<%= t.id %>" aria-controls="panel-<%= t.id %>" aria-selected="<%= i === 0 %>" tabindex="<%= i === 0 ? 0 : -1 %>"><%= t.label %></button>
+            <% }) %>
+          </div>
+          <% careTabs.forEach(function (t, i) { %>
+            <div role="tabpanel" id="panel-<%= t.id %>" aria-labelledby="tab-<%= t.id %>" <%- i === 0 ? '' : 'hidden' %>>
+              <div class="od-grid od-grid--4">
+                <% t.items.slice(0, 4).forEach(function (p) { %><%- include('./partials/product-card', { p }) %><% }) %>
+              </div>
+              <div style="text-align:center;margin-top:28px">
+                <a class="od-btn od-btn--secondary" href="<%= t.href %>">مشاهده همه <%= t.label %></a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+    <% } %>
+
+    <% list('home_editorial').slice(0, 1).forEach(function (b) { %><%- include('./partials/banner', { b }) %><% }) %>
+
+    <%# ---------------- Recently viewed (client-side, real product data) ---------------- %>
+    <section class="od-section--tight" aria-labelledby="rv-title" data-recently-viewed hidden>
+      <div class="od-container">
+        <div class="od-section-head"><div class="od-section-head__title"><h2 class="od-h2" id="rv-title">بازدیدهای اخیر شما</h2></div></div>
+        <div class="od-rail" data-rv-list></div>
+      </div>
+    </section>
+
+    <%# ---------------- Promise ---------------- %>
+    <section class="od-section--tight" aria-label="مزایای خرید از اودر">
+      <div class="od-container od-promise">
+        <div class="od-promise__item"><%- icon('shield', 'od-icon--lg') %><div><strong>ضمانت اصالت</strong><span>تمام محصولات اورجینال</span></div></div>
+        <div class="od-promise__item"><%- icon('truck', 'od-icon--lg') %><div><strong>ارسال سریع</strong><span>به سراسر ایران</span></div></div>
+        <div class="od-promise__item"><%- icon('card', 'od-icon--lg') %><div><strong>پرداخت امن</strong><span>درگاه بانکی و اقساطی</span></div></div>
+        <div class="od-promise__item"><%- icon('phone', 'od-icon--lg') %><div><strong>مشاوره خرید</strong><span>پیش از خرید از ما بپرسید</span></div></div>
+      </div>
+    </section>
+
+    <%# ---------------- Journal ---------------- %>
+    <% if (weblogs && weblogs.length) { %>
+      <section class="od-section--tight" aria-labelledby="journal-title">
+        <div class="od-container">
+          <div class="od-section-head">
+            <div class="od-section-head__title">
+              <span class="od-eyebrow">مجله اودر</span>
+              <h2 class="od-h2" id="journal-title">راهنمای انتخاب و مراقبت</h2>
+            </div>
+            <a class="od-section-head__link" href="/weblog">همه مطالب <%- icon('chevron-left') %></a>
+          </div>
+          <div class="od-posts">
+            <% weblogs.forEach(function (post) { %>
+              <a class="od-post" href="/weblog/<%= encodeURIComponent(post.slug) %>">
+                <span class="od-post__media">
+                  <% const cover = post.images && post.images[0] && (post.images[0].url || post.images[0]); %>
+                  <% if (cover) { %><img src="<%= cover %>" alt="" loading="lazy" decoding="async" width="640" height="400" /><% } %>
+                </span>
+                <h3><%= post.title %></h3>
+                <% if (post.description) { %><p><%= post.description %></p><% } %>
+              </a>
+            <% }) %>
+          </div>
+        </div>
+      </section>
+    <% } %>
+  </main>
+
+  <%- include('./partials/footer') %>
+
+  <script src="/js/hero-3d.js?v=<%= assetVersion %>" defer></script>
+  <script>
+    // Accessible tabs (arrow keys move between tabs).
+    document.querySelectorAll('[data-tabs]').forEach(function (list) {
+      var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+      function select(tab) {
+        tabs.forEach(function (t) {
+          var on = t === tab;
+          t.setAttribute('aria-selected', on);
+          t.tabIndex = on ? 0 : -1;
+          document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+        });
+      }
+      tabs.forEach(function (tab, i) {
+        tab.addEventListener('click', function () { select(tab); });
+        tab.addEventListener('keydown', function (e) {
+          var dir = e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowRight' ? -1 : 0; // RTL
+          if (!dir) return;
+          var next = tabs[(i + dir + tabs.length) % tabs.length];
+          next.focus(); select(next);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
