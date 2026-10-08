@@ -34,12 +34,15 @@ const config = {
   username: String(process.env.SNAPPPAY_USERNAME || "").trim(),
   password: String(process.env.SNAPPPAY_PASSWORD || "").trim(),
   timeoutMs: parsePositiveInteger(process.env.SNAPPPAY_TIMEOUT_MS, 30000),
-  paymentMethodTypes: String(
-    process.env.SNAPPPAY_PAYMENT_METHOD_TYPES || "INSTALLMENT"
-  )
+  // The documented eligible call only takes `amount` (official sample:
+  // offer/v1/eligible?amount=40000). Extra filters are opt-in via env.
+  paymentMethodTypes: String(process.env.SNAPPPAY_ELIGIBLE_PAYMENT_METHOD_TYPES || "")
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean),
+  paymentMethodTypeDto: String(
+    process.env.SNAPPPAY_PAYMENT_METHOD_TYPE_DTO ?? "INSTALLMENT"
+  ).trim(),
   installmentCount: parsePositiveInteger(process.env.SNAPPPAY_INSTALLMENT_COUNT, 4),
 };
 
@@ -250,33 +253,33 @@ const eligible = async (amountIrr, paymentMethodTypes = config.paymentMethodType
     query.set("paymentMethodTypes", paymentMethodTypes.join(","));
   }
 
-  const requestPath = `/api/online/offer/v1/eligible?${query.toString()}`;
-  console.log("[SnappPay][eligible][service-request]", {
-    amountIrr: roundedAmountIrr,
-    paymentMethodTypes,
-    path: requestPath,
-  });
-
   const response = await apiRequest({
     method: "GET",
-    path: requestPath,
+    path: `/api/online/offer/v1/eligible?${query.toString()}`,
   });
+  return unwrapResponse(response);
+};
 
-  console.log("[SnappPay][eligible][service-raw-response]", response);
-  const unwrappedResponse = unwrapResponse(response);
-  console.log("[SnappPay][eligible][service-unwrapped-response]", unwrappedResponse);
-  return unwrappedResponse;
+// SnappPay review: `forcedPaymentMethodTypes` must never be sent to payment/v1/token.
+// `paymentMethodTypeDto` (documented token/update field) is added here only, so
+// it can be switched off with SNAPPPAY_PAYMENT_METHOD_TYPE_DTO= if ever required.
+const stripForbiddenTokenFields = (payload = {}) => {
+  const {
+    forcedPaymentMethodTypes: _ignored,
+    paymentMethodTypeDto: _dto,
+    ...safePayload
+  } = payload;
+  return {
+    ...safePayload,
+    ...(config.paymentMethodTypeDto ? { paymentMethodTypeDto: config.paymentMethodTypeDto } : {}),
+  };
 };
 
 const createPaymentToken = async (payload = {}) => {
-  // SnappPay requires payment/v1/token to be sent without a forced payment-method field.
-  // Strip it defensively even if a caller accidentally adds it later.
-  const { forcedPaymentMethodTypes: _ignored, ...safePayload } = payload;
-
   const response = await apiRequest({
     method: "POST",
     path: "/api/online/payment/v1/token",
-    json: safePayload,
+    json: stripForbiddenTokenFields(payload),
   });
   return unwrapResponse(response);
 };
@@ -301,6 +304,17 @@ const settle = async (paymentToken) => {
   return unwrapResponse(response);
 };
 
+// Revert is only valid between a successful verify and settle (e.g. the order can no
+// longer be fulfilled). After settle, use update/cancel instead.
+const revert = async (paymentToken) => {
+  const response = await apiRequest({
+    method: "POST",
+    path: "/api/online/payment/v1/revert",
+    json: { paymentToken },
+  });
+  return unwrapResponse(response);
+};
+
 const getPaymentStatus = async (paymentToken) => {
   const query = new URLSearchParams({ paymentToken });
   const response = await apiRequest({
@@ -314,7 +328,7 @@ const update = async (payload) => {
   const response = await apiRequest({
     method: "POST",
     path: "/api/online/payment/v1/update",
-    json: payload,
+    json: stripForbiddenTokenFields(payload),
   });
   return unwrapResponse(response);
 };
@@ -434,7 +448,9 @@ module.exports = {
   eligible,
   getPaymentStatus,
   isConfigured,
+  revert,
   settle,
+  settleWithStatusRecovery,
   update,
   verify,
   verifyAndSettle,

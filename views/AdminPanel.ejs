@@ -4844,7 +4844,10 @@ function viewOrder(id) {
 
     const isSnappPay = order.paymentMethod === 'اسنپ‌پی';
     const isTorobPay = order.paymentMethod === 'ترب‌پی';
-    const canUpdateSnappPay = isSnappPay && order.snappPay?.status === 'SETTLE' && order.status !== 'لغو شده';
+    const canCancelSnappPay = isSnappPay && order.snappPay?.status === 'SETTLE' && order.status !== 'لغو شده';
+    // SnappPay review: when a single unit is left, update is disabled and only cancel remains.
+    const snappUnits = (order.products || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    const canUpdateSnappPay = canCancelSnappPay && snappUnits > 1;
     const canUpdateTorobPay = isTorobPay && order.torobPay?.status === 'SETTLE' && order.status !== 'لغو شده';
     const productsHtml = order.products.map(product => `
         <div class="p-3 bg-gray-50 rounded-lg">
@@ -4916,13 +4919,16 @@ function viewOrder(id) {
         ${isSnappPay ? `
             <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 mb-6 space-y-2">
                 <div class="flex justify-between gap-3"><span>وضعیت اسنپ‌پی:</span><strong>${order.snappPay?.status || 'نامشخص'}</strong></div>
-                <div class="flex justify-between gap-3"><span>شناسه تراکنش:</span><strong class="select-all text-left" dir="ltr">${transactionId}</strong></div>
+                <div class="flex justify-between gap-3"><span>شناسه تراکنش اسنپ‌پی:</span><strong class="select-all text-left" dir="ltr">${transactionId}</strong></div>
+                <div class="flex justify-between gap-3"><span>پیمنت توکن:</span><strong class="select-all text-left break-all text-xs" dir="ltr">${order.snappPay?.paymentToken || '-'}</strong></div>
+                ${order.snappPay?.lastError ? `<div class="text-xs text-red-700">آخرین خطا: ${escapeHtml(order.snappPay.lastError)}</div>` : ''}
                 <div class="flex flex-wrap gap-2 pt-2">
                     <button onclick="snappSyncOrder('${order._id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg">استعلام وضعیت</button>
-                    ${canUpdateSnappPay ? `<button onclick="snappUpdateOrder('${order._id}')" class="bg-amber-600 text-white px-3 py-2 rounded-lg">ثبت کاهش/حذف آیتم</button>` : ''}
-                    ${canUpdateSnappPay ? `<button onclick="snappCancelOrder('${order._id}')" class="bg-red-600 text-white px-3 py-2 rounded-lg">کنسل کامل در اسنپ‌پی</button>` : ''}
+                    ${canCancelSnappPay ? `<button onclick="snappUpdateOrder('${order._id}')" ${canUpdateSnappPay ? '' : 'disabled title="فقط یک آیتم در سفارش باقی مانده است؛ فقط کنسل کامل ممکن است"'} class="bg-amber-600 text-white px-3 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed">بروزرسانی سفارش (کاهش/حذف آیتم)</button>` : ''}
+                    ${canCancelSnappPay ? `<button onclick="snappCancelOrder('${order._id}')" class="bg-red-600 text-white px-3 py-2 rounded-lg">کنسل کامل در اسنپ‌پی</button>` : ''}
                 </div>
-                ${canUpdateSnappPay ? `<p class="text-xs text-red-700">آپدیت و کنسل برگشت‌ناپذیر هستند و پس از تایید دوباره ارسال می‌شوند.</p>` : ''}
+                ${canCancelSnappPay && !canUpdateSnappPay ? `<p class="text-xs text-amber-800">فقط یک آیتم در سفارش باقی مانده است؛ بروزرسانی غیرفعال است و فقط لغو کامل سفارش امکان‌پذیر است.</p>` : ''}
+                ${canCancelSnappPay ? `<p class="text-xs text-red-700">بروزرسانی و کنسل در اسنپ‌پی برگشت‌ناپذیر هستند و فقط پس از تایید مجدد شما ارسال می‌شوند.</p>` : ''}
             </div>
         ` : ''}
 
@@ -5002,7 +5008,15 @@ async function snappUpdateOrder(orderId) {
         showNotification('حداقل تعداد یک محصول را کاهش دهید', 'error');
         return;
     }
-    if (!confirm('این آپدیت در اسنپ‌پی برگشت‌ناپذیر است. از کاهش/حذف آیتم‌ها مطمئن هستید؟')) return;
+    const changes = order.products.map(product => {
+        const changed = items.find(item => String(item.itemId) === String(product.snappItemId || product.product?._id || product.product));
+        const next = changed ? changed.quantity : Number(product.quantity);
+        if (next >= Number(product.quantity)) return null;
+        return next === 0
+            ? `• حذف «${product.nameAtPurchase}»`
+            : `• «${product.nameAtPurchase}»: ${toPersianDigits(product.quantity)} ← ${toPersianDigits(next)}`;
+    }).filter(Boolean).join('\n');
+    if (!confirm(`تایید بروزرسانی سفارش ${order.OrderNum} در اسنپ‌پی\n\n${changes}\n\nاین عملیات برگشت‌ناپذیر است. ادامه می‌دهید؟`)) return;
     await snappApiAction(
         `/admin/orders/${orderId}/snappay/update`,
         { confirmed: true, items },
@@ -5012,7 +5026,8 @@ async function snappUpdateOrder(orderId) {
 }
 
 async function snappCancelOrder(orderId) {
-    if (!confirm('هشدار: کل سفارش در اسنپ‌پی کنسل می‌شود و این عملیات برگشت‌ناپذیر است. ادامه می‌دهید؟')) return;
+    const cancelTarget = orders.find(item => item._id === orderId);
+    if (!confirm(`تایید لغو کامل سفارش ${cancelTarget?.OrderNum || ''} در اسنپ‌پی\n\nکل سفارش در اسنپ‌پی کنسل می‌شود و این عملیات برگشت‌ناپذیر است. ادامه می‌دهید؟`)) return;
     await snappApiAction(
         `/admin/orders/${orderId}/snappay/cancel`,
         { confirmed: true },

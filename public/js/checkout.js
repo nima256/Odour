@@ -191,8 +191,10 @@
     Promise.all([
       req("/api/order/snapp-pay/eligible").then(function (res) {
         if (seq !== eligSeq) return;
-        if (res.ok && res.d.success && res.d.enabled && res.d.eligible) {
-          $("#snapp-pay-title").textContent = String(res.d.title_message || "پرداخت اقساطی با اسنپ‌پی");
+        // Title and description are rendered exactly as returned by SnappPay's
+        // eligible service (title_message / description) — never static text.
+        if (res.ok && res.d.success && res.d.eligible === true && res.d.title_message) {
+          $("#snapp-pay-title").textContent = String(res.d.title_message);
           $("#snapp-pay-description").textContent = String(res.d.description || "");
           snapp.hidden = false;
         } else hideOption(snapp);

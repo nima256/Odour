@@ -1,0 +1,310 @@
+{
+ "pdp mobile-320": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 32,
+   "h": 32,
+   "x": 272,
+   "y": 406,
+   "src": "http://localhost:7311/images/snapp-pay/logo-32x32.svg"
+  },
+  "title": {
+   "text": "هر قسط با اسنپ‌پی: ۱۲۳,۴۵۶ تومان",
+   "fontSize": "13px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 189,
+   "h": 21,
+   "x": 73,
+   "y": 401
+  },
+  "subtitle": {
+   "text": "۴ قسط ماهانه. بدون سود، چک و ضامن.",
+   "fontSize": "11px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 189,
+   "h": 18,
+   "x": 73,
+   "y": 424
+  }
+ },
+ "checkout mobile-320": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 32,
+   "h": 32,
+   "x": 212,
+   "y": 406,
+   "src": "http://localhost:7311/images/snapp-pay/logo-32x32.svg"
+  },
+  "title": {
+   "text": "پرداخت قسطی و اعتباری با اسنپ‌پی",
+   "fontSize": "13px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 156,
+   "h": 42,
+   "x": 46,
+   "y": 383
+  },
+  "description": {
+   "text": "۴ قسط بدون کارمزد، ماهانه ۱۱٬۲۵۰ تومان",
+   "fontSize": "11px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 156,
+   "h": 35,
+   "x": 46,
+   "y": 426
+  },
+  "radio": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 20,
+   "h": 20,
+   "x": 254,
+   "y": 412
+  },
+  "horizontalOverflowPx": 0
+ },
+ "pdp mobile-375": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 32,
+   "h": 32,
+   "x": 327,
+   "y": 540,
+   "src": "http://localhost:7311/images/snapp-pay/logo-32x32.svg"
+  },
+  "title": {
+   "text": "هر قسط با اسنپ‌پی: ۱۲۳,۴۵۶ تومان",
+   "fontSize": "13px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 189,
+   "h": 21,
+   "x": 128,
+   "y": 536
+  },
+  "subtitle": {
+   "text": "۴ قسط ماهانه. بدون سود، چک و ضامن.",
+   "fontSize": "11px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 189,
+   "h": 18,
+   "x": 128,
+   "y": 559
+  }
+ },
+ "checkout mobile-375": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 32,
+   "h": 32,
+   "x": 267,
+   "y": 452,
+   "src": "http://localhost:7311/images/snapp-pay/logo-32x32.svg"
+  },
+  "title": {
+   "text": "پرداخت قسطی و اعتباری با اسنپ‌پی",
+   "fontSize": "13px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 186,
+   "h": 21,
+   "x": 71,
+   "y": 448
+  },
+  "description": {
+   "text": "۴ قسط بدون کارمزد، ماهانه ۱۱٬۲۵۰ تومان",
+   "fontSize": "11px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 186,
+   "h": 18,
+   "x": 71,
+   "y": 471
+  },
+  "radio": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 20,
+   "h": 20,
+   "x": 309,
+   "y": 458
+  },
+  "horizontalOverflowPx": 0
+ },
+ "pdp tablet-768": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 40,
+   "h": 40,
+   "x": 705,
+   "y": 554,
+   "src": "http://localhost:7311/images/snapp-pay/logo-40x40.svg"
+  },
+  "title": {
+   "text": "هر قسط با اسنپ‌پی: ۱۲۳,۴۵۶ تومان",
+   "fontSize": "14px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 204,
+   "h": 22,
+   "x": 491,
+   "y": 552
+  },
+  "subtitle": {
+   "text": "۴ قسط ماهانه. بدون سود، چک و ضامن.",
+   "fontSize": "12px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 204,
+   "h": 19,
+   "x": 491,
+   "y": 577
+  }
+ },
+ "checkout tablet-768": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 40,
+   "h": 40,
+   "x": 639,
+   "y": 554,
+   "src": "http://localhost:7311/images/snapp-pay/logo-40x40.svg"
+  },
+  "title": {
+   "text": "پرداخت قسطی و اعتباری با اسنپ‌پی",
+   "fontSize": "14px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 200,
+   "h": 22,
+   "x": 426,
+   "y": 552
+  },
+  "description": {
+   "text": "۴ قسط بدون کارمزد، ماهانه ۱۱٬۲۵۰ تومان",
+   "fontSize": "12px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 200,
+   "h": 19,
+   "x": 426,
+   "y": 576
+  },
+  "radio": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 20,
+   "h": 20,
+   "x": 691,
+   "y": 564
+  },
+  "horizontalOverflowPx": 0
+ },
+ "pdp desktop-1440": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 40,
+   "h": 40,
+   "x": 1268,
+   "y": 400,
+   "src": "http://localhost:7311/images/snapp-pay/logo-40x40.svg"
+  },
+  "title": {
+   "text": "هر قسط با اسنپ‌پی: ۱۲۳,۴۵۶ تومان",
+   "fontSize": "14px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 204,
+   "h": 22,
+   "x": 1054,
+   "y": 399
+  },
+  "subtitle": {
+   "text": "۴ قسط ماهانه. بدون سود، چک و ضامن.",
+   "fontSize": "12px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 204,
+   "h": 19,
+   "x": 1054,
+   "y": 423
+  }
+ },
+ "checkout desktop-1440": {
+  "logo": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 40,
+   "h": 40,
+   "x": 1196,
+   "y": 470,
+   "src": "http://localhost:7311/images/snapp-pay/logo-40x40.svg"
+  },
+  "title": {
+   "text": "پرداخت قسطی و اعتباری با اسنپ‌پی",
+   "fontSize": "14px",
+   "fontWeight": "700",
+   "color": "rgb(26, 28, 35)",
+   "w": 200,
+   "h": 22,
+   "x": 984,
+   "y": 468
+  },
+  "description": {
+   "text": "۴ قسط بدون کارمزد، ماهانه ۱۱٬۲۵۰ تومان",
+   "fontSize": "12px",
+   "fontWeight": "400",
+   "color": "rgb(97, 100, 117)",
+   "w": 200,
+   "h": 19,
+   "x": 984,
+   "y": 493
+  },
+  "radio": {
+   "text": "",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "color": "rgb(36, 36, 26)",
+   "w": 20,
+   "h": 20,
+   "x": 1248,
+   "y": 480
+  },
+  "horizontalOverflowPx": 0
+ }
+}

@@ -1313,6 +1313,31 @@ body.od-lock { overflow: hidden; }
 .od-choice__logo { margin-inline-start: auto; width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; object-fit: contain; }
 .od-choice__mark { margin-inline-start: auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--od-cream-200); color: var(--od-olive-700); flex-shrink: 0; font-size: 10px; font-weight: 800; }
 .od-choice__mark .od-icon { width: 20px; height: 20px; }
+/* ---- SnappPay (Snapp!Pay guideline colours: text high #1A1C23, text medium #616475) ---- */
+.od-snapppay-logo { display: block; flex-shrink: 0; width: 40px; height: 40px; }
+.od-snapppay-logo img { display: block; width: 100%; height: 100%; }
+.od-choice--snapppay { gap: 12px; }
+.od-snapppay-gw__text { display: grid; gap: 2px; min-width: 0; text-align: start; }
+.od-snapppay-gw__title { font-size: 14px; font-weight: 700; line-height: 1.6; color: #1A1C23; }
+.od-snapppay-gw__desc { font-size: 12px; font-weight: 400; line-height: 1.6; color: #616475; }
+/* Phones: keep title and description on exactly two lines beside the logo
+   (guideline minimums: logo >= 24px, title > 12px, description > 10px). */
+@media (max-width: 479.98px) {
+  .od-choice--snapppay { gap: 10px; padding-inline: 12px; }
+  .od-choice--snapppay .od-snapppay-logo { width: 32px; height: 32px; }
+  .od-snapppay-gw__title { font-size: 13px; }
+  .od-snapppay-gw__desc { font-size: 11px; }
+}
+.od-snapppay-pdp { display: flex; align-items: center; gap: 10px; }
+.od-snapppay-pdp__text { display: grid; gap: 2px; min-width: 0; }
+.od-snapppay-pdp__text p { margin: 0; }
+.od-snapppay-pdp__title { font-size: 14px; font-weight: 700; line-height: 1.6; color: #1A1C23; }
+.od-snapppay-pdp__subtitle { font-size: 12px; font-weight: 400; line-height: 1.6; color: #616475; }
+@media (max-width: 767.98px) {
+  .od-snapppay-pdp .od-snapppay-logo { width: 32px; height: 32px; }
+  .od-snapppay-pdp__title { font-size: 13px; }
+  .od-snapppay-pdp__subtitle { font-size: 11px; }
+}
 .od-checking { font-size: var(--od-fs-xs); color: var(--od-ink-3); display: flex; align-items: center; gap: 8px; }
 .od-checking::before { content: ""; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--od-olive-400); border-inline-end-color: transparent; animation: od-spin 0.8s linear infinite; }
 

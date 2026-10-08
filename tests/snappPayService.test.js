@@ -56,6 +56,13 @@ test.before(async () => {
       });
     }
 
+    if (req.url === "/api/online/payment/v1/revert") {
+      return sendJson(res, {
+        successful: true,
+        response: { transactionId: "ORD-1" },
+      });
+    }
+
     if (req.url === "/api/online/payment/v1/cancel") {
       return sendJson(res, {
         successful: true,
@@ -148,7 +155,7 @@ test.before(async () => {
   process.env.SNAPPPAY_CLIENT_SECRET = "secret";
   process.env.SNAPPPAY_USERNAME = "user";
   process.env.SNAPPPAY_PASSWORD = "pass";
-  process.env.SNAPPPAY_PAYMENT_METHOD_TYPES = "INSTALLMENT";
+  delete process.env.SNAPPPAY_ELIGIBLE_PAYMENT_METHOD_TYPES;
   delete require.cache[require.resolve("../services/snappPayService")];
 });
 
@@ -169,7 +176,18 @@ test("احراز هویت، eligible، token و verify/settle اجرا می‌ش
   const tokenRequest = requests.find(
     (request) => request.url === "/api/online/payment/v1/token"
   );
-  assert.deepEqual(JSON.parse(tokenRequest.body), { amount: 100000 });
+  // forcedPaymentMethodTypes is stripped (SnappPay review #2); the documented
+  // paymentMethodTypeDto is always present.
+  assert.deepEqual(JSON.parse(tokenRequest.body), {
+    amount: 100000,
+    paymentMethodTypeDto: "INSTALLMENT",
+  });
+
+  // eligible is called exactly like SnappPay's sample: ?amount=<IRR> only.
+  const eligibleRequest = requests.find((request) =>
+    request.url.startsWith("/api/online/offer/v1/eligible")
+  );
+  assert.equal(eligibleRequest.url, "/api/online/offer/v1/eligible?amount=100000");
 
   const settled = await service.verifyAndSettle("pay-token");
   assert.equal(settled.status, "SETTLE");
@@ -203,7 +221,16 @@ test("status، update و cancel با endpointهای اسنپ‌پی اجرا م�
 
   const updateRequest = requests.find((request) => request.url === "/api/online/payment/v1/update");
   assert.ok(updateRequest);
-  assert.deepEqual(JSON.parse(updateRequest.body), { paymentToken: "pay-token", amount: 90000 });
+  assert.deepEqual(JSON.parse(updateRequest.body), {
+    paymentToken: "pay-token",
+    amount: 90000,
+    paymentMethodTypeDto: "INSTALLMENT",
+  });
+
+  await service.revert("pay-token");
+  const revertRequest = requests.find((request) => request.url === "/api/online/payment/v1/revert");
+  assert.ok(revertRequest);
+  assert.deepEqual(JSON.parse(revertRequest.body), { paymentToken: "pay-token" });
 
   const cancelRequest = requests.find((request) => request.url === "/api/online/payment/v1/cancel");
   assert.ok(cancelRequest);

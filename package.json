@@ -5,7 +5,7 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "start": "nodemon index.js",
-    "check": "node --check index.js && node --check models/Order.js && node --check routes/cart.js && node --check routes/order.js && node --check routes/admin.js && node --check services/snappPayService.js && node --check services/torobPayService.js && node --check services/orderPricing.js"
+    "check": "node --check index.js && node --check models/Order.js && node --check routes/cart.js && node --check routes/order.js && node --check routes/admin.js && node --check services/snappPayService.js && node --check services/snappPayReconciler.js && node --check services/torobPayService.js && node --check services/orderPricing.js"
   },
   "keywords": [],
   "author": "",

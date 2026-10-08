@@ -1041,6 +1041,8 @@ const connectWithRetry = async () => {
       console.log(`Server running on http://localhost:${process.env.PORT || 8080}`);
       // Idempotent data/index migrations run in the background; they never block startup.
       require("./helper/migrations").runStartupMigrations();
+      // SnappPay requires automatic Get Payment Status reconciliation.
+      orderRoutes.startSnappPayReconciler();
     });
   } catch (err) {
     console.error("Failed to connect to MongoDB - retrying in 5 sec", err);

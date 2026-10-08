@@ -24,6 +24,8 @@ const {
   buildSnappPayOrderPayload,
   buildTorobPayOrderPayload,
   calculateOrderAmountsToman,
+  countUnits,
+  recalculateOrderDiscountToman,
   tomanToIrr,
 } = require("../services/orderPricing");
 
@@ -1591,6 +1593,19 @@ const getVerifiedSnappPayStatus = async (order) => {
   return { status, statusResult };
 };
 
+// Atomic per-order lock so two admins (or a double click) can never send two
+// irreversible update/cancel requests for the same payment at the same time.
+const acquireSnappPayLock = async (order) => {
+  const locked = await Order.findOneAndUpdate(
+    { _id: order._id, "snappPay.processing": { $ne: true } },
+    { $set: { "snappPay.processing": true } },
+    { new: true }
+  );
+  // Mirror the DB lock in memory so the later `processing = false` is persisted.
+  if (locked) order.snappPay.processing = true;
+  return Boolean(locked);
+};
+
 router.post("/orders/:id/snappay/sync", async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -1643,6 +1658,15 @@ router.post("/orders/:id/snappay/update", async (req, res) => {
       return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
     }
 
+    // SnappPay review: once a single unit is left, only cancel is allowed
+    // (an update would leave nothing to settle and desync the order state).
+    if (countUnits(order.products) <= 1) {
+      return res.status(400).json({
+        success: false,
+        message: "در سفارش فقط یک آیتم باقی مانده است؛ برای مرجوعی از «کنسل کامل» استفاده کنید",
+      });
+    }
+
     const requestedItems = Array.isArray(req.body.items) ? req.body.items : [];
     if (!requestedItems.length) {
       return res.status(400).json({ success: false, message: "تعداد جدید محصولات ارسال نشده است" });
@@ -1692,29 +1716,14 @@ router.post("/orders/:id/snappay/update", async (req, res) => {
       return res.status(400).json({ success: false, message: "برای مرجوعی کامل از عملیات کنسل استفاده کنید" });
     }
 
-    const previousSubtotal = previousProducts.reduce(
-      (sum, item) => sum + Number(item.priceAtPurchase) * Number(item.quantity),
-      0
-    );
-    const newSubtotal = nextProducts.reduce(
-      (sum, item) => sum + Number(item.priceAtPurchase) * Number(item.quantity),
-      0
-    );
-
-    // در مرجوعی/کاهش جزئی، تخفیف سفارش باید بین آیتم‌های باقی‌مانده
-    // به نسبت مبلغ کالاها سرشکن شود. نگه داشتن کل تخفیف مبلغ ثابت روی
-    // سبد کوچک‌تر می‌تواند amount را صفر کند و SnappPay با خطای 1005
-    // ("باید بزرگتر از صفر باشد") درخواست update را رد می‌کند.
-    const previousDiscountAmount = Math.min(
-      Math.max(Number(order.discount?.calculatedAmount || order.discountAmount || 0), 0),
-      previousSubtotal
-    );
-    let newDiscountAmount = 0;
-    if (previousDiscountAmount > 0 && previousSubtotal > 0) {
-      newDiscountAmount = Math.floor(
-        (previousDiscountAmount * newSubtotal) / previousSubtotal
-      );
-    }
+    const newDiscountAmount = recalculateOrderDiscountToman({
+      discount: {
+        ...(order.discount?.toObject?.() || order.discount || {}),
+        calculatedAmount: Number(order.discountAmount || order.discount?.calculatedAmount || 0),
+      },
+      previousProducts,
+      nextProducts,
+    });
 
     const amounts = calculateOrderAmountsToman({
       products: nextProducts,
@@ -1733,8 +1742,9 @@ router.post("/orders/:id/snappay/update", async (req, res) => {
       return res.status(400).json({ success: false, message: "مبلغ آپدیت باید از مبلغ فعلی سفارش کمتر باشد" });
     }
 
-    order.snappPay.processing = true;
-    await order.save();
+    if (!(await acquireSnappPayLock(order))) {
+      return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
+    }
     const { status } = await getVerifiedSnappPayStatus(order);
     if (status !== "SETTLE") {
       order.snappPay.processing = false;
@@ -1742,20 +1752,14 @@ router.post("/orders/:id/snappay/update", async (req, res) => {
       return res.status(409).json({ success: false, message: `آپدیت فقط در وضعیت SETTLE ممکن است (وضعیت فعلی: ${status || "نامشخص"})` });
     }
 
-    // SnappPay payment/v1/update requires the updated cart data in addition to
-    // paymentToken/amount. Unlike the token payload, externalSourceAmount is not
-    // part of the update request used by SnappPay's update flow; sending it as 0
-    // can trigger the generic "must be greater than zero" validation error.
-    const snappOrderPayload = buildSnappPayOrderPayload(order, {
-      products: nextProducts,
-      discountAmount: newDiscountAmount,
-    });
-    const { externalSourceAmount: _ignoredExternalSourceAmount, ...snappUpdateData } =
-      snappOrderPayload;
-
+    // payment/v1/update carries the full updated cart with the same shape as
+    // payment/v1/token (amount, cartList, discountAmount, externalSourceAmount,
+    // paymentMethodTypeDto) plus the paymentToken being updated.
     const updatePayload = {
-      ...snappUpdateData,
-      paymentMethodTypeDto: "INSTALLMENT",
+      ...buildSnappPayOrderPayload(order, {
+        products: nextProducts,
+        discountAmount: newDiscountAmount,
+      }),
       paymentToken: order.snappPay.paymentToken,
     };
 
@@ -1819,8 +1823,9 @@ router.post("/orders/:id/snappay/cancel", async (req, res) => {
       return res.json({ success: true, message: "این سفارش قبلاً کنسل شده است", order });
     }
 
-    order.snappPay.processing = true;
-    await order.save();
+    if (!(await acquireSnappPayLock(order))) {
+      return res.status(409).json({ success: false, message: "عملیات دیگری روی این سفارش در حال انجام است" });
+    }
     const { status } = await getVerifiedSnappPayStatus(order);
     if (status !== "SETTLE") {
       order.snappPay.processing = false;

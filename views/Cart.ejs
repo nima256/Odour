@@ -167,10 +167,17 @@
                     <span class="od-choice__text"><strong>پرداخت آنلاین</strong><span>درگاه امن زرین‌پال با تمام کارت‌های بانکی</span></span>
                     <span class="od-choice__mark"><%- icon('card') %></span>
                   </label>
-                  <label class="od-choice" id="snapp-pay-option" hidden>
+                  <%# SnappPay gateway: new logo + title_message / description from the eligible response, two lines beside the logo. %>
+                  <label class="od-choice od-choice--snapppay" id="snapp-pay-option" hidden>
                     <input type="radio" name="paymentMethod" value="snappay" />
-                    <span class="od-choice__text"><strong id="snapp-pay-title"></strong><span id="snapp-pay-description"></span></span>
-                    <img class="od-choice__logo" src="/images/snapp-pay-checkout.svg" alt="اسنپ‌پی" width="40" height="40" />
+                    <picture class="od-snapppay-logo">
+                      <source media="(max-width: 479.98px)" srcset="/images/snapp-pay/logo-32x32.svg" width="32" height="32" />
+                      <img src="/images/snapp-pay/logo-40x40.svg" alt="اسنپ‌پی" width="40" height="40" />
+                    </picture>
+                    <span class="od-snapppay-gw__text">
+                      <strong class="od-snapppay-gw__title" id="snapp-pay-title"></strong>
+                      <span class="od-snapppay-gw__desc" id="snapp-pay-description"></span>
+                    </span>
                   </label>
                   <label class="od-choice" id="torob-pay-option" hidden>
                     <input type="radio" name="paymentMethod" value="torobpay" />

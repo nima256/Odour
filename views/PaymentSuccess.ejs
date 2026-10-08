@@ -14,7 +14,8 @@
         <dl class="od-kv">
           <% if (OrderNum) { %><div><dt>شماره سفارش</dt><dd class="od-latin" id="order-number"><%= OrderNum %></dd></div><% } %>
           <% if (paymentMethod) { %><div><dt>روش پرداخت</dt><dd><%= paymentMethod %></dd></div><% } %>
-          <% if (transactionId) { %><div style="grid-column:1/-1"><dt>کد پیگیری پرداخت</dt><dd class="od-latin" id="payment-transaction-id" style="user-select:all"><%= transactionId %></dd></div><% } %>
+          <% if (typeof snappPayTransactionId !== 'undefined' && snappPayTransactionId) { %><div style="grid-column:1/-1"><dt>شناسه تراکنش اسنپ‌پی</dt><dd class="od-latin" id="snapppay-transaction-id" dir="ltr" style="user-select:all"><%= snappPayTransactionId %></dd></div>
+          <% } else if (transactionId) { %><div style="grid-column:1/-1"><dt>کد پیگیری پرداخت</dt><dd class="od-latin" id="payment-transaction-id" style="user-select:all"><%= transactionId %></dd></div><% } %>
         </dl>
         <div class="od-row" style="justify-content:center;flex-wrap:wrap">
           <a class="od-btn" href="/userProfile#orders">پیگیری سفارش</a>

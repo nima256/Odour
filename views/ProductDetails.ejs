@@ -223,7 +223,12 @@
   const snappRegular = Number(product.price || 0);
   const snappOffer = Number(product.offerPrice || 0);
   const snappPayable = snappOffer > 0 && snappOffer < snappRegular ? snappRegular - Math.floor((snappRegular - snappOffer) / 2) : snappRegular;
+  // SnappPay PDP guideline: "هر قسط با اسنپ‌پی: X تومان" — 4 monthly instalments.
+  // The PDP must NOT call the eligible service (SnappPay review note #4).
   const snappInstallment = Math.ceil(snappPayable / 4);
+  const snappPdpMin = Number(process.env.SNAPPPAY_PDP_MIN_TOMAN || 0);
+  const snappPdpMax = Number(process.env.SNAPPPAY_PDP_MAX_TOMAN || 0);
+  const showSnappPdp = snappPayable > 0 && snappPayable >= snappPdpMin && (!snappPdpMax || snappPayable <= snappPdpMax);
 
   // TorobPay uses the same installment base price, then adds the 12% merchant surcharge.
   const torobPayable = snappPayable + Math.round(snappPayable * 0.12);
@@ -421,11 +426,17 @@
             <button class="od-icon-btn" type="button" data-wishlist="<%= product._id %>" aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها"><%- icon('heart') %></button>
           </div>
 
-          <% if (inStock && snappPayable >= 5000) { %>
-            <div class="od-installment" id="product-snapp-pay">
-              <img src="/images/snapp-pay.svg" alt="" width="30" height="30" />
-              <div><strong>۴ قسط <span class="od-num"><%= faPrice(snappInstallment) %></span> تومانی با اسنپ‌پی</strong>
-                <span>بدون سود، چک و ضامن</span></div>
+          <% if (inStock && showSnappPdp) { %>
+            <%# SnappPay PDP component (Snapp!Pay PDP Guidelines): logo + title + subtitle. %>
+            <div class="od-snapppay-pdp" id="product-snapp-pay">
+              <picture class="od-snapppay-logo">
+                <source media="(max-width: 767.98px)" srcset="/images/snapp-pay/logo-32x32.svg" width="32" height="32" />
+                <img src="/images/snapp-pay/logo-40x40.svg" alt="اسنپ‌پی" width="40" height="40" />
+              </picture>
+              <div class="od-snapppay-pdp__text">
+                <p class="od-snapppay-pdp__title">هر قسط با اسنپ‌پی: <%= faPrice(snappInstallment) %> تومان</p>
+                <p class="od-snapppay-pdp__subtitle">۴ قسط ماهانه. بدون سود، چک و ضامن.</p>
+              </div>
             </div>
           <% } %>
 

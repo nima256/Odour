@@ -223,7 +223,47 @@ const buildSnappPayOrderPayload = (order, options = {}) => {
   };
 };
 
+const countUnits = (products) =>
+  (products || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+
+// Discount for a partially returned SnappPay order (payment/v1/update).
+// - percent codes are recalculated with the original rule on the remaining items
+//   (ODOUR256 still ignores items that had a special price; the cap still applies);
+// - fixed-amount codes are spread proportionally over the item value, so the
+//   returned items take their share of the discount with them.
+// The result never exceeds the previous discount or the remaining item value.
+const recalculateOrderDiscountToman = ({ discount, previousProducts, nextProducts }) => {
+  const lineTotal = (items, predicate = () => true) =>
+    (items || [])
+      .filter(predicate)
+      .reduce(
+        (sum, item) => sum + Number(item.priceAtPurchase || 0) * Number(item.quantity || 0),
+        0
+      );
+
+  const previousSubtotal = lineTotal(previousProducts);
+  const nextSubtotal = lineTotal(nextProducts);
+  const previousDiscount = Math.min(
+    Math.max(Number(discount?.calculatedAmount || 0), 0),
+    previousSubtotal
+  );
+  if (previousDiscount <= 0 || nextSubtotal <= 0) return 0;
+
+  let nextDiscount;
+  if (discount?.type === "percent") {
+    const isOdour256 = String(discount.code || "").trim().toUpperCase() === "ODOUR256";
+    const base = lineTotal(nextProducts, (item) => !isOdour256 || !item.hadProductDiscount);
+    nextDiscount = Math.floor((base * Number(discount.amount || 0)) / 100);
+  } else {
+    nextDiscount = Math.floor((previousDiscount * nextSubtotal) / previousSubtotal);
+  }
+
+  return Math.max(0, Math.min(nextDiscount, previousDiscount, nextSubtotal));
+};
+
 module.exports = {
+  countUnits,
+  recalculateOrderDiscountToman,
   buildSnappPayOrderPayload,
   buildTorobPayOrderPayload,
   calculateOrderAmountsToman,

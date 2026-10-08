@@ -214,6 +214,7 @@ const orderSchema = new mongoose.Schema(
       lastStatusCheckAt: Date,
       lastError: String,
       processing: { type: Boolean, default: false },
+      processingStartedAt: Date,
       updateHistory: [
         {
           amount: Number,
@@ -230,6 +231,7 @@ const orderSchema = new mongoose.Schema(
       ],
       cancelledAt: Date,
       settledAt: Date,
+      revertedAt: Date,
     },
     torobPay: {
       paymentToken: { type: String, index: true, unique: true, sparse: true },
